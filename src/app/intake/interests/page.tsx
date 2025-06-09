@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useInterestsStore } from '@/store/interests'
+import Link from 'next/link'
 
 const commonInterests = [
   '💻 Technology',
@@ -40,12 +41,12 @@ export default function Intake() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <h1 className="text-3xl font-bold mb-8">What interests you?</h1>
-      
+
       {/* Common Interests Grid */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Common Interests</h2>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          {commonInterests.map((interest) => (
+          {commonInterests.map(interest => (
             <button
               key={interest}
               onClick={() => !selectedInterests.includes(interest) && addInterest(interest)}
@@ -65,8 +66,8 @@ export default function Intake() {
           <input
             type="text"
             value={customInterest}
-            onChange={(e) => setCustomInterest(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddCustomInterest()}
+            onChange={e => setCustomInterest(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddCustomInterest()}
             placeholder="Type your interest (ex. 'Legos', 'TikTok', 'Basketball') and press Enter"
             className="input input-bordered flex-1"
           />
@@ -80,10 +81,10 @@ export default function Intake() {
       </div>
 
       {/* Selected Interests */}
-      <div className='border-2 border-primary rounded-md p-4'>
+      <div className="border-2 border-primary rounded-md p-4">
         <h2 className="text-xl font-semibold mb-4">Your Selected Interests</h2>
         <div className="flex flex-wrap gap-2">
-          {selectedInterests.map((interest) => (
+          {selectedInterests.map(interest => (
             <button
               key={interest}
               onClick={() => removeInterest(interest)}
@@ -96,8 +97,8 @@ export default function Intake() {
           {selectedInterests.length === 0 && <p className="text-gray-500">No interests selected</p>}
         </div>
       </div>
-      <div className='flex justify-center mt-4'>
-        <button className="btn btn-primary">Continue to "Would Your Rather?"</button>
+      <div className="flex justify-center mt-4">
+        <Link href="/intake/would-you-rather" className="btn btn-primary">Continue to &quot;Would Your Rather?&quot;</Link>
       </div>
     </div>
   )
