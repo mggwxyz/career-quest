@@ -1,11 +1,12 @@
 export const questions = {
   decks: [
     {
+      id: 'riasec',
       name: 'RIASEC Interests',
       description: 'Each option is tagged with one or more Holland RIASEC interest codes.',
       questions: [
         {
-          id: 1,
+          id: 'riasec-1',
           option1: {
             id: 'riasec-bike-repair',
             text: 'Build and repair a bicycle',
@@ -22,7 +23,7 @@ export const questions = {
           },
         },
         {
-          id: 2,
+          id: 'riasec-2',
           option1: {
             id: 'riasec-chemistry-lab',
             text: 'Mix chemicals to see what happens',
@@ -39,7 +40,7 @@ export const questions = {
           },
         },
         {
-          id: 3,
+          id: 'riasec-3',
           option1: {
             id: 'riasec-digital-design',
             text: 'Design a digital poster from scratch',
@@ -56,7 +57,7 @@ export const questions = {
           },
         },
         {
-          id: 4,
+          id: 'riasec-4',
           option1: {
             id: 'riasec-budget-spreadsheet',
             text: 'Keep the club\'s budget in a spreadsheet',
@@ -73,7 +74,7 @@ export const questions = {
           },
         },
         {
-          id: 5,
+          id: 'riasec-5',
           option1: {
             id: 'riasec-plant-experiment',
             text: 'Investigate why certain plants grow faster under colored lights',
@@ -90,7 +91,7 @@ export const questions = {
           },
         },
         {
-          id: 6,
+          id: 'riasec-6',
           option1: {
             id: 'riasec-3d-printing',
             text: 'Operate a 3-D printer to make prototypes',
@@ -107,7 +108,7 @@ export const questions = {
           },
         },
         {
-          id: 7,
+          id: 'riasec-7',
           option1: {
             id: 'riasec-film-director',
             text: 'Direct a short film with your friends',
@@ -124,7 +125,7 @@ export const questions = {
           },
         },
         {
-          id: 8,
+          id: 'riasec-8',
           option1: {
             id: 'riasec-logic-puzzle',
             text: 'Solve a detective-style logic puzzle',
@@ -141,7 +142,7 @@ export const questions = {
           },
         },
         {
-          id: 9,
+          id: 'riasec-9',
           option1: {
             id: 'riasec-network-setup',
             text: 'Set up the school\'s Wi-Fi network',
@@ -158,7 +159,7 @@ export const questions = {
           },
         },
         {
-          id: 10,
+          id: 'riasec-10',
           option1: {
             id: 'riasec-board-game-teach',
             text: 'Teach a group how to play a board game',
@@ -177,11 +178,12 @@ export const questions = {
       ],
     },
     {
+      id: 'workvalue',
       name: 'Work-Value Motivators',
       description: 'Options are tagged with O*NET work-value codes: ACH, IND, REC, REL, SUP, WC.',
       questions: [
         {
-          id: 1,
+          id: 'workvalue-1',
           option1: {
             id: 'workvalue-award-win',
             text: 'Win an award for top performance',
@@ -198,7 +200,7 @@ export const questions = {
           },
         },
         {
-          id: 2,
+          id: 'workvalue-2',
           option1: {
             id: 'workvalue-flex-schedule',
             text: 'Set your own schedule',
@@ -215,7 +217,7 @@ export const questions = {
           },
         },
         {
-          id: 3,
+          id: 'workvalue-3',
           option1: {
             id: 'workvalue-high-salary',
             text: 'Earn a high salary for hitting tough goals',
@@ -232,7 +234,7 @@ export const questions = {
           },
         },
         {
-          id: 4,
+          id: 'workvalue-4',
           option1: {
             id: 'workvalue-skill-growth',
             text: 'Take on challenging tasks that grow your skills',
@@ -249,7 +251,7 @@ export const questions = {
           },
         },
         {
-          id: 5,
+          id: 'workvalue-5',
           option1: {
             id: 'workvalue-project-choice',
             text: 'Choose which project to tackle next',
@@ -266,7 +268,7 @@ export const questions = {
           },
         },
         {
-          id: 6,
+          id: 'workvalue-6',
           option1: {
             id: 'workvalue-job-security',
             text: 'Have steady health-benefit coverage and job security',
@@ -283,7 +285,7 @@ export const questions = {
           },
         },
         {
-          id: 7,
+          id: 'workvalue-7',
           option1: {
             id: 'workvalue-stage-recognition',
             text: 'Be spotlighted on stage for your successes',
@@ -300,7 +302,7 @@ export const questions = {
           },
         },
         {
-          id: 8,
+          id: 'workvalue-8',
           option1: {
             id: 'workvalue-outdoor-work',
             text: 'Work outdoors in all kinds of weather',
@@ -317,7 +319,7 @@ export const questions = {
           },
         },
         {
-          id: 9,
+          id: 'workvalue-9',
           option1: {
             id: 'workvalue-flex-workflow',
             text: 'Design your own workflow with minimal rules',
@@ -334,7 +336,7 @@ export const questions = {
           },
         },
         {
-          id: 10,
+          id: 'workvalue-10',
           option1: {
             id: 'workvalue-goal-progress',
             text: 'Reach difficult milestones and see measurable progress',
@@ -353,11 +355,12 @@ export const questions = {
       ],
     },
     {
+      id: 'env',
       name: 'Workplace-Environment Preferences',
       description: 'Options are tagged with environment codes: INO, OUT, RT, VR, TM, SO.',
       questions: [
         {
-          id: 1,
+          id: 'env-1',
           option1: {
             id: 'env-air-conditioned',
             text: 'Work at a laptop in an air-conditioned room',
@@ -374,7 +377,7 @@ export const questions = {
           },
         },
         {
-          id: 2,
+          id: 'env-2',
           option1: {
             id: 'env-daily-checklist',
             text: 'Follow a clear daily checklist',
@@ -391,7 +394,7 @@ export const questions = {
           },
         },
         {
-          id: 3,
+          id: 'env-3',
           option1: {
             id: 'env-group-collab',
             text: 'Collaborate with a big group on projects',
@@ -408,7 +411,7 @@ export const questions = {
           },
         },
         {
-          id: 4,
+          id: 'env-4',
           option1: {
             id: 'env-consistent-desk',
             text: 'Have the same desk and hours all year',
@@ -425,7 +428,7 @@ export const questions = {
           },
         },
         {
-          id: 5,
+          id: 'env-5',
           option1: {
             id: 'env-open-office',
             text: 'Brainstorm ideas in a buzzing open office',
@@ -442,7 +445,7 @@ export const questions = {
           },
         },
         {
-          id: 6,
+          id: 'env-6',
           option1: {
             id: 'env-wildlife-study',
             text: 'Inspect wildlife habitats in the field',
@@ -459,7 +462,7 @@ export const questions = {
           },
         },
         {
-          id: 7,
+          id: 'env-7',
           option1: {
             id: 'env-inventory-log',
             text: 'Check inventory and log numbers each hour',
@@ -476,7 +479,7 @@ export const questions = {
           },
         },
         {
-          id: 8,
+          id: 'env-8',
           option1: {
             id: 'env-team-meetings',
             text: 'Lead daily stand-up meetings with the crew',
@@ -493,7 +496,7 @@ export const questions = {
           },
         },
         {
-          id: 9,
+          id: 'env-9',
           option1: {
             id: 'env-soil-samples',
             text: 'Collect soil samples for a science study',
@@ -510,7 +513,7 @@ export const questions = {
           },
         },
         {
-          id: 10,
+          id: 'env-10',
           option1: {
             id: 'env-role-rotation',
             text: 'Rotate through different roles every semester',
@@ -530,6 +533,3 @@ export const questions = {
     },
   ],
 }
-
-const 
-
