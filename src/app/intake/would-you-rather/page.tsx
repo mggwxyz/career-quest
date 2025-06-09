@@ -5,6 +5,7 @@ import { WouldYouRatherQuestion } from '@/store/wouldYouRatherStore'
 import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
+import Link from 'next/link'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -36,12 +37,26 @@ export default function WouldYouRather() {
       <div className="container mx-auto p-6 max-w-4xl text-center">
         <h1 className="text-3xl font-bold mb-8">Thank you for playing!</h1>
         <p className="text-xl mb-8">We&apos;ve recorded your preferences.</p>
-        <button
-          onClick={() => resetGame()}
-          className="btn btn-primary"
-        >
-          Play Again
-        </button>
+        <div className="flex flex-col gap-4 items-center">
+          <Link
+            href="/intake/summary"
+            className="btn btn-primary"
+          >
+            View Your Results
+          </Link>
+          <Link
+            href="/careers"
+            className="btn btn-secondary"
+          >
+            Explore Career Matches
+          </Link>
+          <button
+            onClick={() => resetGame()}
+            className="btn btn-outline"
+          >
+            Play Again
+          </button>
+        </div>
       </div>
     )
   }

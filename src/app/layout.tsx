@@ -31,7 +31,7 @@ export default function RootLayout({
           <h1 className="text-4xl font-bold">Career Quest</h1>
         </div>
         {children}
-        
+
       </body>
     </html>
   )
