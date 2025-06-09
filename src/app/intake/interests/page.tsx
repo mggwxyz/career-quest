@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useInterestsStore } from '@/store/interests'
+import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 
 const commonInterests = [
@@ -29,10 +29,10 @@ const commonInterests = [
 
 export default function Intake() {
   const [customInterest, setCustomInterest] = useState('')
-  const { selectedInterests, addInterest, removeInterest } = useInterestsStore()
+  const { interests, addInterest, removeInterest } = useAppStore()
 
   const handleAddCustomInterest = () => {
-    if (customInterest.trim() && !selectedInterests.includes(customInterest.trim())) {
+    if (customInterest.trim() && !interests.includes(customInterest.trim())) {
       addInterest(customInterest.trim())
       setCustomInterest('')
     }
@@ -49,8 +49,8 @@ export default function Intake() {
           {commonInterests.map(interest => (
             <button
               key={interest}
-              onClick={() => !selectedInterests.includes(interest) && addInterest(interest)}
-              disabled={selectedInterests.includes(interest)}
+              onClick={() => !interests.includes(interest) && addInterest(interest)}
+              disabled={interests.includes(interest)}
               className="btn btn-primary btn-outline btn-sm w-full"
             >
               {interest}
@@ -84,7 +84,7 @@ export default function Intake() {
       <div className="border-2 border-primary rounded-md p-4">
         <h2 className="text-xl font-semibold mb-4">Your Selected Interests</h2>
         <div className="flex flex-wrap gap-2">
-          {selectedInterests.map(interest => (
+          {interests.map(interest => (
             <button
               key={interest}
               onClick={() => removeInterest(interest)}
@@ -94,7 +94,7 @@ export default function Intake() {
               <span>✕</span>
             </button>
           ))}
-          {selectedInterests.length === 0 && <p className="text-gray-500">No interests selected</p>}
+          {interests.length === 0 && <p className="text-gray-500">No interests selected</p>}
         </div>
       </div>
       <div className="flex justify-center mt-4">

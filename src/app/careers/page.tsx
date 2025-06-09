@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 
@@ -13,11 +13,36 @@ interface Career {
   salaryRange: string
 }
 
+const loadingMessages = [
+  'Analyzing your interests and preferences...',
+  'Matching your profile with potential careers...',
+  'Considering job growth and salary trends...',
+  'Finding careers that align with your values...',
+  'Almost there! Just a few more calculations...',
+  'Reviewing the latest labor market data...',
+  'Personalizing your career recommendations...',
+]
+
 export default function Careers() {
-  const { getDeckResults } = useAppStore()
+  const { getDeckResults, interests } = useAppStore()
   const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+
+  console.log({ interests })
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (loading) {
+      interval = setInterval(() => {
+        setLoadingMessageIndex(prev => (prev + 1) % loadingMessages.length)
+      }, 3000)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [loading])
 
   const generateCareerRecommendations = async () => {
     setLoading(true)
@@ -30,7 +55,7 @@ export default function Careers() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(results),
+        body: JSON.stringify({ results, interests }),
       })
 
       if (!response.ok) {
@@ -48,6 +73,49 @@ export default function Careers() {
     }
   }
 
+  const LoadingTable = () => (
+    <div className="space-y-4">
+      <div className="text-center mb-4">
+        <div className="loading loading-spinner loading-lg" />
+        <p className="mt-4 text-lg font-medium">{loadingMessages[loadingMessageIndex]}</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="table table-zebra">
+          <thead>
+            <tr>
+              <th>Career</th>
+              <th>Description</th>
+              <th>Why It Matches</th>
+              <th>Job Growth</th>
+              <th>Salary Range</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, index) => (
+              <tr key={index}>
+                <td>
+                  <div className="h-4 bg-base-300 rounded animate-pulse" />
+                </td>
+                <td>
+                  <div className="h-4 bg-base-300 rounded animate-pulse" />
+                </td>
+                <td>
+                  <div className="h-4 bg-base-300 rounded animate-pulse" />
+                </td>
+                <td>
+                  <div className="h-4 bg-base-300 rounded animate-pulse" />
+                </td>
+                <td>
+                  <div className="h-4 bg-base-300 rounded animate-pulse" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <h1 className="text-3xl font-bold mb-8">Career Recommendations</h1>
@@ -58,74 +126,80 @@ export default function Careers() {
         </div>
       )}
 
-      {careers.length === 0
-        ? (
-          <div className="text-center">
-            <p className="text-xl mb-8">
-              Based on your assessment results, we can generate personalized career recommendations.
-            </p>
-            <button
-              onClick={generateCareerRecommendations}
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Generating Recommendations...' : 'Generate Career Recommendations'}
-            </button>
-          </div>
-        )
-        : (
-          <div className="space-y-8">
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>Career</th>
-                    <th>Description</th>
-                    <th>Why It Matches</th>
-                    <th>Job Growth</th>
-                    <th>Salary Range</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {careers.map(career => (
-                    <tr key={career.onetId}>
-                      <td>
-                        <a
-                          href={`https://www.onetonline.org/link/summary/${career.onetId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="link link-primary font-medium"
-                        >
-                          {career.title}
-                        </a>
-                      </td>
-                      <td>{career.description}</td>
-                      <td>{career.whyItMatches}</td>
-                      <td>{career.jobGrowth}</td>
-                      <td>{career.salaryRange}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      <div className="space-y-8">
+        {loading
+          ? (
+            <LoadingTable />
+          )
+          : careers.length === 0
+            ? (
+              <div className="text-center">
+                <p className="text-xl mb-8">
+                  Based on your assessment results and selected interests, we can generate personalized career recommendations.
+                </p>
+                <button
+                  onClick={generateCareerRecommendations}
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  Generate Career Recommendations
+                </button>
+              </div>
+            )
+            : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="table table-zebra">
+                    <thead>
+                      <tr>
+                        <th>Career</th>
+                        <th>Description</th>
+                        <th>Why It Matches</th>
+                        <th>Job Growth</th>
+                        <th>Salary Range</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {careers.map(career => (
+                        <tr key={career.onetId}>
+                          <td>
+                            <a
+                              href={`https://www.onetonline.org/link/summary/${career.onetId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="link link-primary font-medium"
+                            >
+                              {career.title}
+                            </a>
+                          </td>
+                          <td>{career.description}</td>
+                          <td>{career.whyItMatches}</td>
+                          <td>{career.jobGrowth}</td>
+                          <td>{career.salaryRange}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={generateCareerRecommendations}
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? 'Regenerating...' : 'Regenerate Recommendations'}
-              </button>
-              <Link
-                href="/intake/summary"
-                className="btn btn-outline"
-              >
-                View Assessment Results
-              </Link>
-            </div>
-          </div>
-        )}
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={generateCareerRecommendations}
+                    className="btn btn-primary"
+                    disabled={loading}
+                  >
+                    Regenerate Recommendations
+                  </button>
+                  <Link
+                    href="/intake/summary"
+                    className="btn btn-outline"
+                  >
+                    View Assessment Results
+                  </Link>
+                </div>
+              </>
+            )}
+      </div>
     </div>
   )
 }

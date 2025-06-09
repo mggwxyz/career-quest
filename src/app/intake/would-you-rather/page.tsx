@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { WouldYouRatherQuestion } from '@/store/wouldYouRatherStore'
+import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
 import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'

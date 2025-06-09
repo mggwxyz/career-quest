@@ -11,10 +11,12 @@ const openai = createOpenAI({
 
 export async function POST(request: Request) {
   try {
-    const results = await request.json()
+    const { results, interests } = await request.json()
+
+    console.log({ results, interests })
 
     const prompt = `
-        Based on the following assessment results, suggest 10 career paths that would be a good match. 
+        Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match. 
         For each career, provide a brief explanation of why it matches their profile.
         Format the response as a JSON array of objects, where each object has the following properties:
         - title: string (the title of the career)
@@ -24,6 +26,9 @@ export async function POST(request: Request) {
         - jobGrowth: string (the job growth of the career)
         - salaryRange: string (the salary range of the career)
 
+        Selected Interests:
+        ${interests.join(', ')}
+
         Assessment Results:
         ${JSON.stringify(results, null, 2)}
 
@@ -31,7 +36,9 @@ export async function POST(request: Request) {
 
     const result = await generateObject({
       model: openai.chat('gpt-4o'),
-      system: `You are a career counselor helping to match people with suitable careers based on their interests, values, and preferences.`,
+      system: `You are a career counselor helping to match people with suitable careers based on their interests, values, and preferences. 
+      Consider both their explicitly selected interests and their assessment results when making recommendations.
+      Prioritize careers that align with their selected interests while also matching their RIASEC profile, work values, and environment preferences.`,
       prompt,
       schema: z.object({
         careers: z.array(z.object({
