@@ -1,7 +1,7 @@
 // lib/careerQuiz.ts
 // ────────────────────────────────────────────────────────────────────────────────
-import { experimental_streamText as streamText } from 'ai'
-import { openai } from '@ai-sdk/openai'
+// import { streamText } from 'ai'
+// import { openai } from '@ai-sdk/openai'
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                    */
@@ -87,46 +87,46 @@ export function buildStudentSummary(
 /*  3)  Ask ChatGPT for career suggestions                                    */
 /* -------------------------------------------------------------------------- */
 
-export async function getCareerRecommendations(
-  tallies: Record<string, Record<string, number>>,
-  nCareers = 5,
-): Promise<string[]> {
-  // Format the tallies as bullet points ChatGPT can read easily.
-  const summaryForModel = Object.entries(tallies)
-    .map(
-      ([deck, codes]) =>
-        `${deck} → `
-        + Object.entries(codes)
-          .map(([code, count]) => `${code}:${count}`)
-          .join(', '),
-    )
-    .join('\n')
+// export async function getCareerRecommendations(
+//   tallies: Record<string, Record<string, number>>,
+//   nCareers = 5,
+// ): Promise<string[]> {
+//   // Format the tallies as bullet points ChatGPT can read easily.
+//   const summaryForModel = Object.entries(tallies)
+//     .map(
+//       ([deck, codes]) =>
+//         `${deck} → `
+//         + Object.entries(codes)
+//           .map(([code, count]) => `${code}:${count}`)
+//           .join(', '),
+//     )
+//     .join('\n')
 
-  const { text } = await streamText({
-    model: openai.chat('gpt-4o-mini'),
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are an expert career counselor who only suggests well-known, legitimate career paths.',
-      },
-      {
-        role: 'user',
-        content: [
-          `A student completed a career preference quiz. Their code tallies are:\n${summaryForModel}\n`,
-          `Please list the top ${nCareers} careers they should explore.`,
-          'Provide just a numbered list. Each line: "Career – 1-sentence rationale."',
-        ].join('\n'),
-      },
-    ],
-  })
+//   const { text } = await streamText({
+//     model: openai.chat('gpt-4o-mini'),
+//     messages: [
+//       {
+//         role: 'system',
+//         content:
+//           'You are an expert career counselor who only suggests well-known, legitimate career paths.',
+//       },
+//       {
+//         role: 'user',
+//         content: [
+//           `A student completed a career preference quiz. Their code tallies are:\n${summaryForModel}\n`,
+//           `Please list the top ${nCareers} careers they should explore.`,
+//           'Provide just a numbered list. Each line: "Career – 1-sentence rationale."',
+//         ].join('\n'),
+//       },
+//     ],
+//   })
 
-  // Split into individual careers and trim.
-  return text
-    .split('\n')
-    .map(l => l.replace(/^\d+\.\s*/, '').trim())
-    .filter(Boolean)
-}
+//   // Split into individual careers and trim.
+//   return text
+//     .split('\n')
+//     .map(l => l.replace(/^\d+\.\s*/, '').trim())
+//     .filter(Boolean)
+// }
 
 /* -------------------------------------------------------------------------- */
 /*  Example usage                                                             */

@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { WouldYouRatherQuestionOption } from '@/store/wouldYouRatherStore'
+import { WouldYouRatherQuestionOption } from '@/store/slices/wouldYouRatherSlice'
 
 interface OptionCardProps {
   option: WouldYouRatherQuestionOption
