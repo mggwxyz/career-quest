@@ -11,7 +11,7 @@ interface OptionCardProps {
 export default function OptionCard({ option, isSelected, showCheckmark, onClick }: OptionCardProps) {
   return (
     <button
-      className={`card bg-base-100 shadow-xl cursor-pointer transition-all duration-300 ${
+      className={`card-sm md:card  bg-base-100 rounded-md overflow-hidden shadow-xl cursor-pointer transition-all duration-300 flex flex-col ${
         isSelected ? 'ring-2 ring-primary' : ''
       }`}
       onClick={onClick}
@@ -29,8 +29,8 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
           </div>
         )}
       </figure>
-      <div className="card-body">
-        <h2 className="card-title justify-center text-xl">
+      <div className="card-body flex-grow-1">
+        <h2 className="card-title justify-center text-sm md:text-xl">
           {option.text}
         </h2>
       </div>

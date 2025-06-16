@@ -6,6 +6,7 @@ import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
+import { containerClassName } from '@/app/_styles/classes'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -34,7 +35,7 @@ export default function WouldYouRather() {
 
   if (currentQuestionIndex >= allQuestions.length) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl text-center">
+      <div className={containerClassName}>
         <h1 className="text-3xl font-bold mb-8">Thank you for playing!</h1>
         <p className="text-xl mb-8">We&apos;ve recorded your preferences.</p>
         <div className="flex flex-col gap-4 items-center">
@@ -62,7 +63,7 @@ export default function WouldYouRather() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className={containerClassName}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Would You Rather?</h1>
         <div className="flex justify-between items-center mb-2">
@@ -87,7 +88,7 @@ export default function WouldYouRather() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-2 gap-2 md:gap-8">
         <OptionCard
           option={currentQuestion.option1}
           isSelected={selectedOption === 1}

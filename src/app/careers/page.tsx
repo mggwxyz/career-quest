@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
+import { containerClassName } from '../_styles/classes'
 
 interface Career {
   title: string
@@ -117,7 +118,7 @@ export default function Careers() {
   )
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className={containerClassName}>
       <h1 className="text-3xl font-bold mb-8">Career Recommendations</h1>
 
       {error && (

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
+import { containerClassName } from '@/app/_styles/classes'
 
 const commonInterests = [
   '💻 Technology',
@@ -39,7 +40,7 @@ export default function Intake() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className={containerClassName}>
       <h1 className="text-3xl font-bold mb-8">What interests you?</h1>
 
       {/* Common Interests Grid */}

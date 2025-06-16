@@ -3,13 +3,14 @@
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 import { describeCode } from '@/app/_data/codeLabels'
+import { containerClassName } from '@/app/_styles/classes'
 
 export default function IntakeSummary() {
   const { getDeckResults } = useAppStore()
   const results = getDeckResults()
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className={containerClassName}>
       <h1 className="text-3xl font-bold mb-8">Your Assessment Results</h1>
 
       <div className="space-y-12">
