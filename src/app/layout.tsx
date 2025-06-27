@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+// import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+import { LoginStatus } from '@/components/login-status'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="navbar p-0 bg-base-100 shadow-sm">
+        <nav className="navbar p-0 bg-base-100 shadow-sm fixed top-0 left-0 right-0 z-50">
           <div className="container flex flex-row items-center mx-auto max-w-4xl">
 
             <div className="flex-1">
@@ -61,6 +62,7 @@ export default function RootLayout({
                 <li><Link href="/intake/summary">Summary</Link></li>
                 <li><Link href="/careers">Careers</Link></li>
               </ul>
+              <LoginStatus />
               {/* <div className="max-h-7">
                     <UserButton />
                   </div> */}
@@ -70,7 +72,7 @@ export default function RootLayout({
           </div>
         </nav>
 
-        {children}
+        <main className="mt-16">{children}</main>
 
       </body>
     </html>
