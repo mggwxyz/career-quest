@@ -5,6 +5,7 @@ export interface InterestsState {
   addInterest: (interest: string) => void
   removeInterest: (interest: string) => void
   clearInterests: () => void
+  setInterests: (interests: string[]) => void
 }
 
 export const createInterestsSlice: StateCreator<InterestsState> = set => ({
@@ -18,4 +19,5 @@ export const createInterestsSlice: StateCreator<InterestsState> = set => ({
       interests: state.interests.filter(i => i !== interest),
     })),
   clearInterests: () => set({ interests: [] }),
+  setInterests: interests => set({ interests }),
 })
