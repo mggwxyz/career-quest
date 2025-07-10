@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { useChat } from 'ai/react'
 import { Send, User, Bot } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -28,7 +28,7 @@ export function CareerChat({ career }: CareerChatProps) {
       {
         id: 'system',
         role: 'assistant',
-        content: `Hi! I'm here to help you learn about **${career.title}**. I can answer questions about the day-to-day responsibilities, required skills, career path, education requirements, and anything else you'd like to know about this career. What would you like to know?`,
+        content: `Hi! I'm here to help you learn about **${career.title}**. I can answer questions about the day-to-day responsibilities, required skills, career path, education requirements, and unknownthing else you'd like to know about this career. What would you like to know?`,
       },
     ],
     body: {
@@ -61,7 +61,7 @@ export function CareerChat({ career }: CareerChatProps) {
             {career.title}
           </h2>
           <p className="text-sm text-base-content/70">
-            Ask me anything about this career!
+            Ask me unknownthing about this career!
           </p>
         </div>
 

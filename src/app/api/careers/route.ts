@@ -64,7 +64,7 @@ const saveUserData = async (careers: CareerRecommendation[], quizResults: unknow
   }
 }
 
-// export const saveCareerRecommendations = async (results: any, interests: any) => {
+// export const saveCareerRecommendations = async (results: unknown, interests: unknown) => {
 //   const drizzleClient
 
 //   await db.insert(careerRecommendations).values( )
