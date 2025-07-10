@@ -164,14 +164,22 @@ export default function Careers() {
                       {careers.map(career => (
                         <tr key={career.onetId}>
                           <td>
-                            <a
-                              href={`https://www.onetonline.org/link/summary/${career.onetId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="link link-primary font-medium"
-                            >
-                              {career.title}
-                            </a>
+                            <div className="flex flex-col gap-2">
+                              <a
+                                href={`https://www.onetonline.org/link/summary/${career.onetId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="link link-primary font-medium"
+                              >
+                                {career.title}
+                              </a>
+                              <Link
+                                href={`/careers/${career.onetId}`}
+                                className="btn btn-xs btn-outline"
+                              >
+                                Chat about this career
+                              </Link>
+                            </div>
                           </td>
                           <td>{career.description}</td>
                           <td>{career.whyItMatches}</td>

@@ -2,12 +2,73 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { NextResponse } from 'next/server'
 import { generateObject } from 'ai'
 import { z } from 'zod'
+import { createClient } from '@/lib/supabase/server'
+import { db } from '@/db'
+import { userInfo } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 const openai = createOpenAI({
   // custom settings, e.g.
   compatibility: 'strict', // strict mode, enable when using the OpenAI API
   apiKey: process.env.OPENAI_API_KEY,
 })
+
+type CareerRecommendation = {
+  title: string
+  description: string
+  onetId: string
+  whyItMatches: string
+  jobGrowth: string
+  salaryRange: string
+}
+
+const saveUserData = async (careers: CareerRecommendation[], quizResults: unknown, interests: string[]) => {
+  const supabase = await createClient()
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError) {
+    console.error('Error getting user:', userError)
+    throw userError
+  }
+
+  if (!user?.id) {
+    throw new Error('User not found')
+  }
+
+  // Try to update existing user info first
+  const existingUser = await db.select().from(userInfo)
+    .where(eq(userInfo.id, user.id))
+    .limit(1)
+
+  if (existingUser.length > 0) {
+    // Update existing user
+    await db.update(userInfo)
+      .set({
+        interests,
+        quizResults: careers,
+        updatedAt: new Date(),
+      })
+      .where(eq(userInfo.id, user.id))
+  }
+  else {
+    // Insert new user
+    await db.insert(userInfo).values({
+      id: user.id,
+      email: user.email,
+      interests,
+      quizResults: careers,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+  }
+}
+
+// export const saveCareerRecommendations = async (results: any, interests: any) => {
+//   const drizzleClient
+
+//   await db.insert(careerRecommendations).values( )
+// }
 
 export async function POST(request: Request) {
   try {
@@ -56,6 +117,13 @@ export async function POST(request: Request) {
 
     if (!result) {
       throw new Error('No response from OpenAI')
+    }
+
+    try {
+      await saveUserData(result.object.careers, results, interests)
+    }
+    catch (error) {
+      console.error('Error saving user data:', error)
     }
 
     return NextResponse.json({ careers: result.object.careers })
