@@ -1,5 +1,11 @@
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { streamText } from 'ai'
+
+const openai = createOpenAI({
+  // custom settings, e.g.
+  compatibility: 'strict', // strict mode, enable when using the OpenAI API
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
