@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm'
 
 export async function GET(
   request: Request,
-  { params }: { params: { onetId: string } },
+  { params }: { params: Promise<{ onetId: string }> },
 ) {
   console.log('GET request received')
   console.log('params', params)

@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react'
-import Markdown from 'react-markdown'
+import React, { Suspense, JSX } from 'react'
+import Markdown, { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import { cn } from '@/lib/utils'
@@ -12,7 +12,7 @@ interface MarkdownRendererProps {
 export function MarkdownRenderer({ children }: MarkdownRendererProps) {
   return (
     <div className="space-y-3">
-      <Markdown remarkPlugins={[remarkGfm]} components={COMPONENTS}>
+      <Markdown remarkPlugins={[remarkGfm]} components={COMPONENTS as Components}>
         {children}
       </Markdown>
     </div>
@@ -122,8 +122,10 @@ function childrenTakeAllStringContents(element: unknown): string {
     return element
   }
 
-  if (element?.props?.children) {
-    const children = element.props.children
+  const el = element as { props: { children: React.ReactNode } }
+
+  if (el?.props?.children) {
+    const children = el.props.children
 
     if (Array.isArray(children)) {
       return children
@@ -147,7 +149,7 @@ const COMPONENTS = {
   strong: withClass('strong', 'font-semibold'),
   a: withClass('a', 'text-primary underline underline-offset-2'),
   blockquote: withClass('blockquote', 'border-l-2 border-primary pl-4'),
-  code: ({ children, className, node, ...rest }: unknown) => {
+  code: ({ children, className, node, ...rest }: { children: React.ReactNode, className: string, node: unknown }) => {
     const match = /language-(\w+)/.exec(className || '')
     return match
       ? (
@@ -166,7 +168,7 @@ const COMPONENTS = {
         </code>
       )
   },
-  pre: ({ children }: unknown) => children,
+  pre: ({ children }: { children: React.ReactNode }) => children,
   ol: withClass('ol', 'list-decimal space-y-2 pl-6'),
   ul: withClass('ul', 'list-disc space-y-2 pl-6'),
   li: withClass('li', 'my-1.5'),
@@ -188,7 +190,7 @@ const COMPONENTS = {
 }
 
 function withClass(Tag: keyof JSX.IntrinsicElements, classes: string) {
-  const Component = ({ node, ...props }: unknown) => (
+  const Component = ({ node, ...props }: { node: unknown, [key: string]: unknown }) => (
     <Tag className={classes} {...props} />
   )
   Component.displayName = Tag
