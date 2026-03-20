@@ -50,7 +50,10 @@ export const NavigationBar = () => {
           <Link href="/" className="btn btn-ghost btn-link no-underline p-1 text-xl text-nowrap">Career Quest</Link>
         </div>
         <div className="flex flex-row items-center gap-1">
-          {loading ? null : user ? (
+          {loading
+            ? null
+            : user
+              ? (
             <>
               <div className="dropdown dropdown-end md:hidden">
                 <div tabIndex={0} role="button" className="btn btn-ghost">
@@ -59,7 +62,7 @@ export const NavigationBar = () => {
                   </svg>
                 </div>
                 <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                  {navLinks.map((link) => (
+                  {navLinks.map(link => (
                     <li key={link.href}>
                       <Link href={link.href} className={isActive(link.href) ? 'active' : ''}>
                         {link.label}
@@ -69,7 +72,7 @@ export const NavigationBar = () => {
                 </ul>
               </div>
               <ul className="menu menu-horizontal px-1 hidden md:flex">
-                {navLinks.map((link) => (
+                {navLinks.map(link => (
                   <li key={link.href}>
                     <Link href={link.href} className={isActive(link.href) ? 'active' : ''}>
                       {link.label}

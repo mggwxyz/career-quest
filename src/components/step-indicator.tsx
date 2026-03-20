@@ -13,7 +13,7 @@ const steps = [
 export function StepIndicator() {
   const pathname = usePathname()
 
-  const currentIndex = steps.findIndex((s) => pathname.startsWith(s.href))
+  const currentIndex = steps.findIndex(s => pathname.startsWith(s.href))
 
   return (
     <div className="w-full mb-8">
