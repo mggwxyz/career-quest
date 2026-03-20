@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 import { containerClassName } from '@/app/_styles/classes'
 import { generateCareerRecommendationsAction } from '../actions'
+import { StepIndicator } from '@/components/step-indicator'
 
 interface Career {
   title: string
@@ -117,6 +118,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
 
   return (
     <div className={containerClassName}>
+      <StepIndicator />
       <h1 className="text-3xl font-bold mb-8">Career Recommendations</h1>
 
       {error && (

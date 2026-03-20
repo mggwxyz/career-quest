@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/appStore'
 import Image from 'next/image'
 import { containerClassName } from '@/app/_styles/classes'
 import { saveInterestsAndRedirect } from '../actions'
+import { StepIndicator } from '@/components/step-indicator'
 
 const commonInterests = [
   '💻 Technology',
@@ -60,6 +61,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
 
   return (
     <div className={containerClassName}>
+      <StepIndicator />
       <div className="flex items-center gap-4 mb-8">
         <Image
           src="/images/what-are-your-interests.png"

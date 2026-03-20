@@ -4,6 +4,7 @@ import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 import { describeCode } from '@/app/_data/codeLabels'
 import { containerClassName } from '@/app/_styles/classes'
+import { StepIndicator } from '@/components/step-indicator'
 
 export default function IntakeSummary() {
   const { getDeckResults } = useAppStore()
@@ -11,6 +12,7 @@ export default function IntakeSummary() {
 
   return (
     <div className={containerClassName}>
+      <StepIndicator />
       <h1 className="text-3xl font-bold mb-8">Your Assessment Results</h1>
 
       <div className="space-y-12">

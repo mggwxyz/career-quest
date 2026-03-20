@@ -7,6 +7,7 @@ import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
 import Link from 'next/link'
 import { containerClassName } from '@/app/_styles/classes'
+import { StepIndicator } from '@/components/step-indicator'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -36,6 +37,7 @@ export default function WouldYouRather() {
   if (currentQuestionIndex >= allQuestions.length) {
     return (
       <div className={containerClassName}>
+        <StepIndicator />
         <h1 className="text-3xl font-bold mb-8">Thank you for playing!</h1>
         <p className="text-xl mb-8">We&apos;ve recorded your preferences.</p>
         <div className="flex flex-col gap-4 items-center">
@@ -64,6 +66,7 @@ export default function WouldYouRather() {
 
   return (
     <div className={containerClassName}>
+      <StepIndicator />
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Would You Rather?</h1>
         <div className="flex justify-between items-center mb-2">

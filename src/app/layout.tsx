@@ -24,17 +24,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    // <ClerkProvider>
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NavigationBar />
         <main className="mt-16">{children}</main>
-
       </body>
     </html>
-    // </ClerkProvider>
-
   )
 }
