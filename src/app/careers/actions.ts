@@ -2,33 +2,22 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
-import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { userInfo } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 
 const openai = createOpenAI({
   compatibility: 'strict',
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-interface CareerRecommendation {
-  title: string
-  description: string
-  onetId: string
-  whyItMatches: string
-  jobGrowth: string
-  salaryRange: string
-}
-
 export async function generateCareerRecommendationsAction(
-  results: unknown,
+  results: Record<string, Record<string, number>>,
   interests: string[],
 ): Promise<{ success: boolean, careers?: CareerRecommendation[], error?: string }> {
   try {
-    console.log({ results, interests })
-
     const prompt = `
       Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match. 
       For each career, provide a brief explanation of why it matches their profile.
@@ -53,16 +42,7 @@ export async function generateCareerRecommendationsAction(
       Consider both their explicitly selected interests and their assessment results when making recommendations.
       Prioritize careers that align with their selected interests while also matching their RIASEC profile, work values, and environment preferences.`,
       prompt,
-      schema: z.object({
-        careers: z.array(z.object({
-          title: z.string(),
-          description: z.string(),
-          onetId: z.string(),
-          whyItMatches: z.string(),
-          jobGrowth: z.string(),
-          salaryRange: z.string(),
-        })),
-      }),
+      schema: CareersResponseSchema,
     })
 
     if (!result) {

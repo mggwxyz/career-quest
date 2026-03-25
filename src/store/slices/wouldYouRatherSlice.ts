@@ -18,23 +18,45 @@ export interface WouldYouRatherQuestion {
 export interface WouldYouRatherState {
   currentQuestionIndex: number
   answers: Record<string, number>
+  skippedQuestions: Set<string>
   setAnswer: (questionId: string, option: number) => void
+  skipQuestion: (questionId: string) => void
   nextQuestion: () => void
   previousQuestion: () => void
   resetGame: () => void
+  hydrateFromDB: (answers: Record<string, number>, skippedQuestions: string[]) => void
   getDeckResults: () => Record<string, Record<string, number>>
 }
 
 export const createWouldYouRatherSlice: StateCreator<WouldYouRatherState> = (set, get) => ({
   currentQuestionIndex: 0,
   answers: {},
+  skippedQuestions: new Set<string>(),
   setAnswer: (questionId: string, option: number) =>
-    set(state => ({
-      answers: {
-        ...state.answers,
-        [questionId]: option,
-      },
-    })),
+    set((state) => {
+      // Remove from skipped if it was previously skipped
+      const newSkipped = new Set(state.skippedQuestions)
+      newSkipped.delete(questionId)
+
+      return {
+        answers: {
+          ...state.answers,
+          [questionId]: option,
+        },
+        skippedQuestions: newSkipped,
+      }
+    }),
+  skipQuestion: (questionId: string) =>
+    set((state) => {
+      // Remove from answers if it was previously answered
+      const newAnswers = { ...state.answers }
+      delete newAnswers[questionId]
+
+      return {
+        answers: newAnswers,
+        skippedQuestions: new Set([...state.skippedQuestions, questionId]),
+      }
+    }),
   nextQuestion: () =>
     set(state => ({
       currentQuestionIndex: state.currentQuestionIndex + 1,
@@ -47,6 +69,12 @@ export const createWouldYouRatherSlice: StateCreator<WouldYouRatherState> = (set
     set({
       currentQuestionIndex: 0,
       answers: {},
+      skippedQuestions: new Set<string>(),
+    }),
+  hydrateFromDB: (answers: Record<string, number>, skippedQuestions: string[]) =>
+    set({
+      answers,
+      skippedQuestions: new Set(skippedQuestions),
     }),
   getDeckResults: () => {
     const state = get()
@@ -56,6 +84,9 @@ export const createWouldYouRatherSlice: StateCreator<WouldYouRatherState> = (set
       const deckResults: Record<string, number> = {}
 
       deck.questions.forEach((question) => {
+        // Skip questions that were explicitly skipped
+        if (state.skippedQuestions.has(question.id)) return
+
         const selectedOption = state.answers[question.id]
         if (selectedOption === undefined) return
 

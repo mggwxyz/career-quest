@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
 import { questions } from '@/app/_data/questions'
@@ -21,16 +21,54 @@ export default function WouldYouRather() {
   const [isHydrated, setIsHydrated] = useState(false)
   const isLoggedIn = useIsLoggedIn()
 
+  const loadSavedProgress = useCallback(async () => {
+    try {
+      const response = await fetch('/api/user/progress')
+      const data = await response.json()
+
+      if (response.ok && data.progress?.answers) {
+        hydrateFromDB(data.progress.answers, data.progress.skippedQuestions || [])
+      }
+    }
+    catch {
+      // Silent fail for progress loading
+    }
+    finally {
+      setIsHydrated(true)
+    }
+  }, [hydrateFromDB])
+
+  const saveProgressToDB = useCallback(async () => {
+    try {
+      await fetch('/api/user/progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          answers,
+          skippedQuestions: Array.from(skippedQuestions),
+        }),
+      })
+    }
+    catch {
+      // Silent fail for progress saving
+    }
+  }, [answers, skippedQuestions])
+
   // Load saved progress from DB for logged-in users
   useEffect(() => {
     if (isLoggedIn && !isHydrated) {
       loadSavedProgress()
     }
+    else if (!isLoggedIn) {
+      setIsHydrated(true)
+    }
   }, [isLoggedIn, isHydrated, loadSavedProgress])
 
   // Save progress to DB when answers change for logged-in users
   useEffect(() => {
-    if (isLoggedIn && isHydrated && Object.keys(answers).length > 0) {
+    if (isLoggedIn && isHydrated && (Object.keys(answers).length > 0 || skippedQuestions.size > 0)) {
       saveProgressToDB()
     }
   }, [answers, skippedQuestions, isLoggedIn, isHydrated, saveProgressToDB])
