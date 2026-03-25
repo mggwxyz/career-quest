@@ -20,6 +20,7 @@ export interface WouldYouRatherState {
   answers: Record<string, number>
   setAnswer: (questionId: string, option: number) => void
   nextQuestion: () => void
+  previousQuestion: () => void
   resetGame: () => void
   getDeckResults: () => Record<string, Record<string, number>>
 }
@@ -37,6 +38,10 @@ export const createWouldYouRatherSlice: StateCreator<WouldYouRatherState> = (set
   nextQuestion: () =>
     set(state => ({
       currentQuestionIndex: state.currentQuestionIndex + 1,
+    })),
+  previousQuestion: () =>
+    set(state => ({
+      currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1),
     })),
   resetGame: () =>
     set({

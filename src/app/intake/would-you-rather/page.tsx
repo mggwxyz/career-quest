@@ -12,7 +12,7 @@ import { StepIndicator } from '@/components/step-indicator'
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
 export default function WouldYouRather() {
-  const { currentQuestionIndex, setAnswer, nextQuestion, resetGame } = useAppStore()
+  const { currentQuestionIndex, setAnswer, nextQuestion, previousQuestion, resetGame } = useAppStore()
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
 
@@ -68,7 +68,17 @@ export default function WouldYouRather() {
     <div className={containerClassName}>
       <StepIndicator />
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Would You Rather?</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold">Would You Rather?</h1>
+          {currentQuestionIndex > 0 && (
+            <button
+              onClick={previousQuestion}
+              className="btn btn-outline btn-sm"
+            >
+              ← Previous Question
+            </button>
+          )}
+        </div>
         <div className="flex justify-between items-center mb-2">
           <span className="text-lg">
             Question
