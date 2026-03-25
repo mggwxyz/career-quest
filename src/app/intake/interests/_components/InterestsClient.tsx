@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { containerClassName } from '@/app/_styles/classes'
 import { saveInterestsAndRedirect } from '../actions'
 import { StepIndicator } from '@/components/step-indicator'
+import { toast } from 'sonner'
 
 const commonInterests = [
   '💻 Technology',
@@ -55,7 +56,14 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
 
   const handleContinue = () => {
     startTransition(async () => {
-      await saveInterestsAndRedirect(interests)
+      try {
+        toast.success('Interests saved successfully!')
+        await saveInterestsAndRedirect(interests)
+      }
+      catch (error) {
+        toast.error('Failed to save interests. Please try again.')
+        console.error('Error saving interests:', error)
+      }
     })
   }
 

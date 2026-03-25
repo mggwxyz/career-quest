@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { getURL } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export function SocialLoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [error, setError] = useState<string | null>(null)
@@ -25,11 +26,12 @@ export function SocialLoginForm({ className, ...props }: React.ComponentPropsWit
       })
 
       if (error) throw error
-    //   console.log('redirecting to home')
-    //   router.push('/')
+      toast.success('Redirecting to Google for login...')
     }
     catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
+      setError(errorMessage)
+      toast.error(`Login failed: ${errorMessage}`)
       setIsLoading(false)
     }
   }
