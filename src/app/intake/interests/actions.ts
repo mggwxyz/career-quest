@@ -42,18 +42,25 @@ export async function saveInterestsAction(interests: string[]) {
 
     return { success: true }
   }
-  catch (error) {
-    console.error('Error saving interests:', error)
+  catch {
     return { success: false, error: 'Failed to save interests' }
   }
 }
 
 export async function saveInterestsAndRedirect(interests: string[]) {
-  const result = await saveInterestsAction(interests)
+  // Try to save interests for logged-in users, but don't block guest users
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (result.success) {
-    redirect('/intake/would-you-rather')
+    if (user) {
+      await saveInterestsAction(interests)
+    }
+  }
+  catch {
+    // Silent fail for guest users
   }
 
-  return result
+  // Always redirect to the next step
+  redirect('/intake/would-you-rather')
 }

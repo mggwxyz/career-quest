@@ -57,12 +57,10 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
   const handleContinue = () => {
     startTransition(async () => {
       try {
-        toast.success('Interests saved successfully!')
         await saveInterestsAndRedirect(interests)
       }
-      catch (error) {
+      catch {
         toast.error('Failed to save interests. Please try again.')
-        console.error('Error saving interests:', error)
       }
     })
   }

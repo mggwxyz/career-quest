@@ -22,12 +22,9 @@ async function getUserInterests(): Promise<string[]> {
       return []
     }
 
-    console.log('userData', userData)
-
     return userData[0].interests || []
   }
-  catch (error) {
-    console.error('Error fetching user interests:', error)
+  catch {
     return []
   }
 }
