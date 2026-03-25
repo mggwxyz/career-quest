@@ -2,22 +2,14 @@
 
 import { useChat } from '@ai-sdk/react'
 import { Chat } from '@/components/ui/chat'
-
-interface Career {
-  title: string
-  description: string
-  onetId: string
-  whyItMatches: string
-  jobGrowth: string
-  salaryRange: string
-}
+import { CareerRecommendation } from '@/lib/schemas/career'
 
 interface CareerChatProps {
-  career: Career
+  career: CareerRecommendation
 }
 
 export function CareerChat({ career }: CareerChatProps) {
-  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, status, error, reload } = useChat({
     api: '/api/careers/chat',
     initialMessages: [
       {
@@ -52,6 +44,28 @@ export function CareerChat({ career }: CareerChatProps) {
             Ask me anything about this career!
           </p>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="p-4 border-b border-base-300">
+            <div className="alert alert-error">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold">Chat Error</span>
+                <span className="text-sm">Failed to send message. Please try again.</span>
+                <button
+                  onClick={reload}
+                  className="btn btn-sm btn-ghost"
+                  disabled={status === 'streaming'}
+                >
+                  Retry Last Message
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Chat Interface */}
         <div className="flex-1 flex flex-col overflow-hidden">
