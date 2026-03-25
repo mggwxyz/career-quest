@@ -1,24 +1,19 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import { motion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
+import { useRouter } from 'next/navigation'
+import { useIsLoggedIn } from '@/hooks/use-is-logged-in'
 import Link from 'next/link'
 import { containerClassName } from '@/app/_styles/classes'
 import { generateCareerRecommendationsAction } from '../actions'
 import { StepIndicator } from '@/components/step-indicator'
 import { toast } from 'sonner'
-
-interface Career {
-  title: string
-  description: string
-  onetId: string
-  whyItMatches: string
-  jobGrowth: string
-  salaryRange: string
-}
+import { CareerRecommendation } from '@/lib/schemas/career'
 
 interface CareersClientProps {
-  initialCareers: Career[]
+  initialCareers: CareerRecommendation[]
 }
 
 const loadingMessages = [
@@ -32,14 +27,25 @@ const loadingMessages = [
 ]
 
 export default function CareersClient({ initialCareers }: CareersClientProps) {
-  const { getDeckResults, interests } = useAppStore()
-  const [careers, setCareers] = useState<Career[]>(initialCareers)
+  const { getDeckResults, interests, answers } = useAppStore()
+  const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
+  const router = useRouter()
+  const isLoggedIn = useIsLoggedIn()
 
-  console.log({ interests })
+  // Validation: redirect if no assessment results exist
+  useEffect(() => {
+    const results = getDeckResults()
+    const hasResults = Object.values(results).some(deck => Object.keys(deck).length > 0)
+
+    if (!hasResults && Object.keys(answers).length === 0) {
+      toast.error('No assessment results found. Please complete the assessment first.')
+      router.push('/intake/interests')
+    }
+  }, [answers, getDeckResults, router])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -94,7 +100,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
     })
   }
 
-  const LoadingTable = () => (
+  const LoadingState = () => (
     <div className="space-y-4">
       <div className="text-center mb-4">
         <div className="loading loading-spinner loading-lg" />
@@ -144,28 +150,98 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
 
       {error && (
         <div className="alert alert-error mb-6">
-          <span>{error}</span>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="flex flex-col gap-2">
+            <span className="font-semibold">Career Generation Failed</span>
+            <span>{error}</span>
+            <button
+              onClick={generateCareerRecommendations}
+              className="btn btn-sm btn-ghost"
+              disabled={isPending}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       )}
 
       <div className="space-y-8">
         {isPending
           ? (
-            <LoadingTable />
+            <LoadingState />
           )
           : careers.length === 0
             ? (
-              <div className="text-center">
-                <p className="text-xl mb-8">
-                  Based on your assessment results and selected interests, we can generate personalized career recommendations.
-                </p>
-                <button
-                  onClick={generateCareerRecommendations}
-                  className="btn btn-primary"
-                  disabled={isPending}
-                >
-                  Generate Career Recommendations
-                </button>
+              <div className="text-center py-12">
+                {!isLoggedIn
+                  ? (
+                    <>
+                      <h2 className="text-2xl font-semibold mb-4">Your RIASEC Results</h2>
+                      <p className="text-lg mb-6">
+                        Based on your assessment, here are your interests and preferences:
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {Object.entries(getDeckResults()).map(([deckName, results]) => (
+                          <div key={deckName} className="bg-base-200 p-4 rounded-lg">
+                            <h3 className="font-semibold capitalize mb-2">{deckName}</h3>
+                            <div className="space-y-1">
+                              {Object.entries(results)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 3)
+                                .map(([code, count]) => (
+                                  <div key={code} className="text-sm">
+                                    {code}
+                                    :
+                                    {count}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="bg-info/10 border border-info/20 rounded-lg p-6 mb-6">
+                        <h3 className="text-xl font-semibold mb-3">Get AI-Powered Career Matches!</h3>
+                        <p className="mb-4">
+                          Sign up or log in to get personalized AI career recommendations based on your assessment results.
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                          <Link href="/auth/login" className="btn btn-primary">
+                            Log In
+                          </Link>
+                          <Link href="/auth/sign-up" className="btn btn-outline">
+                            Sign Up
+                          </Link>
+                        </div>
+                      </div>
+                    </>
+                  )
+                  : (
+                    <>
+                      <div className="mb-8">
+                        <div className="text-6xl mb-4">🎯</div>
+                        <h2 className="text-2xl font-bold mb-4">Ready to Find Your Perfect Career?</h2>
+                        <p className="text-lg text-base-content/70 max-w-2xl mx-auto mb-8">
+                          Based on your assessment results and selected interests, we can generate personalized career recommendations that match your unique profile.
+                        </p>
+                      </div>
+                      <button
+                        onClick={generateCareerRecommendations}
+                        className="btn btn-primary btn-lg"
+                        disabled={isPending}
+                      >
+                        Generate Career Recommendations
+                      </button>
+                      <div className="mt-4">
+                        <Link href="/intake/interests" className="link link-primary">
+                          Or go back to update your interests
+                        </Link>
+                      </div>
+                    </>
+                  )}
               </div>
             )
             : (
@@ -182,8 +258,18 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {careers.map(career => (
-                        <tr key={career.onetId}>
+                      {careers.map((career, index) => (
+                        <motion.tr
+                          key={career.onetId}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.3,
+                            delay: index * 0.1,
+                            ease: 'easeOut',
+                          }}
+                          whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+                        >
                           <td>
                             <div className="flex flex-col gap-2">
                               <a
@@ -194,32 +280,34 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                               >
                                 {career.title}
                               </a>
-                              <Link
-                                href={`/careers/${career.onetId}`}
-                                className="btn btn-xs btn-outline"
-                              >
-                                <svg
-                                  className="w-3 h-3 mr-1"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Link
+                                  href={`/careers/${career.onetId}`}
+                                  className="btn btn-xs btn-outline"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                  />
-                                </svg>
-                                Chat
-                              </Link>
+                                  <svg
+                                    className="w-3 h-3 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                    />
+                                  </svg>
+                                  Chat
+                                </Link>
+                              </motion.div>
                             </div>
                           </td>
                           <td>{career.description}</td>
                           <td>{career.whyItMatches}</td>
                           <td>{career.jobGrowth}</td>
                           <td>{career.salaryRange}</td>
-                        </tr>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>

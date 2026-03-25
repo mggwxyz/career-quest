@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { containerClassName } from '../../_styles/classes'
 import { CareerChat } from '@/components/career-chat'
 import { CareerDetails } from '@/components/career-details'
+import { CareerDetailSkeleton, CareerChatSkeleton } from '@/components/skeletons/CareerDetailSkeleton'
 
 interface Career {
   title: string
@@ -48,8 +50,16 @@ export default function CareerChatPage() {
   if (loading) {
     return (
       <div className={containerClassName}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="loading loading-spinner loading-lg" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Career Details Panel Skeleton */}
+          <div className="lg:col-span-1">
+            <CareerDetailSkeleton />
+          </div>
+
+          {/* Chat Panel Skeleton */}
+          <div className="lg:col-span-2">
+            <CareerChatSkeleton />
+          </div>
         </div>
       </div>
     )
@@ -58,8 +68,20 @@ export default function CareerChatPage() {
   if (error || !career) {
     return (
       <div className={containerClassName}>
-        <div className="alert alert-error">
-          <span>{error || 'Career not found'}</span>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🔍</div>
+          <h1 className="text-2xl font-bold mb-4">Career Not Found</h1>
+          <p className="text-lg text-base-content/70 mb-8">
+            {error || 'We couldn\'t find the career you\'re looking for. It may have been removed or the link is incorrect.'}
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/careers" className="btn btn-primary">
+              View All Careers
+            </Link>
+            <Link href="/intake/would-you-rather" className="btn btn-outline">
+              Retake Assessment
+            </Link>
+          </div>
         </div>
       </div>
     )
