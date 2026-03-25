@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { LogoutButton } from './logout-button'
 import { CurrentUserAvatar } from './current-user-avatar'
+import { ThemeToggle } from './theme-toggle'
 
 const navLinks = [
   { href: '/intake/interests', label: 'Interests' },
@@ -81,6 +82,7 @@ export const NavigationBar = () => {
                     ))}
                   </ul>
                   <div className="max-h-7 flex flex-row items-center gap-2">
+                    <ThemeToggle />
                     <CurrentUserAvatar />
                     <LogoutButton />
                   </div>
@@ -88,6 +90,7 @@ export const NavigationBar = () => {
               )
               : (
                 <div className="flex flex-row items-center gap-2">
+                  <ThemeToggle />
                   <Link href="/login" className="btn btn-ghost btn-sm">Log In</Link>
                   <Link href="/intake/interests" className="btn btn-primary btn-sm">Get Started</Link>
                 </div>
