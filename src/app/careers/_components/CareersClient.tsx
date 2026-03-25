@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { containerClassName } from '@/app/_styles/classes'
 import { generateCareerRecommendationsAction } from '../actions'
 import { StepIndicator } from '@/components/step-indicator'
+import { toast } from 'sonner'
 
 interface Career {
   title: string
@@ -56,19 +57,39 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
     startTransition(async () => {
       setError(null)
 
+      // Show loading toast
+      const loadingToastId = toast.loading('Generating career recommendations...')
+
       try {
         const results = getDeckResults()
         const response = await generateCareerRecommendationsAction(results, interests)
 
         if (response.success && response.careers) {
           setCareers(response.careers)
+
+          // Show success toast
+          toast.success('Career recommendations generated successfully!', {
+            id: loadingToastId,
+          })
         }
         else {
-          setError(response.error || 'Failed to generate career recommendations')
+          const errorMessage = response.error || 'Failed to generate career recommendations'
+          setError(errorMessage)
+
+          // Show error toast
+          toast.error(errorMessage, {
+            id: loadingToastId,
+          })
         }
       }
       catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+        setError(errorMessage)
+
+        // Show error toast
+        toast.error(errorMessage, {
+          id: loadingToastId,
+        })
       }
     })
   }
