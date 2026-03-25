@@ -56,7 +56,7 @@ export function CareerChat({ career }: CareerChatProps) {
                 <span className="font-semibold">Chat Error</span>
                 <span className="text-sm">Failed to send message. Please try again.</span>
                 <button
-                  onClick={reload}
+                  onClick={() => reload()}
                   className="btn btn-sm btn-ghost"
                   disabled={status === 'streaming'}
                 >

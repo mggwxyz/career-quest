@@ -73,41 +73,6 @@ export default function WouldYouRather() {
     }
   }, [answers, skippedQuestions, isLoggedIn, isHydrated, saveProgressToDB])
 
-  const loadSavedProgress = useCallback(async () => {
-    try {
-      const response = await fetch('/api/user/progress')
-      const data = await response.json()
-
-      if (response.ok && data.progress?.answers) {
-        hydrateFromDB(data.progress.answers, data.progress.skippedQuestions)
-      }
-    }
-    catch (error) {
-      console.error('Error loading saved progress:', error)
-    }
-    finally {
-      setIsHydrated(true)
-    }
-  }, [hydrateFromDB])
-
-  const saveProgressToDB = useCallback(async () => {
-    try {
-      await fetch('/api/user/progress', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          answers,
-          skippedQuestions: Array.from(skippedQuestions),
-        }),
-      })
-    }
-    catch (error) {
-      console.error('Error saving progress:', error)
-    }
-  }, [answers, skippedQuestions])
-
   const currentQuestion: WouldYouRatherQuestion = allQuestions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100
 
