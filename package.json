@@ -57,6 +57,7 @@
     "drizzle-kit": "~0.30.6",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "tailwindcss": "^4",
@@ -67,5 +68,13 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
