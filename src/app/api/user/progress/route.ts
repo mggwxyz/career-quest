@@ -4,7 +4,7 @@ import { db } from '@/db'
 import { userInfo } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
-// GET: Fetch user's existing data (interests and career recommendations)
+// GET: Fetch user's saved progress
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -23,36 +23,30 @@ export async function GET() {
       .limit(1)
 
     if (!userData || userData.length === 0) {
-      // Return empty data if user doesn't exist yet
       return NextResponse.json({
-        interests: [],
-        quizResults: null,
-        quizAnswers: null,
+        progress: null,
       })
     }
 
     const user_data = userData[0]
+    const quizAnswers = user_data.quizAnswers as { answers: Record<string, number>, skippedQuestions: string[] } | null
+
     return NextResponse.json({
-      interests: user_data.interests || [],
-      quizResults: user_data.quizResults,
-      quizAnswers: user_data.quizAnswers,
-      email: user_data.email,
-      firstName: user_data.firstName,
-      lastName: user_data.lastName,
+      progress: quizAnswers || null,
     })
   }
   catch {
     return NextResponse.json(
-      { error: 'Failed to fetch user data' },
+      { error: 'Failed to fetch progress' },
       { status: 500 },
     )
   }
 }
 
-// POST: Save/update user interests and other data
+// POST: Save user's progress
 export async function POST(request: Request) {
   try {
-    const { interests, quizAnswers } = await request.json()
+    const { answers, skippedQuestions } = await request.json()
 
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -64,6 +58,11 @@ export async function POST(request: Request) {
       )
     }
 
+    const progressData = {
+      answers,
+      skippedQuestions: skippedQuestions || [],
+    }
+
     // Check if user exists
     const existingUser = await db.select().from(userInfo)
       .where(eq(userInfo.id, user.id))
@@ -73,8 +72,7 @@ export async function POST(request: Request) {
       // Update existing user
       await db.update(userInfo)
         .set({
-          interests: interests || existingUser[0].interests,
-          quizAnswers: quizAnswers || existingUser[0].quizAnswers,
+          quizAnswers: progressData,
           updatedAt: new Date(),
         })
         .where(eq(userInfo.id, user.id))
@@ -84,8 +82,7 @@ export async function POST(request: Request) {
       await db.insert(userInfo).values({
         id: user.id,
         email: user.email,
-        interests: interests || [],
-        quizAnswers: quizAnswers || null,
+        quizAnswers: progressData,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -95,7 +92,7 @@ export async function POST(request: Request) {
   }
   catch {
     return NextResponse.json(
-      { error: 'Failed to save user data' },
+      { error: 'Failed to save progress' },
       { status: 500 },
     )
   }

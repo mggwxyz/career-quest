@@ -3,13 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { userInfo } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { CareerRecommendation } from '@/lib/schemas/career'
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ onetId: string }> },
 ) {
-  console.log('GET request received')
-  console.log('params', params)
   try {
     const { onetId } = await params
 
@@ -44,9 +43,7 @@ export async function GET(
     }
 
     // Find the career with the matching onetId
-    const career = quizResults.find((c: unknown) => {
-      return typeof c === 'object' && c !== null && 'onetId' in c && (c as { onetId: string }).onetId === onetId
-    })
+    const career = (quizResults as CareerRecommendation[]).find(c => c.onetId === onetId)
 
     if (!career) {
       return NextResponse.json(
@@ -57,8 +54,7 @@ export async function GET(
 
     return NextResponse.json({ career })
   }
-  catch (error) {
-    console.error('Error in career details API:', error)
+  catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },

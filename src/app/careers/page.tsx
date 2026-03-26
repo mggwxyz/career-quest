@@ -3,17 +3,9 @@ import { db } from '@/db'
 import { userInfo } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import CareersClient from './_components/CareersClient'
+import { CareerRecommendation } from '@/lib/schemas/career'
 
-interface Career {
-  title: string
-  description: string
-  onetId: string
-  whyItMatches: string
-  jobGrowth: string
-  salaryRange: string
-}
-
-async function getUserCareers(): Promise<Career[]> {
+async function getUserCareers(): Promise<CareerRecommendation[]> {
   try {
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -36,10 +28,9 @@ async function getUserCareers(): Promise<Career[]> {
       return []
     }
 
-    return quizResults as Career[]
+    return quizResults as CareerRecommendation[]
   }
-  catch (error) {
-    console.error('Error fetching user careers:', error)
+  catch {
     return []
   }
 }

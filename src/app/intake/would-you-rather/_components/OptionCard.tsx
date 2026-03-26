@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { WouldYouRatherQuestionOption } from '@/store/slices/wouldYouRatherSlice'
 
 interface OptionCardProps {
@@ -10,34 +13,56 @@ interface OptionCardProps {
 
 export default function OptionCard({ option, isSelected, showCheckmark, onClick }: OptionCardProps) {
   return (
-    <button
-      className={`card-sm md:card bg-base-100 rounded-md overflow-hidden shadow-xl cursor-pointer transition-all duration-250 ease-out flex flex-col hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] ${
-        isSelected ? 'ring-3 ring-primary scale-[1.02] shadow-2xl' : ''
+    <motion.button
+      className={`card bg-base-100 rounded-lg overflow-hidden shadow-xl cursor-pointer flex flex-col min-h-[200px] sm:min-h-[300px] ${
+        isSelected ? 'ring-2 ring-primary' : ''
       }`}
       onClick={onClick}
+      style={{ minHeight: '200px' }} // Ensure minimum tap target size
+      whileHover={{
+        scale: 1.02,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+      }}
+      whileTap={{ scale: 0.98 }}
+      animate={isSelected
+        ? {
+          scale: 1.05,
+          transition: { duration: 0.2 },
+        }
+        : { scale: 1 }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
     >
-      <figure className="relative aspect-square">
+      <figure className="relative aspect-square flex-1">
         <Image
           src={option.imageUrl}
           alt={option.prompt}
           fill
           className="object-cover"
+          sizes="(max-width: 640px) 100vw, 50vw"
         />
         {showCheckmark && isSelected && (
-          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center animate-in fade-in duration-300">
-            <div className="bg-white rounded-full p-3 size-20 md:size-24 flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
-              <svg className="w-10 h-10 md:w-14 md:h-14 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
+          <motion.div
+            className="absolute inset-0 bg-green-500/20 flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
+            <motion.div
+              className="text-4xl sm:text-6xl text-green-500 bg-white rounded-full p-2 w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center shadow-lg"
+              initial={{ rotate: -10, scale: 0 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.3, type: 'spring', stiffness: 200 }}
+            >
+              ✓
+            </motion.div>
+          </motion.div>
         )}
       </figure>
-      <div className="card-body flex-grow-1">
-        <h2 className="card-title justify-center text-sm md:text-xl">
+      <div className="card-body p-4 sm:p-6 flex-none">
+        <h2 className="card-title justify-center text-base sm:text-lg md:text-xl text-center leading-tight">
           {option.text}
         </h2>
       </div>
-    </button>
+    </motion.button>
   )
 }
