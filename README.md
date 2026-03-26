@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 Career Quest
+
+**Career Quest** is an interactive career exploration tool designed to help students discover potential career paths through fun, game-style questions.
+
+## How It Works
+
+### 1. 🎮 Take the Quiz
+Students answer a series of engaging "Would You Rather" style questions — no boring surveys here. Each choice is designed to feel like a game while quietly mapping to real psychological frameworks.
+
+### 2. 🧠 RIASEC Personality Matching
+Behind the scenes, answers are scored against the **RIASEC model** (Holland's career interest codes):
+
+- **R**ealistic — hands-on, practical
+- **I**nvestigative — analytical, curious
+- **A**rtistic — creative, expressive
+- **S**ocial — helping, teaching
+- **E**nterprising — leading, persuading
+- **C**onventional — organizing, detail-oriented
+
+Your unique combination of traits generates a personalized career profile.
+
+### 3. 💼 Career Recommendations
+Based on your RIASEC profile, Career Quest recommends real-world careers that match your interests, values, and work style preferences.
+
+### 4. 💬 Chat About Careers
+Found a career that catches your eye? Jump into an AI-powered chat to learn more about it — what the day-to-day looks like, education requirements, salary ranges, growth potential, and anything else you're curious about.
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Database:** PostgreSQL with Drizzle ORM
+- **Auth:** Supabase
+- **AI:** Vercel AI SDK with OpenAI
+- **Styling:** Tailwind CSS + DaisyUI
+- **State:** Zustand with persistence
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Start the development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to start exploring.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses `dotenv-flow` for environment management. You'll need:
 
-## Learn More
+- Supabase credentials (auth + database)
+- OpenAI API key (for career chat)
+- PostgreSQL connection string
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The easiest way to deploy is on [Vercel](https://vercel.com). See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for details.
