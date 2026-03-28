@@ -6,11 +6,10 @@ import { useAppStore } from '@/store/appStore'
 import { useRouter } from 'next/navigation'
 import { useIsLoggedIn } from '@/hooks/use-is-logged-in'
 import Link from 'next/link'
-import { containerClassName } from '@/app/_styles/classes'
 import { generateCareerRecommendationsAction } from '../actions'
-import { StepIndicator } from '@/components/step-indicator'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
+import { StarField } from '@/components/star-field'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -36,11 +35,9 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   const router = useRouter()
   const isLoggedIn = useIsLoggedIn()
 
-  // Validation: redirect if no assessment results exist
   useEffect(() => {
     const results = getDeckResults()
     const hasResults = Object.values(results).some(deck => Object.keys(deck).length > 0)
-
     if (!hasResults && Object.keys(answers).length === 0) {
       toast.error('No assessment results found. Please complete the assessment first.')
       router.push('/intake/interests')
@@ -55,282 +52,167 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
       }, 3000)
     }
     return () => {
-      if (interval) clearInterval(interval)
+      if (interval)
+        clearInterval(interval)
     }
   }, [isPending])
 
   const generateCareerRecommendations = () => {
     startTransition(async () => {
       setError(null)
-
-      // Show loading toast
       const loadingToastId = toast.loading('Generating career recommendations...')
-
       try {
         const results = getDeckResults()
         const response = await generateCareerRecommendationsAction(results, interests)
-
         if (response.success && response.careers) {
           setCareers(response.careers)
-
-          // Show success toast
-          toast.success('Career recommendations generated successfully!', {
-            id: loadingToastId,
-          })
+          toast.success('Career recommendations generated!', { id: loadingToastId })
         }
         else {
-          const errorMessage = response.error || 'Failed to generate career recommendations'
-          setError(errorMessage)
-
-          // Show error toast
-          toast.error(errorMessage, {
-            id: loadingToastId,
-          })
+          const msg = response.error || 'Failed to generate recommendations'
+          setError(msg)
+          toast.error(msg, { id: loadingToastId })
         }
       }
       catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An error occurred'
-        setError(errorMessage)
-
-        // Show error toast
-        toast.error(errorMessage, {
-          id: loadingToastId,
-        })
+        const msg = err instanceof Error ? err.message : 'An error occurred'
+        setError(msg)
+        toast.error(msg, { id: loadingToastId })
       }
     })
   }
 
-  const LoadingState = () => (
-    <div className="space-y-4">
-      <div className="text-center mb-4">
-        <div className="loading loading-spinner loading-lg" />
-        <p className="mt-4 text-lg font-medium">{loadingMessages[loadingMessageIndex]}</p>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="table table-zebra">
-          <thead>
-            <tr>
-              <th>Career</th>
-              <th>Description</th>
-              <th>Why It Matches</th>
-              <th>Job Growth</th>
-              <th>Salary Range</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...Array(5)].map((_, index) => (
-              <tr key={index}>
-                <td>
-                  <div className="h-4 bg-base-300 rounded animate-pulse" />
-                </td>
-                <td>
-                  <div className="h-4 bg-base-300 rounded animate-pulse" />
-                </td>
-                <td>
-                  <div className="h-4 bg-base-300 rounded animate-pulse" />
-                </td>
-                <td>
-                  <div className="h-4 bg-base-300 rounded animate-pulse" />
-                </td>
-                <td>
-                  <div className="h-4 bg-base-300 rounded animate-pulse" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-
   return (
-    <div className={containerClassName}>
-      <StepIndicator />
-      <h1 className="text-3xl font-bold mb-8">Career Recommendations</h1>
+    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+            radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
+            radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%)
+          `,
+          }}
+        />
+        <StarField count={40} />
+      </div>
 
+      <div className="text-center mb-10 pt-4">
+        <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>
+        <p className="text-sm text-muted-foreground">Ranked by how well they fit your profile</p>
+      </div>
+
+      {/* Error state */}
       {error && (
-        <div className="alert alert-error mb-6">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Career Generation Failed</span>
-            <span>{error}</span>
-            <button
-              onClick={generateCareerRecommendations}
-              className="btn btn-sm btn-ghost"
-              disabled={isPending}
-            >
-              Try Again
-            </button>
-          </div>
+        <div className="p-4 mb-6 rounded-2xl border border-destructive/30 bg-destructive/5 text-center">
+          <p className="text-sm text-destructive font-medium mb-2">Career Generation Failed</p>
+          <p className="text-xs text-muted-foreground mb-3">{error}</p>
+          <button onClick={generateCareerRecommendations} disabled={isPending} className="text-xs text-primary-soft hover:underline">
+            Try Again
+          </button>
         </div>
       )}
 
-      <div className="space-y-8">
-        {isPending
+      {/* Loading state */}
+      {isPending
+        ? (
+          <div className="text-center py-12">
+            <div className="loading loading-spinner loading-lg text-primary mb-4" />
+            <p className="text-muted-foreground">{loadingMessages[loadingMessageIndex]}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8 max-w-4xl mx-auto">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="p-6 rounded-2xl border border-border bg-surface/50 animate-pulse">
+                  <div className="flex justify-between mb-3">
+                    <div className="h-4 w-32 bg-primary/10 rounded" />
+                    <div className="h-4 w-16 bg-primary/10 rounded-full" />
+                  </div>
+                  <div className="h-3 w-full bg-primary/5 rounded mb-2" />
+                  <div className="h-3 w-3/4 bg-primary/5 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+        : careers.length === 0
           ? (
-            <LoadingState />
+            /* Empty states */
+            <div className="text-center py-12">
+              {!isLoggedIn
+                ? (
+                  <div className="p-8 rounded-2xl border border-border bg-surface/50 max-w-lg mx-auto">
+                    <h3 className="font-serif text-xl text-foreground mb-3">Get AI-Powered Career Matches</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Sign in to generate personalized career recommendations based on your assessment results.</p>
+                    <div className="flex gap-3 justify-center">
+                      <Link href="/auth/login" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold text-sm no-underline">Log In</Link>
+                      <Link href="/auth/sign-up" className="px-6 py-2.5 rounded-full border border-border text-primary-soft text-sm font-medium no-underline">Sign Up</Link>
+                    </div>
+                  </div>
+                )
+                : (
+                  <>
+                    <div className="text-5xl mb-4">🎯</div>
+                    <h2 className="font-serif text-2xl text-foreground mb-3">Ready to Find Your Perfect Career?</h2>
+                    <p className="text-muted-foreground max-w-lg mx-auto mb-8">Based on your assessment results and selected interests, we can generate personalized career recommendations.</p>
+                    <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all">
+                      Generate Career Recommendations
+                    </button>
+                  </>
+                )}
+            </div>
           )
-          : careers.length === 0
-            ? (
-              <div className="text-center py-12">
-                {!isLoggedIn
-                  ? (
-                    <>
-                      <h2 className="text-2xl font-semibold mb-4">Your RIASEC Results</h2>
-                      <p className="text-lg mb-6">
-                        Based on your assessment, here are your interests and preferences:
-                      </p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        {Object.entries(getDeckResults()).map(([deckName, results]) => (
-                          <div key={deckName} className="bg-base-200 p-4 rounded-lg">
-                            <h3 className="font-semibold capitalize mb-2">{deckName}</h3>
-                            <div className="space-y-1">
-                              {Object.entries(results)
-                                .sort((a, b) => b[1] - a[1])
-                                .slice(0, 3)
-                                .map(([code, count]) => (
-                                  <div key={code} className="text-sm">
-                                    {code}
-                                    :
-                                    {count}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        ))}
+          : (
+            /* Career cards grid */
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto mb-10">
+                {careers.map((career, index) => (
+                  <motion.div
+                    key={career.onetId}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.08 }}
+                  >
+                    <Link
+                      href={`/careers/${career.onetId}`}
+                      className="block p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
                       </div>
-
-                      <div className="bg-info/10 border border-info/20 rounded-lg p-6 mb-6">
-                        <h3 className="text-xl font-semibold mb-3">Get AI-Powered Career Matches!</h3>
-                        <p className="mb-4">
-                          Sign up or log in to get personalized AI career recommendations based on your assessment results.
-                        </p>
-                        <div className="flex gap-3 justify-center">
-                          <Link href="/auth/login" className="btn btn-primary">
-                            Log In
-                          </Link>
-                          <Link href="/auth/sign-up" className="btn btn-outline">
-                            Sign Up
-                          </Link>
-                        </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
+                      <div className="flex gap-4 text-xs mb-3">
+                        <span>
+                          <span className="text-text-dim">Growth:</span>
+                          {' '}
+                          <span className="text-green-400 font-medium">{career.jobGrowth}</span>
+                        </span>
+                        <span>
+                          <span className="text-text-dim">Salary:</span>
+                          {' '}
+                          <span className="text-primary-soft font-medium">{career.salaryRange}</span>
+                        </span>
                       </div>
-                    </>
-                  )
-                  : (
-                    <>
-                      <div className="mb-8">
-                        <div className="text-6xl mb-4">🎯</div>
-                        <h2 className="text-2xl font-bold mb-4">Ready to Find Your Perfect Career?</h2>
-                        <p className="text-lg text-base-content/70 max-w-2xl mx-auto mb-8">
-                          Based on your assessment results and selected interests, we can generate personalized career recommendations that match your unique profile.
+                      <div className="pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          <span className="text-accent font-medium">Why it fits: </span>
+                          {career.whyItMatches}
                         </p>
                       </div>
-                      <button
-                        onClick={generateCareerRecommendations}
-                        className="btn btn-primary btn-lg"
-                        disabled={isPending}
-                      >
-                        Generate Career Recommendations
-                      </button>
-                      <div className="mt-4">
-                        <Link href="/intake/interests" className="link link-primary">
-                          Or go back to update your interests
-                        </Link>
-                      </div>
-                    </>
-                  )}
+                    </Link>
+                  </motion.div>
+                ))}
               </div>
-            )
-            : (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra">
-                    <thead>
-                      <tr>
-                        <th>Career</th>
-                        <th>Description</th>
-                        <th>Why It Matches</th>
-                        <th>Job Growth</th>
-                        <th>Salary Range</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {careers.map((career, index) => (
-                        <motion.tr
-                          key={career.onetId}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.3,
-                            delay: index * 0.1,
-                            ease: 'easeOut',
-                          }}
-                          whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-                        >
-                          <td>
-                            <div className="flex flex-col gap-2">
-                              <a
-                                href={`https://www.onetonline.org/link/summary/${career.onetId}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="link link-primary font-medium"
-                              >
-                                {career.title}
-                              </a>
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Link
-                                  href={`/careers/${career.onetId}`}
-                                  className="btn btn-xs btn-outline"
-                                >
-                                  <svg
-                                    className="w-3 h-3 mr-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                    />
-                                  </svg>
-                                  Chat
-                                </Link>
-                              </motion.div>
-                            </div>
-                          </td>
-                          <td>{career.description}</td>
-                          <td>{career.whyItMatches}</td>
-                          <td>{career.jobGrowth}</td>
-                          <td>{career.salaryRange}</td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
 
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={generateCareerRecommendations}
-                    className="btn btn-primary"
-                    disabled={isPending}
-                  >
-                    {hasExistingData ? 'Regenerate Recommendations' : 'Generate New Recommendations'}
-                  </button>
-                  <Link
-                    href="/intake/summary"
-                    className="btn btn-outline"
-                  >
-                    View Assessment Results
-                  </Link>
-                </div>
-              </>
-            )}
-      </div>
+              <div className="flex justify-center gap-4">
+                <button onClick={generateCareerRecommendations} disabled={isPending} className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] transition-all text-sm">
+                  {hasExistingData ? 'Regenerate' : 'Generate New'}
+                </button>
+                <Link href="/intake/summary" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
+                  View Results
+                </Link>
+              </div>
+            </>
+          )}
     </div>
   )
 }

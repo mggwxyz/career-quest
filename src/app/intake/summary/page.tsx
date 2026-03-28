@@ -6,15 +6,22 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { describeCode } from '@/app/_data/codeLabels'
-import { containerClassName } from '@/app/_styles/classes'
-import { StepIndicator } from '@/components/step-indicator'
+import { StarField } from '@/components/star-field'
+
+const riasecColors: Record<string, string> = {
+  R: 'from-red-500 to-red-600',
+  I: 'from-indigo-500 to-indigo-600',
+  A: 'from-purple-500 to-purple-600',
+  S: 'from-cyan-500 to-cyan-600',
+  E: 'from-amber-500 to-amber-600',
+  C: 'from-green-500 to-green-600',
+}
 
 export default function IntakeSummary() {
   const { getDeckResults, answers } = useAppStore()
   const router = useRouter()
   const results = getDeckResults()
 
-  // Validation: redirect if no answers exist
   useEffect(() => {
     if (Object.keys(answers).length === 0) {
       toast.error('No assessment data found. Please complete the assessment first.')
@@ -23,114 +30,151 @@ export default function IntakeSummary() {
   }, [answers, router])
 
   const hasResults = results.riasec && Object.keys(results.riasec).length > 0
+  const maxRiasec = hasResults ? Math.max(...Object.values(results.riasec)) : 1
 
   return (
-    <div className={containerClassName}>
-      <StepIndicator />
-      <h1 className="text-3xl font-bold mb-8">Your Assessment Results</h1>
+    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
+              radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%)
+            `,
+          }}
+        />
+        <StarField count={40} />
+      </div>
+
+      <div className="text-center mb-10 pt-4">
+        <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Profile</h1>
+        <p className="text-sm text-muted-foreground">
+          Here&apos;s what your answers reveal about your career personality
+        </p>
+      </div>
 
       {!hasResults
         ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📝</div>
-            <h2 className="text-2xl font-bold mb-4">No Assessment Results Yet</h2>
-            <p className="text-lg text-base-content/70 max-w-2xl mx-auto mb-8">
-              You haven&apos;t completed the &quot;Would You Rather?&quot; assessment yet. Take the quiz to discover your career interests and get personalized recommendations.
+          <div className="text-center py-16">
+            <div className="text-5xl mb-4">📝</div>
+            <h2 className="font-serif text-2xl text-foreground mb-3">No Results Yet</h2>
+            <p className="text-muted-foreground max-w-lg mx-auto mb-8">
+              Complete the assessment to discover your career interests and get personalized recommendations.
             </p>
-            <Link href="/intake/would-you-rather" className="btn btn-primary btn-lg">
+            <Link
+              href="/intake/would-you-rather"
+              className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
+            >
               Start the Assessment
             </Link>
           </div>
         )
         : (
-          <div className="space-y-12">
-            {/* RIASEC Results */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">RIASEC Interest Profile</h2>
-              <div className="grid grid-cols-1 gap-4">
+          <>
+            {/* RIASEC bars — full width card */}
+            <div className="p-6 bg-surface/50 border border-border rounded-2xl mb-6">
+              <h2 className="font-serif text-lg text-foreground mb-5">Interest Profile (RIASEC)</h2>
+              <div className="flex flex-col gap-3">
                 {Object.entries(results.riasec || {})
                   .sort((a, b) => b[1] - a[1])
-                  .map(([code, count]) => (
-                    <div
-                      key={code}
-                      className="bg-base-200 p-4 rounded-lg"
-                    >
-                      <h3 className="font-medium text-lg">{describeCode(code)}</h3>
-                      <p className="text-base-content/70">
-                        Selected
-                        {' '}
-                        {count}
-                        {' '}
-                        times
-                      </p>
-                    </div>
-                  ))}
+                  .map(([code, count], i) => {
+                    const pct = Math.round((count / maxRiasec) * 100)
+                    const colorClass = riasecColors[code] || 'from-primary to-secondary'
+                    return (
+                      <div key={code} className="flex items-center gap-3">
+                        <span className="w-28 text-xs text-muted-foreground">{describeCode(code)}</span>
+                        <div className="flex-1 h-2 rounded-full bg-primary/10 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full bg-gradient-to-r ${colorClass}`}
+                            style={{
+                              width: `${pct}%`,
+                              transition: `width 0.8s ease ${i * 0.1}s`,
+                            }}
+                          />
+                        </div>
+                        <span className="w-9 text-right text-xs font-semibold text-primary-soft">
+                          {pct}
+                          %
+                        </span>
+                      </div>
+                    )
+                  })}
               </div>
-            </section>
+            </div>
 
-            {/* Work Values Results */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Work Value Motivators</h2>
-              <div className="grid grid-cols-1 gap-4">
-                {Object.entries(results.workvalue || {})
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([code, count]) => (
-                    <div
-                      key={code}
-                      className="bg-base-200 p-4 rounded-lg"
-                    >
-                      <h3 className="font-medium text-lg">{describeCode(code)}</h3>
-                      <p className="text-base-content/70">
-                        Selected
-                        {' '}
-                        {count}
-                        {' '}
-                        times
-                      </p>
-                    </div>
-                  ))}
+            {/* Work Values + Environment — 2 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+              <div className="p-6 bg-surface/50 border border-border rounded-2xl">
+                <h2 className="font-serif text-lg text-foreground mb-4">Work Values</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(results.workvalue || {})
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([code, count], i) => {
+                      const isTop = i < 2
+                      return (
+                        <span
+                          key={code}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-medium border ${
+                            isTop
+                              ? 'border-accent/30 bg-accent/10 text-accent'
+                              : 'border-border bg-primary/5 text-primary-soft'
+                          }`}
+                        >
+                          {describeCode(code)}
+                          {' ('}
+                          {count}
+                          )
+                        </span>
+                      )
+                    })}
+                </div>
               </div>
-            </section>
 
-            {/* Environment Preferences */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Workplace Environment Preferences</h2>
-              <div className="grid grid-cols-1 gap-4">
-                {Object.entries(results.env || {})
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([code, count]) => (
-                    <div
-                      key={code}
-                      className="bg-base-200 p-4 rounded-lg"
-                    >
-                      <h3 className="font-medium text-lg">{describeCode(code)}</h3>
-                      <p className="text-base-content/70">
-                        Selected
-                        {' '}
-                        {count}
-                        {' '}
-                        times
-                      </p>
-                    </div>
-                  ))}
+              <div className="p-6 bg-surface/50 border border-border rounded-2xl">
+                <h2 className="font-serif text-lg text-foreground mb-4">Environment</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(results.env || {})
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([code, count], i) => {
+                      const isTop = i < 2
+                      return (
+                        <span
+                          key={code}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-medium border ${
+                            isTop
+                              ? 'border-accent/30 bg-accent/10 text-accent'
+                              : 'border-border bg-primary/5 text-primary-soft'
+                          }`}
+                        >
+                          {describeCode(code)}
+                          {' ('}
+                          {count}
+                          )
+                        </span>
+                      )
+                    })}
+                </div>
               </div>
-            </section>
+            </div>
 
-            <div className="flex justify-center gap-4 mt-8">
-              <Link
-                href="/careers"
-                className="btn btn-primary"
-              >
-                Explore Career Matches
-              </Link>
+            {/* Actions */}
+            <div className="flex justify-center gap-4">
               <Link
                 href="/intake/would-you-rather"
-                className="btn btn-outline"
+                className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm"
               >
                 Retake Assessment
               </Link>
+              <Link
+                href="/careers"
+                className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
+              >
+                Explore Careers →
+              </Link>
             </div>
-          </div>
+          </>
         )}
     </div>
   )
