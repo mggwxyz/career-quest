@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Designs — Assessment Pages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #08081a;
+    color: #e0dff0;
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .section-label {
+    text-align: center;
+    padding: 40px 24px 12px;
+  }
+  .section-label h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    color: #c4b5fd;
+    font-weight: 400;
+  }
+  .section-label p {
+    font-size: 13px;
+    color: #6b63a0;
+    margin-top: 6px;
+  }
+
+  .mockup-frame {
+    max-width: 1000px;
+    margin: 24px auto;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    background: #0a0a1a;
+    position: relative;
+  }
+
+  /* Shared star field for all frames */
+  .stars-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: var(--max-opacity); transform: scale(1); }
+  }
+  .star.violet { background: #c4b5fd; }
+  .star.amber { background: #fbbf24; }
+  .star.cyan { background: #67e8f9; }
+
+  /* Nebula bg */
+  .nebula-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%);
+  }
+
+  /* ===== GLASS NAV (compact) ===== */
+  .glass-nav {
+    position: relative;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    margin: 12px 16px 0;
+    background: rgba(10, 10, 30, 0.6);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  }
+  .glass-nav::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+  }
+  .nav-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: #e0dff0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+  }
+  .nav-links {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    align-items: center;
+    font-size: 13px;
+    color: #8b85a8;
+  }
+  .nav-link { padding: 6px 14px; border-radius: 8px; }
+  .nav-link.active { color: #e0dff0; background: rgba(139, 92, 246, 0.1); }
+
+  /* ===== INTERESTS PAGE ===== */
+  .interests-page {
+    position: relative;
+    z-index: 1;
+    padding: 40px 32px 48px;
+  }
+  .page-title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .page-title h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #f0ecff;
+    margin-bottom: 8px;
+  }
+  .page-title p {
+    font-size: 14px;
+    color: #8b85a8;
+  }
+
+  .interests-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 700px;
+    margin: 0 auto 32px;
+  }
+  .interest-chip {
+    padding: 8px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    background: rgba(15, 15, 36, 0.6);
+    color: #8b85a8;
+  }
+  .interest-chip:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #c4b5fd;
+    background: rgba(124, 58, 237, 0.08);
+  }
+  .interest-chip.selected {
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(124, 58, 237, 0.15);
+    color: #e0dff0;
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.15);
+  }
+
+  .custom-input-row {
+    display: flex;
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto 32px;
+  }
+  .custom-input {
+    flex: 1;
+    padding: 10px 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(15, 15, 36, 0.6);
+    color: #e0dff0;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .custom-input::placeholder { color: #6b63a0; }
+  .custom-input:focus { border-color: rgba(139, 92, 246, 0.5); }
+  .add-btn {
+    padding: 10px 20px;
+    border-radius: 24px;
+    border: none;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  }
+
+  .continue-row {
+    text-align: center;
+  }
+  .continue-btn {
+    padding: 14px 40px;
+    border-radius: 28px;
+    border: none;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.4);
+  }
+
+  /* ===== WOULD YOU RATHER PAGE ===== */
+  .wyr-page {
+    position: relative;
+    z-index: 1;
+    padding: 32px;
+  }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.1);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 35%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #7c3aed, #6366f1);
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
+    transition: width 0.4s ease;
+  }
+  .progress-text {
+    font-size: 12px;
+    color: #6b63a0;
+    white-space: nowrap;
+  }
+
+  .wyr-question {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .wyr-question h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #f0ecff;
+  }
+
+  .wyr-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .wyr-card {
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    background: rgba(15, 15, 36, 0.5);
+  }
+  .wyr-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.15);
+    transform: translateY(-4px);
+  }
+  .wyr-card.selected {
+    border-color: rgba(139, 92, 246, 0.7);
+    box-shadow: 0 0 50px rgba(124, 58, 237, 0.25), 0 0 100px rgba(124, 58, 237, 0.1);
+  }
+  .wyr-card.selected .card-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .card-image {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Cosmic overlay on images */
+  .card-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(10, 10, 26, 0) 40%, rgba(10, 10, 26, 0.85) 100%),
+      linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .card-body {
+    padding: 20px;
+  }
+  .card-body h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0dff0;
+    margin-bottom: 6px;
+  }
+  .card-body p {
+    font-size: 13px;
+    color: #8b85a8;
+    line-height: 1.5;
+  }
+
+  .card-check {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+    z-index: 5;
+  }
+
+  /* "or" divider */
+  .wyr-or {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+  }
+  .wyr-or span {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10, 10, 26, 0.9);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: #8b85a8;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  .wyr-nav-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .wyr-nav-btn {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-back {
+    background: transparent;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #8b85a8;
+  }
+  .btn-back:hover { border-color: rgba(139, 92, 246, 0.4); color: #c4b5fd; }
+  .btn-skip {
+    background: transparent;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #8b85a8;
+  }
+  .btn-skip:hover { border-color: rgba(139, 92, 246, 0.4); color: #c4b5fd; }
+
+  .wyr-cards-container {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* ===== SUMMARY PAGE ===== */
+  .summary-page {
+    position: relative;
+    z-index: 1;
+    padding: 40px 32px 48px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 800px;
+    margin: 32px auto;
+  }
+  .results-grid.full-width {
+    grid-template-columns: 1fr;
+  }
+
+  .result-card {
+    padding: 24px;
+    background: rgba(15, 15, 36, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    border-radius: 16px;
+  }
+  .result-card h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: #f0ecff;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+
+  /* RIASEC bars */
+  .riasec-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .riasec-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .riasec-label {
+    width: 100px;
+    font-size: 12px;
+    color: #8b85a8;
+  }
+  .riasec-bar-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.08);
+    overflow: hidden;
+  }
+  .riasec-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+  .riasec-bar-fill.r { background: linear-gradient(90deg, #ef4444, #dc2626); width: 75%; }
+  .riasec-bar-fill.i { background: linear-gradient(90deg, #6366f1, #4f46e5); width: 60%; }
+  .riasec-bar-fill.a { background: linear-gradient(90deg, #a855f7, #9333ea); width: 85%; }
+  .riasec-bar-fill.s { background: linear-gradient(90deg, #06b6d4, #0891b2); width: 45%; }
+  .riasec-bar-fill.e { background: linear-gradient(90deg, #f59e0b, #d97706); width: 55%; }
+  .riasec-bar-fill.c { background: linear-gradient(90deg, #22c55e, #16a34a); width: 30%; }
+  .riasec-pct {
+    width: 36px;
+    text-align: right;
+    font-size: 12px;
+    color: #c4b5fd;
+    font-weight: 600;
+  }
+
+  /* Value tags */
+  .value-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .value-tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(124, 58, 237, 0.08);
+    color: #c4b5fd;
+  }
+  .value-tag.highlight {
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(251, 191, 36, 0.08);
+    color: #fbbf24;
+  }
+
+  .summary-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  /* Divider between sections */
+  .section-divider {
+    width: 100%;
+    max-width: 1000px;
+    margin: 20px auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.15), transparent);
+  }
+
+  .design-notes {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+  }
+  .design-notes h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: #c4b5fd;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .note-item {
+    padding: 16px;
+    background: rgba(15, 15, 36, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    border-radius: 10px;
+  }
+  .note-item .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b63a0;
+    margin-bottom: 6px;
+  }
+  .note-item .value {
+    font-size: 13px;
+    color: #c4b5fd;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================== -->
+<!-- INTERESTS PAGE                  -->
+<!-- ============================== -->
+<div class="section-label">
+  <h1>Section 2b: Interests Page</h1>
+  <p>Select topics that define you — chip-based selection with glow feedback</p>
+</div>
+
+<div class="mockup-frame">
+  <div class="nebula-bg"></div>
+  <div class="stars-layer" id="stars1"></div>
+
+  <div class="glass-nav">
+    <div class="nav-logo"><div class="logo-icon">✦</div> Career Quest</div>
+    <div class="nav-links">
+      <span class="nav-link">Home</span>
+      <span class="nav-link active">Assessment</span>
+      <span class="nav-link">Careers</span>
+    </div>
+  </div>
+
+  <div class="interests-page">
+    <div class="page-title">
+      <h2>What Interests You?</h2>
+      <p>Pick as many as you like, or add your own</p>
+    </div>
+
+    <div class="interests-grid">
+      <div class="interest-chip selected">🎨 Art & Design</div>
+      <div class="interest-chip">🔬 Science</div>
+      <div class="interest-chip selected">💻 Technology</div>
+      <div class="interest-chip">📊 Business</div>
+      <div class="interest-chip">🎵 Music</div>
+      <div class="interest-chip selected">✍️ Writing</div>
+      <div class="interest-chip">🏥 Healthcare</div>
+      <div class="interest-chip">📐 Engineering</div>
+      <div class="interest-chip">🌍 Environment</div>
+      <div class="interest-chip selected">🧠 Psychology</div>
+      <div class="interest-chip">⚖️ Law</div>
+      <div class="interest-chip">🎓 Education</div>
+      <div class="interest-chip">🏗️ Architecture</div>
+      <div class="interest-chip">📸 Photography</div>
+      <div class="interest-chip">🍳 Culinary</div>
+      <div class="interest-chip">🏋️ Fitness</div>
+      <div class="interest-chip">✈️ Travel</div>
+      <div class="interest-chip">🎮 Gaming</div>
+      <div class="interest-chip">📱 Social Media</div>
+      <div class="interest-chip">🌱 Sustainability</div>
+    </div>
+
+    <div class="custom-input-row">
+      <input class="custom-input" placeholder="Add a custom interest..." />
+      <button class="add-btn">Add</button>
+    </div>
+
+    <div class="continue-row">
+      <button class="continue-btn">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================== -->
+<!-- WOULD YOU RATHER PAGE           -->
+<!-- ============================== -->
+<div class="section-label">
+  <h1>Section 2c: Would You Rather</h1>
+  <p>The portal cards — photo-based choices with cosmic overlays and glow selection</p>
+</div>
+
+<div class="mockup-frame">
+  <div class="nebula-bg"></div>
+  <div class="stars-layer" id="stars2"></div>
+
+  <div class="glass-nav">
+    <div class="nav-logo"><div class="logo-icon">✦</div> Career Quest</div>
+    <div class="nav-links">
+      <span class="nav-link">Home</span>
+      <span class="nav-link active">Assessment</span>
+      <span class="nav-link">Careers</span>
+    </div>
+  </div>
+
+  <div class="wyr-page">
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <span class="progress-text">7 of 20</span>
+    </div>
+
+    <div class="wyr-question">
+      <h2>Would you rather...</h2>
+    </div>
+
+    <div class="wyr-cards-container">
+      <div class="wyr-or"><span>or</span></div>
+      <div class="wyr-cards">
+        <div class="wyr-card selected" onclick="selectCard(this, 0)">
+          <div class="card-check">✓</div>
+          <div class="card-image">
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&h=300&fit=crop" alt="Lab work" />
+          </div>
+          <div class="card-body">
+            <h3>Conduct research in a lab</h3>
+            <p>Investigate scientific problems and test hypotheses through careful experimentation.</p>
+          </div>
+        </div>
+        <div class="wyr-card" onclick="selectCard(this, 1)">
+          <div class="card-check">✓</div>
+          <div class="card-image">
+            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500&h=300&fit=crop" alt="Teaching" />
+          </div>
+          <div class="card-body">
+            <h3>Teach a class of students</h3>
+            <p>Share knowledge and help others learn, grow, and reach their potential.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wyr-nav-row">
+      <button class="wyr-nav-btn btn-back">← Back</button>
+      <button class="wyr-nav-btn btn-skip">Skip →</button>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================== -->
+<!-- SUMMARY PAGE                    -->
+<!-- ============================== -->
+<div class="section-label">
+  <h1>Section 2d: Results Summary</h1>
+  <p>Your profile breakdown — RIASEC bars, work values, and environment preferences</p>
+</div>
+
+<div class="mockup-frame">
+  <div class="nebula-bg"></div>
+  <div class="stars-layer" id="stars3"></div>
+
+  <div class="glass-nav">
+    <div class="nav-logo"><div class="logo-icon">✦</div> Career Quest</div>
+    <div class="nav-links">
+      <span class="nav-link">Home</span>
+      <span class="nav-link active">Assessment</span>
+      <span class="nav-link">Careers</span>
+    </div>
+  </div>
+
+  <div class="summary-page">
+    <div class="page-title">
+      <h2>Your Profile</h2>
+      <p>Here's what your answers reveal about your career personality</p>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card" style="grid-column: 1 / -1;">
+        <h3>Interest Profile (RIASEC)</h3>
+        <div class="riasec-bars">
+          <div class="riasec-row">
+            <span class="riasec-label">Artistic</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill a"></div></div>
+            <span class="riasec-pct">85%</span>
+          </div>
+          <div class="riasec-row">
+            <span class="riasec-label">Realistic</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill r"></div></div>
+            <span class="riasec-pct">75%</span>
+          </div>
+          <div class="riasec-row">
+            <span class="riasec-label">Investigative</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill i"></div></div>
+            <span class="riasec-pct">60%</span>
+          </div>
+          <div class="riasec-row">
+            <span class="riasec-label">Enterprising</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill e"></div></div>
+            <span class="riasec-pct">55%</span>
+          </div>
+          <div class="riasec-row">
+            <span class="riasec-label">Social</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill s"></div></div>
+            <span class="riasec-pct">45%</span>
+          </div>
+          <div class="riasec-row">
+            <span class="riasec-label">Conventional</span>
+            <div class="riasec-bar-track"><div class="riasec-bar-fill c"></div></div>
+            <span class="riasec-pct">30%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <h3>Work Values</h3>
+        <div class="value-tags">
+          <div class="value-tag highlight">Creativity</div>
+          <div class="value-tag highlight">Independence</div>
+          <div class="value-tag">Recognition</div>
+          <div class="value-tag">Achievement</div>
+          <div class="value-tag">Working Conditions</div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <h3>Environment</h3>
+        <div class="value-tags">
+          <div class="value-tag highlight">Flexible Schedule</div>
+          <div class="value-tag highlight">Remote Work</div>
+          <div class="value-tag">Small Teams</div>
+          <div class="value-tag">Self-Directed</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-actions">
+      <button class="wyr-nav-btn btn-back" style="padding: 12px 28px;">Retake Assessment</button>
+      <button class="continue-btn">Explore Careers →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Design Notes -->
+<div class="design-notes" style="margin-top: 32px;">
+  <h3>Design Notes</h3>
+  <div class="notes-grid">
+    <div class="note-item">
+      <div class="label">Interest Chips</div>
+      <div class="value">Pill-shaped chips with emoji prefixes. On select: violet glow border + subtle background fill. On hover: border highlights. Chips wrap naturally in a flex container for responsive sizing.</div>
+    </div>
+    <div class="note-item">
+      <div class="label">Portal Cards</div>
+      <div class="value">Photos kept with cosmic gradient overlay (transparent → deep navy). On select: violet glow border intensifies, checkmark badge scales in with spring animation. Cards lift on hover (translateY). "or" badge floats between cards.</div>
+    </div>
+    <div class="note-item">
+      <div class="label">Card Transitions</div>
+      <div class="value">After selection, current cards exit with opacity + translateX. New cards enter from opposite side with staggered timing. 500ms auto-advance preserved. Framer Motion AnimatePresence for smooth mounting/unmounting.</div>
+    </div>
+    <div class="note-item">
+      <div class="label">RIASEC Bars</div>
+      <div class="value">Each bar has a unique color that animates width on mount (staggered by 100ms). Sorted by score descending. Gradient fill adds depth. Percentage labels right-aligned for easy scanning.</div>
+    </div>
+    <div class="note-item">
+      <div class="label">Progress Bar</div>
+      <div class="value">Thin gradient bar with subtle glow. Violet-to-indigo fill. Animates width smoothly on each question. Question count shown as "7 of 20" — compact and clear.</div>
+    </div>
+    <div class="note-item">
+      <div class="label">Summary Tags</div>
+      <div class="value">Top values get an amber "highlight" treatment to show what stood out most. Regular tags use subtle violet. All use pill shape for consistency with the interests page chips.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function selectCard(el, idx) {
+    document.querySelectorAll('.wyr-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // Generate stars for all three mockup frames
+  ['stars1', 'stars2', 'stars3'].forEach(id => {
+    const field = document.getElementById(id);
+    if (!field) return;
+    for (let i = 0; i < 40; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      const size = 0.5 + Math.random() * 1.5;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.setProperty('--duration', (3 + Math.random() * 5) + 's');
+      star.style.setProperty('--delay', (Math.random() * 6) + 's');
+      star.style.setProperty('--max-opacity', (0.3 + Math.random() * 0.5).toString());
+      const c = Math.random();
+      if (c > 0.92) star.classList.add('violet');
+      else if (c > 0.85) star.classList.add('amber');
+      else if (c > 0.80) star.classList.add('cyan');
+      field.appendChild(star);
+    }
+  });
+</script>
+
+</body>
+</html>

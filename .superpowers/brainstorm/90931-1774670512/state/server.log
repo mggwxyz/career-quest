@@ -1,0 +1,10 @@
+{"type":"server-started","port":52558,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:52558","screen_dir":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content","state_dir":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/state"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/visual-direction.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-home-nav.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-home-nav-v2.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-home-nav-v3.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-assessment.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-assessment-v2.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/pages-careers-auth.html"}
+{"type":"screen-added","file":"/Users/michaelgilbertson/Projects/career-quest/.superpowers/brainstorm/90931-1774670512/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}
