@@ -8,9 +8,8 @@ import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
 import { useIsLoggedIn } from '@/hooks/use-is-logged-in'
 import Link from 'next/link'
-import { containerClassName } from '@/app/_styles/classes'
 import { toast } from 'sonner'
-import { StepIndicator } from '@/components/step-indicator'
+import { StarField } from '@/components/star-field'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -25,13 +24,12 @@ export default function WouldYouRather() {
     try {
       const response = await fetch('/api/user/progress')
       const data = await response.json()
-
       if (response.ok && data.progress?.answers) {
         hydrateFromDB(data.progress.answers, data.progress.skippedQuestions || [])
       }
     }
     catch {
-      // Silent fail for progress loading
+      // Silent fail
     }
     finally {
       setIsHydrated(true)
@@ -42,9 +40,7 @@ export default function WouldYouRather() {
     try {
       await fetch('/api/user/progress', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           answers,
           skippedQuestions: Array.from(skippedQuestions),
@@ -52,21 +48,15 @@ export default function WouldYouRather() {
       })
     }
     catch {
-      // Silent fail for progress saving
+      // Silent fail
     }
   }, [answers, skippedQuestions])
 
-  // Load saved progress from DB for logged-in users
   useEffect(() => {
-    if (isLoggedIn && !isHydrated) {
-      loadSavedProgress()
-    }
-    else if (!isLoggedIn) {
-      setIsHydrated(true)
-    }
+    if (isLoggedIn && !isHydrated) loadSavedProgress()
+    else if (!isLoggedIn) setIsHydrated(true)
   }, [isLoggedIn, isHydrated, loadSavedProgress])
 
-  // Save progress to DB when answers change for logged-in users
   useEffect(() => {
     if (isLoggedIn && isHydrated && (Object.keys(answers).length > 0 || skippedQuestions.size > 0)) {
       saveProgressToDB()
@@ -77,21 +67,17 @@ export default function WouldYouRather() {
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100
 
   const handleOptionSelect = (option: number) => {
-    if (selectedOption !== null) return // Prevent multiple selections
-
+    if (selectedOption !== null) return
     setSelectedOption(option)
     setShowCheckmark(true)
     setAnswer(currentQuestion.id.toString(), option)
 
-    // Wait for checkmark animation before moving to next question
     setTimeout(() => {
       setShowCheckmark(false)
       setSelectedOption(null)
       nextQuestion()
-
-      // Show completion toast if this was the last question
       if (currentQuestionIndex === allQuestions.length - 1) {
-        toast.success('🎉 Assessment completed! Great job!', {
+        toast.success('Assessment completed!', {
           description: 'Your preferences have been recorded. Ready to explore your career matches?',
         })
       }
@@ -99,89 +85,84 @@ export default function WouldYouRather() {
   }
 
   const handleSkipQuestion = () => {
-    if (selectedOption !== null) return // Prevent skipping if already selected
-
+    if (selectedOption !== null) return
     skipQuestion(currentQuestion.id.toString())
     nextQuestion()
   }
 
+  // Completion screen
   if (currentQuestionIndex >= allQuestions.length) {
     return (
-      <div className={containerClassName}>
-        <StepIndicator />
-        <h1 className="text-3xl font-bold mb-8">Thank you for playing!</h1>
-        <p className="text-xl mb-8">We&apos;ve recorded your preferences.</p>
-        <div className="flex flex-col gap-4 items-center">
-          <Link
-            href="/intake/summary"
-            className="btn btn-primary"
-          >
-            View Your Results
-          </Link>
-          <Link
-            href="/careers"
-            className="btn btn-secondary"
-          >
-            Explore Career Matches
-          </Link>
-          <button
-            onClick={() => resetGame()}
-            className="btn btn-outline"
-          >
-            Play Again
-          </button>
+      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+        <div className="fixed inset-0 pointer-events-none -z-10">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse 500px 350px at 30% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%)`,
+            }}
+          />
+          <StarField count={40} />
+        </div>
+        <div className="text-center pt-20">
+          <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
+          <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
+          <div className="flex flex-col gap-3 items-center">
+            <Link href="/intake/summary" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
+              View Your Results
+            </Link>
+            <Link href="/careers" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
+              Explore Career Matches
+            </Link>
+            <button onClick={() => resetGame()} className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-2">
+              Start Over
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={containerClassName}>
-      <StepIndicator />
-      <motion.div
-        className="mb-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Would You Rather?</h1>
-          {currentQuestionIndex > 0 && (
-            <motion.button
-              onClick={previousQuestion}
-              className="btn btn-outline btn-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              ← Previous Question
-            </motion.button>
-          )}
-        </div>
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-lg">
-            Question
-            {' '}
-            {currentQuestionIndex + 1}
-            {' '}
-            of
-            {' '}
-            {allQuestions.length}
-          </span>
-          <span className="text-lg">
-            {Math.round(progress)}
-            % Complete
-          </span>
-        </div>
-        <motion.progress
-          className="progress progress-primary w-full"
-          value={progress}
-          max="100"
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 0.5 }}
+    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
+              radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%)
+            `,
+          }}
         />
-      </motion.div>
+        <StarField count={40} />
+      </div>
 
+      {/* Progress bar */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-1 h-1 rounded-full bg-primary/10 overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(124,58,237,0.5)]"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
+        </div>
+        <span className="text-xs text-text-dim whitespace-nowrap">
+          {currentQuestionIndex + 1}
+          {' '}
+          of
+          {' '}
+          {allQuestions.length}
+        </span>
+      </div>
+
+      {/* Question title */}
+      <div className="text-center mb-8 mt-6">
+        <h1 className="font-serif text-2xl sm:text-3xl text-foreground">Would you rather...</h1>
+      </div>
+
+      {/* Cards */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestion.id}
@@ -190,57 +171,70 @@ export default function WouldYouRather() {
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
-          {/* Mobile: Stacked layout with VS divider */}
-          <div className="block sm:hidden space-y-4">
-            <OptionCard
-              option={currentQuestion.option1}
-              isSelected={selectedOption === 1}
-              showCheckmark={showCheckmark}
-              onClick={() => handleOptionSelect(1)}
-            />
-            <motion.div
-              className="flex items-center justify-center"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring' }}
-            >
-              <div className="bg-primary text-primary-content rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg">
-                VS
+          <div className="relative max-w-3xl mx-auto">
+            {/* "or" badge — desktop only */}
+            <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <div className="w-10 h-10 rounded-full bg-background/90 border border-border flex items-center justify-center font-serif text-sm italic text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                or
               </div>
-            </motion.div>
-            <OptionCard
-              option={currentQuestion.option2}
-              isSelected={selectedOption === 2}
-              showCheckmark={showCheckmark}
-              onClick={() => handleOptionSelect(2)}
-            />
-          </div>
+            </div>
 
-          {/* Desktop: Side-by-side layout */}
-          <div className="hidden sm:grid grid-cols-2 gap-4 md:gap-8">
-            <OptionCard
-              option={currentQuestion.option1}
-              isSelected={selectedOption === 1}
-              showCheckmark={showCheckmark}
-              onClick={() => handleOptionSelect(1)}
-            />
-            <OptionCard
-              option={currentQuestion.option2}
-              isSelected={selectedOption === 2}
-              showCheckmark={showCheckmark}
-              onClick={() => handleOptionSelect(2)}
-            />
+            {/* Mobile: stacked */}
+            <div className="block sm:hidden space-y-4">
+              <OptionCard
+                option={currentQuestion.option1}
+                isSelected={selectedOption === 1}
+                showCheckmark={showCheckmark}
+                onClick={() => handleOptionSelect(1)}
+              />
+              <div className="flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-background/90 border border-border flex items-center justify-center font-serif text-sm italic text-muted-foreground">
+                  or
+                </div>
+              </div>
+              <OptionCard
+                option={currentQuestion.option2}
+                isSelected={selectedOption === 2}
+                showCheckmark={showCheckmark}
+                onClick={() => handleOptionSelect(2)}
+              />
+            </div>
+
+            {/* Desktop: side by side */}
+            <div className="hidden sm:grid grid-cols-2 gap-6">
+              <OptionCard
+                option={currentQuestion.option1}
+                isSelected={selectedOption === 1}
+                showCheckmark={showCheckmark}
+                onClick={() => handleOptionSelect(1)}
+              />
+              <OptionCard
+                option={currentQuestion.option2}
+                isSelected={selectedOption === 2}
+                showCheckmark={showCheckmark}
+                onClick={() => handleOptionSelect(2)}
+              />
+            </div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      <div className="flex justify-center mt-6">
+      {/* Nav buttons */}
+      <div className="flex justify-center gap-3 mt-6">
+        {currentQuestionIndex > 0 && (
+          <button
+            onClick={previousQuestion}
+            className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all"
+          >
+            ← Back
+          </button>
+        )}
         <button
           onClick={handleSkipQuestion}
-          className="btn btn-ghost btn-sm"
           disabled={selectedOption !== null}
+          className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all disabled:opacity-30"
         >
-          Skip Question
+          Skip →
         </button>
       </div>
     </div>
