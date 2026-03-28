@@ -8,17 +8,18 @@ import { User } from '@supabase/supabase-js'
 import { LogoutButton } from './logout-button'
 import { CurrentUserAvatar } from './current-user-avatar'
 import { ThemeToggle } from './theme-toggle'
+import { Menu } from 'lucide-react'
 
 const navLinks = [
-  { href: '/intake/interests', label: 'Interests' },
-  { href: '/intake/would-you-rather', label: 'Would You Rather' },
-  { href: '/intake/summary', label: 'Summary' },
+  { href: '/', label: 'Home' },
+  { href: '/intake/interests', label: 'Assessment' },
   { href: '/careers', label: 'Careers' },
 ]
 
 export const NavigationBar = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const supabase = createClient()
   const pathname = usePathname()
 
@@ -41,61 +42,110 @@ export const NavigationBar = () => {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  const isActive = (href: string) => pathname.startsWith(href)
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
 
   return (
-    <nav className="navbar p-0 bg-base-100 shadow-sm fixed top-0 left-0 right-0 z-50">
-      <div className="container flex flex-row items-center mx-auto max-w-4xl">
+    <nav className="fixed top-3 left-4 right-4 z-50">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center px-6 py-3 bg-[var(--surface-glass)] backdrop-blur-xl border border-border rounded-[14px] shadow-[0_4px_30px_rgba(0,0,0,0.4),0_0_40px_rgba(124,58,237,0.06)] relative">
+          {/* Bottom glow line */}
+          <div className="absolute bottom-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-        <div className="flex-1">
-          <Link href="/" className="btn btn-ghost btn-link no-underline p-1 text-xl text-nowrap">Career Quest</Link>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 text-foreground no-underline">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-md flex items-center justify-center text-xs shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+              ✦
+            </div>
+            <span className="font-serif text-lg">Career Quest</span>
+          </Link>
+
+          {/* Desktop nav links */}
+          <div className="hidden md:flex items-center gap-1 ml-auto">
+            {navLinks.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm px-3.5 py-1.5 rounded-lg transition-all no-underline ${
+                  isActive(link.href)
+                    ? 'text-foreground bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <div className="flex items-center gap-2 ml-3">
+              <ThemeToggle />
+              {!loading && (
+                user
+                  ? (
+                    <>
+                      <CurrentUserAvatar />
+                      <LogoutButton />
+                    </>
+                  )
+                  : (
+                    <>
+                      <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
+                      <Link href="/intake/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all no-underline">Get Started</Link>
+                    </>
+                  )
+              )}
+            </div>
+          </div>
+
+          {/* Mobile hamburger */}
+          <div className="md:hidden flex items-center gap-2 ml-auto">
+            <ThemeToggle />
+            {!loading && user && <CurrentUserAvatar />}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
         </div>
-        <div className="flex flex-row items-center gap-1">
-          {loading
-            ? null
-            : user
-              ? (
-                <>
-                  <div className="dropdown dropdown-end md:hidden">
-                    <div tabIndex={0} role="button" className="btn btn-ghost">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </div>
-                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      {navLinks.map(link => (
-                        <li key={link.href}>
-                          <Link href={link.href} className={isActive(link.href) ? 'active' : ''}>
-                            {link.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <ul className="menu menu-horizontal px-1 hidden md:flex">
-                    {navLinks.map(link => (
-                      <li key={link.href}>
-                        <Link href={link.href} className={isActive(link.href) ? 'active' : ''}>
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="max-h-7 flex flex-row items-center gap-2">
-                    <ThemeToggle />
-                    <CurrentUserAvatar />
-                    <LogoutButton />
-                  </div>
-                </>
-              )
-              : (
-                <div className="flex flex-row items-center gap-2">
-                  <ThemeToggle />
-                  <Link href="/login" className="btn btn-ghost btn-sm">Log In</Link>
-                  <Link href="/intake/interests" className="btn btn-primary btn-sm">Get Started</Link>
+
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="md:hidden mt-2 p-4 bg-[var(--surface-glass)] backdrop-blur-xl border border-border rounded-xl shadow-lg">
+            <div className="flex flex-col gap-1">
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm px-3 py-2 rounded-lg transition-all no-underline ${
+                    isActive(link.href)
+                      ? 'text-foreground bg-primary/10'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {!loading && !user && (
+                <div className="flex gap-2 mt-2 pt-2 border-t border-border">
+                  <Link href="/auth/login" className="text-sm text-muted-foreground no-underline">Log In</Link>
+                  <Link href="/intake/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full no-underline">Get Started</Link>
                 </div>
               )}
-        </div>
+              {!loading && user && (
+                <div className="mt-2 pt-2 border-t border-border">
+                  <LogoutButton />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

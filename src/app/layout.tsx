@@ -38,7 +38,7 @@ export default function RootLayout({
           themes={['light', 'dark']}
         >
           <NavigationBar />
-          <main className="mt-16">{children}</main>
+          <main className="mt-20">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>

@@ -8,32 +8,23 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
     setMounted(true)
   }, [])
 
   if (!mounted) {
-    return (
-      <button className="btn btn-ghost btn-sm btn-square">
-        <div className="w-4 h-4" />
-      </button>
-    )
+    return <button className="w-7 h-7 rounded-full" aria-label="Toggle theme" />
   }
 
   return (
     <button
-      className="btn btn-ghost btn-sm btn-square"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="w-7 h-7 rounded-full bg-primary/10 border border-border hover:border-border-hover flex items-center justify-center transition-colors"
       aria-label="Toggle theme"
     >
       {theme === 'dark'
-        ? (
-          <Sun className="h-4 w-4" />
-        )
-        : (
-          <Moon className="h-4 w-4" />
-        )}
+        ? <Moon size={14} className="text-muted-foreground" />
+        : <Sun size={14} className="text-muted-foreground" />}
     </button>
   )
 }
