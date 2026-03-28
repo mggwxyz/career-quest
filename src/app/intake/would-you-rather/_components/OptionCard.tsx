@@ -14,25 +14,18 @@ interface OptionCardProps {
 export default function OptionCard({ option, isSelected, showCheckmark, onClick }: OptionCardProps) {
   return (
     <motion.button
-      className={`card bg-base-100 rounded-lg overflow-hidden shadow-xl cursor-pointer flex flex-col min-h-[200px] sm:min-h-[300px] ${
-        isSelected ? 'ring-2 ring-primary' : ''
+      className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-300 ${
+        isSelected
+          ? 'border-primary/70 shadow-[0_0_50px_rgba(124,58,237,0.25),0_0_100px_rgba(124,58,237,0.1)]'
+          : 'border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_0_40px_rgba(124,58,237,0.15)]'
       }`}
       onClick={onClick}
-      style={{ minHeight: '200px' }} // Ensure minimum tap target size
-      whileHover={{
-        scale: 1.02,
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-      }}
+      whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
-      animate={isSelected
-        ? {
-          scale: 1.05,
-          transition: { duration: 0.2 },
-        }
-        : { scale: 1 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      transition={{ duration: 0.2 }}
     >
-      <figure className="relative aspect-square flex-1">
+      {/* Image with cosmic overlay */}
+      <figure className="relative w-full h-[200px] sm:h-[250px] overflow-hidden">
         <Image
           src={option.imageUrl}
           alt={option.prompt}
@@ -40,26 +33,33 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
           className="object-cover"
           sizes="(max-width: 640px) 100vw, 50vw"
         />
+        {/* Cosmic gradient overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `
+              linear-gradient(180deg, rgba(10, 10, 26, 0) 40%, rgba(10, 10, 26, 0.85) 100%),
+              linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, transparent 50%)
+            `,
+          }}
+        />
+
+        {/* Checkmark badge */}
         {showCheckmark && isSelected && (
           <motion.div
-            className="absolute inset-0 bg-green-500/20 flex items-center justify-center"
-            initial={{ opacity: 0, scale: 0.8 }}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-[0_0_20px_rgba(124,58,237,0.5)] z-10"
+            initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 15 }}
           >
-            <motion.div
-              className="text-4xl sm:text-6xl text-green-500 bg-white rounded-full p-2 w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center shadow-lg"
-              initial={{ rotate: -10, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.3, type: 'spring', stiffness: 200 }}
-            >
-              ✓
-            </motion.div>
+            ✓
           </motion.div>
         )}
       </figure>
-      <div className="card-body p-4 sm:p-6 flex-none">
-        <h2 className="card-title justify-center text-base sm:text-lg md:text-xl text-center leading-tight">
+
+      {/* Card body */}
+      <div className="p-5 flex-none text-left">
+        <h2 className="text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
           {option.text}
         </h2>
       </div>
