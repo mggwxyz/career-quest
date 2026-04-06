@@ -6,7 +6,6 @@ import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
 import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
-import { useIsLoggedIn } from '@/hooks/use-is-logged-in'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { StarField } from '@/components/star-field'
@@ -18,7 +17,6 @@ export default function WouldYouRather() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
-  const isLoggedIn = useIsLoggedIn()
 
   const loadSavedProgress = useCallback(async () => {
     try {
@@ -53,15 +51,14 @@ export default function WouldYouRather() {
   }, [answers, skippedQuestions])
 
   useEffect(() => {
-    if (isLoggedIn && !isHydrated) loadSavedProgress()
-    else if (!isLoggedIn) setIsHydrated(true)
-  }, [isLoggedIn, isHydrated, loadSavedProgress])
+    if (!isHydrated) loadSavedProgress()
+  }, [isHydrated, loadSavedProgress])
 
   useEffect(() => {
-    if (isLoggedIn && isHydrated && (Object.keys(answers).length > 0 || skippedQuestions.size > 0)) {
+    if (isHydrated && (Object.keys(answers).length > 0 || skippedQuestions.size > 0)) {
       saveProgressToDB()
     }
-  }, [answers, skippedQuestions, isLoggedIn, isHydrated, saveProgressToDB])
+  }, [answers, skippedQuestions, isHydrated, saveProgressToDB])
 
   const currentQuestion: WouldYouRatherQuestion = allQuestions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100

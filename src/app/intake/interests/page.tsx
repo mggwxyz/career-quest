@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
+import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import InterestsClient from './_components/InterestsClient'
 
@@ -13,9 +13,8 @@ async function getUserInterests(): Promise<string[]> {
       return []
     }
 
-    // Fetch user data from database
-    const userData = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
+    const userData = await db.select().from(users)
+      .where(eq(users.id, user.id))
       .limit(1)
 
     if (!userData || userData.length === 0) {

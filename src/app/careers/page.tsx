@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
+import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
@@ -14,21 +14,17 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       return []
     }
 
-    // Fetch user data from database
-    const userData = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
-      .limit(1)
+    const rows = await db.select().from(careerRecommendations)
+      .where(eq(careerRecommendations.userId, user.id))
 
-    if (!userData || userData.length === 0) {
-      return []
-    }
-
-    const quizResults = userData[0].quizResults as unknown
-    if (!quizResults || !Array.isArray(quizResults)) {
-      return []
-    }
-
-    return quizResults as CareerRecommendation[]
+    return rows.map(row => ({
+      title: row.title,
+      description: row.description,
+      onetId: row.onetId,
+      whyItMatches: row.whyItMatches,
+      jobGrowth: row.jobGrowth,
+      salaryRange: row.salaryRange,
+    }))
   }
   catch {
     return []
