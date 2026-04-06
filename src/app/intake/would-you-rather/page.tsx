@@ -9,7 +9,7 @@ import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { StarField } from '@/components/star-field'
+import { CosmicBackground } from '@/components/cosmic-background'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -109,15 +109,7 @@ export default function WouldYouRather() {
   if (currentQuestionIndex >= allQuestions.length) {
     return (
       <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-        <div className="fixed inset-0 pointer-events-none -z-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 500px 350px at 30% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%)`,
-            }}
-          />
-          <StarField count={40} />
-        </div>
+        <CosmicBackground />
         <div className="text-center pt-20">
           <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
           <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
@@ -139,19 +131,7 @@ export default function WouldYouRather() {
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
-              radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%)
-            `,
-          }}
-        />
-        <StarField count={40} />
-      </div>
+      <CosmicBackground />
 
       {/* Progress bar */}
       <div className="flex items-center gap-3 mb-2">

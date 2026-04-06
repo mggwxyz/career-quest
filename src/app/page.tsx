@@ -2,28 +2,14 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { StarField } from '@/components/star-field'
+import { CosmicBackground } from '@/components/cosmic-background'
 
 export default function Home() {
   return (
     <div className="relative">
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-        {/* Nebula gradients */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `
-              radial-gradient(ellipse 600px 400px at 25% 20%, rgba(88, 28, 135, 0.35) 0%, transparent 70%),
-              radial-gradient(ellipse 500px 350px at 75% 70%, rgba(30, 58, 138, 0.25) 0%, transparent 70%),
-              radial-gradient(ellipse 300px 300px at 60% 30%, rgba(124, 58, 237, 0.15) 0%, transparent 70%)
-            `,
-            }}
-          />
-        </div>
-
-        <StarField count={55} />
+        <CosmicBackground variant="hero" starCount={55} />
 
         <div className="relative z-10 max-w-2xl">
           <motion.div

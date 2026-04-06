@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
-import { StarField } from '@/components/star-field'
+import { CosmicBackground } from '@/components/cosmic-background'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -91,19 +91,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-            radial-gradient(ellipse 500px 350px at 20% 30%, rgba(88, 28, 135, 0.2) 0%, transparent 70%),
-            radial-gradient(ellipse 400px 300px at 80% 70%, rgba(30, 58, 138, 0.15) 0%, transparent 70%)
-          `,
-          }}
-        />
-        <StarField count={40} />
-      </div>
+      <CosmicBackground />
 
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>

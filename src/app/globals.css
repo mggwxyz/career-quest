@@ -91,6 +91,12 @@
   --text-dim: #8b85b8;
   --border-hover: rgba(139, 92, 246, 0.4);
   --glow: rgba(139, 92, 246, 0.3);
+  /* Nebula background gradients */
+  --nebula-primary: rgba(88, 28, 135, 0.2);
+  --nebula-secondary: rgba(30, 58, 138, 0.15);
+  --nebula-hero-primary: rgba(88, 28, 135, 0.35);
+  --nebula-hero-secondary: rgba(30, 58, 138, 0.25);
+  --nebula-hero-tertiary: rgba(124, 58, 237, 0.15);
   /* Sidebar */
   --sidebar: #0f0f24;
   --sidebar-foreground: #e0dff0;
@@ -130,6 +136,11 @@
   --text-dim: #64748b;
   --border-hover: rgba(109, 40, 217, 0.3);
   --glow: rgba(109, 40, 217, 0.15);
+  --nebula-primary: rgba(109, 40, 217, 0.06);
+  --nebula-secondary: rgba(30, 58, 138, 0.04);
+  --nebula-hero-primary: rgba(109, 40, 217, 0.08);
+  --nebula-hero-secondary: rgba(30, 58, 138, 0.06);
+  --nebula-hero-tertiary: rgba(139, 92, 246, 0.04);
   --sidebar: #f0eef5;
   --sidebar-foreground: #1a1a2e;
   --sidebar-primary: #6d28d9;
