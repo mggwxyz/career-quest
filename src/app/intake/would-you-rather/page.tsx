@@ -6,6 +6,7 @@ import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
 import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
+import { useShallow } from 'zustand/react/shallow'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { StarField } from '@/components/star-field'
@@ -13,7 +14,19 @@ import { StarField } from '@/components/star-field'
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
 export default function WouldYouRather() {
-  const { currentQuestionIndex, setAnswer, skipQuestion, nextQuestion, previousQuestion, resetGame, hydrateFromDB, answers, skippedQuestions } = useAppStore()
+  const { currentQuestionIndex, setAnswer, skipQuestion, nextQuestion, previousQuestion, resetGame, hydrateFromDB, answers, skippedQuestions } = useAppStore(
+    useShallow(s => ({
+      currentQuestionIndex: s.currentQuestionIndex,
+      setAnswer: s.setAnswer,
+      skipQuestion: s.skipQuestion,
+      nextQuestion: s.nextQuestion,
+      previousQuestion: s.previousQuestion,
+      resetGame: s.resetGame,
+      hydrateFromDB: s.hydrateFromDB,
+      answers: s.answers,
+      skippedQuestions: s.skippedQuestions,
+    })),
+  )
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -55,9 +68,14 @@ export default function WouldYouRather() {
   }, [isHydrated, loadSavedProgress])
 
   useEffect(() => {
-    if (isHydrated && (Object.keys(answers).length > 0 || skippedQuestions.size > 0)) {
+    if (!isHydrated) return
+    if (Object.keys(answers).length === 0 && skippedQuestions.size === 0) return
+
+    const timeout = setTimeout(() => {
       saveProgressToDB()
-    }
+    }, 2000)
+
+    return () => clearTimeout(timeout)
   }, [answers, skippedQuestions, isHydrated, saveProgressToDB])
 
   const currentQuestion: WouldYouRatherQuestion = allQuestions[currentQuestionIndex]

@@ -6,8 +6,10 @@ import { createWouldYouRatherSlice, WouldYouRatherState } from './slices/wouldYo
 
 export type AppState = InterestsState & WouldYouRatherState
 
+const withDevtools = process.env.NODE_ENV === 'development' ? devtools : ((fn: unknown) => fn) as typeof devtools
+
 export const useAppStore = create<AppState>()(
-  devtools(
+  withDevtools(
     persist(
       (...a) => ({
         ...createInterestsSlice(...a),

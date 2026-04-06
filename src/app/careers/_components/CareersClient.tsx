@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/auth-provider'
 import Link from 'next/link'
@@ -26,7 +27,13 @@ const loadingMessages = [
 ]
 
 export default function CareersClient({ initialCareers }: CareersClientProps) {
-  const { getDeckResults, interests, answers } = useAppStore()
+  const { getDeckResults, interests, answers } = useAppStore(
+    useShallow(s => ({
+      getDeckResults: s.getDeckResults,
+      interests: s.interests,
+      answers: s.answers,
+    })),
+  )
   const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)

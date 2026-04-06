@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useAppStore } from '@/store/appStore'
+import { useShallow } from 'zustand/react/shallow'
 import { saveInterestsAndRedirect } from '../actions'
 import { toast } from 'sonner'
 import { StarField } from '@/components/star-field'
@@ -22,7 +23,14 @@ interface InterestsClientProps {
 export default function InterestsClient({ initialInterests }: InterestsClientProps) {
   const [customInterest, setCustomInterest] = useState('')
   const [isPending, startTransition] = useTransition()
-  const { interests, addInterest, removeInterest, setInterests } = useAppStore()
+  const { interests, addInterest, removeInterest, setInterests } = useAppStore(
+    useShallow(s => ({
+      interests: s.interests,
+      addInterest: s.addInterest,
+      removeInterest: s.removeInterest,
+      setInterests: s.setInterests,
+    })),
+  )
 
   useEffect(() => {
     if (initialInterests.length > 0 && interests.length === 0) {

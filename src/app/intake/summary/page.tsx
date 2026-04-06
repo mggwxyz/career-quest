@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/store/appStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -18,7 +19,12 @@ const riasecColors: Record<string, string> = {
 }
 
 export default function IntakeSummary() {
-  const { getDeckResults, answers } = useAppStore()
+  const { getDeckResults, answers } = useAppStore(
+    useShallow(s => ({
+      getDeckResults: s.getDeckResults,
+      answers: s.answers,
+    })),
+  )
   const router = useRouter()
   const results = getDeckResults()
 
