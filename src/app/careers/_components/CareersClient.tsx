@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { useRouter } from 'next/navigation'
-import { useIsLoggedIn } from '@/hooks/use-is-logged-in'
+import { useIsAnonymous } from '@/hooks/use-is-anonymous'
 import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
@@ -33,7 +33,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
   const router = useRouter()
-  const isLoggedIn = useIsLoggedIn()
+  const isAnonymous = useIsAnonymous()
 
   useEffect(() => {
     const results = getDeckResults()
@@ -138,7 +138,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
           ? (
             /* Empty states */
             <div className="text-center py-12">
-              {!isLoggedIn
+              {isAnonymous
                 ? (
                   <div className="p-8 rounded-2xl border border-border bg-surface/50 max-w-lg mx-auto">
                     <h3 className="font-serif text-xl text-foreground mb-3">Get AI-Powered Career Matches</h3>

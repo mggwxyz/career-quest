@@ -30,7 +30,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/protected` },
+        options: { emailRedirectTo: `${window.location.origin}/` },
       })
       if (error) throw error
       router.push('/auth/sign-up-success')

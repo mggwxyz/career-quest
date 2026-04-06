@@ -18,6 +18,7 @@ const navLinks = [
 
 export const NavigationBar = () => {
   const [user, setUser] = useState<User | null>(null)
+  const isAnonymous = user?.is_anonymous ?? true
   const [loading, setLoading] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const supabase = createClient()
@@ -85,7 +86,7 @@ export const NavigationBar = () => {
             <div className="flex items-center gap-2 ml-3">
               <ThemeToggle />
               {!loading && (
-                user
+                !isAnonymous
                   ? (
                     <>
                       <CurrentUserAvatar />
@@ -105,7 +106,7 @@ export const NavigationBar = () => {
           {/* Mobile hamburger */}
           <div className="md:hidden flex items-center gap-2 ml-auto">
             <ThemeToggle />
-            {!loading && user && <CurrentUserAvatar />}
+            {!loading && !isAnonymous && <CurrentUserAvatar />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
@@ -132,13 +133,13 @@ export const NavigationBar = () => {
                   {link.label}
                 </Link>
               ))}
-              {!loading && !user && (
+              {!loading && isAnonymous && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-border">
                   <Link href="/auth/login" className="text-sm text-muted-foreground no-underline">Log In</Link>
                   <Link href="/intake/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full no-underline">Get Started</Link>
                 </div>
               )}
-              {!loading && user && (
+              {!loading && !isAnonymous && (
                 <div className="mt-2 pt-2 border-t border-border">
                   <LogoutButton />
                 </div>
