@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DM_Sans, Instrument_Serif } from 'next/font/google'
 import './globals.css'
+import { AnonymousAuthProvider } from '@/components/anonymous-auth-provider'
 import { NavigationBar } from '@/components/navigation-bar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -37,9 +38,11 @@ export default function RootLayout({
           enableSystem
           themes={['light', 'dark']}
         >
-          <NavigationBar />
-          <main className="mt-20">{children}</main>
-          <Toaster />
+          <AnonymousAuthProvider>
+            <NavigationBar />
+            <main className="mt-20">{children}</main>
+            <Toaster />
+          </AnonymousAuthProvider>
         </ThemeProvider>
       </body>
     </html>
