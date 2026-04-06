@@ -10,7 +10,10 @@ export function AnonymousAuthProvider({ children }: { children: React.ReactNode 
     const ensureSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        await supabase.auth.signInAnonymously()
+        const { error } = await supabase.auth.signInAnonymously()
+        if (error) {
+          console.error('Failed to create anonymous session:', error.message)
+        }
       }
     }
     ensureSession()
