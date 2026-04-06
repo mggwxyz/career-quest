@@ -14,9 +14,9 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
     .notNull(),
 }, () => [
-  pgPolicy('users_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`auth.uid() = id` }),
-  pgPolicy('users_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`auth.uid() = id` }),
-  pgPolicy('users_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`auth.uid() = id` }),
+  pgPolicy('users_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = id` }),
+  pgPolicy('users_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`(select auth.uid())::text = id` }),
+  pgPolicy('users_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = id` }),
 ])
 
 export const quizAnswers = pgTable('quiz_answers', {
@@ -32,9 +32,9 @@ export const quizAnswers = pgTable('quiz_answers', {
     .notNull(),
 }, table => [
   unique('quiz_answers_user_question_unique').on(table.userId, table.questionId),
-  pgPolicy('quiz_answers_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`auth.uid() = ${table.userId}` }),
-  pgPolicy('quiz_answers_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`auth.uid() = ${table.userId}` }),
-  pgPolicy('quiz_answers_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`auth.uid() = ${table.userId}` }),
+  pgPolicy('quiz_answers_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = ${table.userId}` }),
+  pgPolicy('quiz_answers_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`(select auth.uid())::text = ${table.userId}` }),
+  pgPolicy('quiz_answers_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = ${table.userId}` }),
 ])
 
 export const careerRecommendations = pgTable('career_recommendations', {
@@ -51,8 +51,8 @@ export const careerRecommendations = pgTable('career_recommendations', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
     .notNull(),
 }, () => [
-  pgPolicy('career_recommendations_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`auth.uid() = user_id` }),
-  pgPolicy('career_recommendations_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`auth.uid() = user_id` }),
-  pgPolicy('career_recommendations_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`auth.uid() = user_id` }),
-  pgPolicy('career_recommendations_delete', { as: 'permissive', for: 'delete', to: ['authenticated', 'anon'], using: sql`auth.uid() = user_id` }),
+  pgPolicy('career_recommendations_select', { as: 'permissive', for: 'select', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = user_id` }),
+  pgPolicy('career_recommendations_insert', { as: 'permissive', for: 'insert', to: ['authenticated', 'anon'], withCheck: sql`(select auth.uid())::text = user_id` }),
+  pgPolicy('career_recommendations_update', { as: 'permissive', for: 'update', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = user_id` }),
+  pgPolicy('career_recommendations_delete', { as: 'permissive', for: 'delete', to: ['authenticated', 'anon'], using: sql`(select auth.uid())::text = user_id` }),
 ])
