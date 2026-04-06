@@ -105,7 +105,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
 
       {/* Error state */}
       {error && (
-        <div className="p-4 mb-6 rounded-2xl border border-destructive/30 bg-destructive/5 text-center">
+        <div role="alert" className="p-4 mb-6 rounded-2xl border border-destructive/30 bg-destructive/5 text-center">
           <p className="text-sm text-destructive font-medium mb-2">Career Generation Failed</p>
           <p className="text-xs text-muted-foreground mb-3">{error}</p>
           <button onClick={generateCareerRecommendations} disabled={isPending} className="text-xs text-primary-soft hover:underline">

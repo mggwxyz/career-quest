@@ -32,7 +32,9 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            ✦ Career Exploration Tool
+            <span aria-hidden="true">✦</span>
+            {' '}
+            Career Exploration Tool
           </motion.div>
 
           <motion.h1

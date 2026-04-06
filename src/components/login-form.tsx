@@ -11,7 +11,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         {/* Logo + Title */}
         <div className="text-center mb-7">
           <div className="w-10 h-10 mx-auto mb-3 bg-gradient-to-br from-primary to-secondary rounded-[10px] flex items-center justify-center text-lg shadow-[0_0_12px_rgba(124,58,237,0.4)]">
-            ✦
+            <span aria-hidden="true">✦</span>
           </div>
           <h2 className="font-serif text-2xl text-foreground mb-1">Welcome Back</h2>
           <p className="text-sm text-muted-foreground">Sign in to continue your quest</p>
