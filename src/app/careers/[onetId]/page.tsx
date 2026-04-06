@@ -71,14 +71,14 @@ export default function CareerChatPage() {
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🔍</div>
           <h1 className="text-2xl font-bold mb-4">Career Not Found</h1>
-          <p className="text-lg text-base-content/70 mb-8">
+          <p className="text-lg text-muted-foreground mb-8">
             {error || 'We couldn\'t find the career you\'re looking for. It may have been removed or the link is incorrect.'}
           </p>
           <div className="flex justify-center gap-4">
-            <Link href="/careers" className="btn btn-primary">
+            <Link href="/careers" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold text-sm no-underline">
               View All Careers
             </Link>
-            <Link href="/intake/would-you-rather" className="btn btn-outline">
+            <Link href="/intake/would-you-rather" className="px-6 py-2.5 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
               Retake Assessment
             </Link>
           </div>

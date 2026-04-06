@@ -15,56 +15,49 @@ interface CareerDetailsProps {
 
 export function CareerDetails({ career }: CareerDetailsProps) {
   return (
-    <div className="card bg-base-100 shadow-xl">
-      <div className="card-body">
-        <h2 className="card-title text-xl mb-4">{career.title}</h2>
+    <div className="p-6 bg-surface/50 border border-border rounded-2xl">
+      <h2 className="font-serif text-xl text-foreground mb-5">{career.title}</h2>
 
-        <div className="space-y-4">
-          {/* Description */}
-          <div>
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p className="text-sm text-base-content/80">{career.description}</p>
-          </div>
+      <div className="space-y-5">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1.5">Description</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{career.description}</p>
+        </div>
 
-          {/* Why It Matches */}
-          <div>
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              Why It Matches You
-            </h3>
-            <p className="text-sm text-base-content/80">{career.whyItMatches}</p>
-          </div>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-2">
+            <Target className="w-4 h-4 text-primary-soft" />
+            Why It Matches You
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{career.whyItMatches}</p>
+        </div>
 
-          {/* Job Growth */}
-          <div>
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Job Growth
-            </h3>
-            <p className="text-sm text-base-content/80">{career.jobGrowth}</p>
-          </div>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-green-400" />
+            Job Growth
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{career.jobGrowth}</p>
+        </div>
 
-          {/* Salary Range */}
-          <div>
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Salary Range
-            </h3>
-            <p className="text-sm text-base-content/80">{career.salaryRange}</p>
-          </div>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-accent" />
+            Salary Range
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{career.salaryRange}</p>
+        </div>
 
-          {/* O*NET Link */}
-          <div className="pt-4 border-t border-base-300">
-            <a
-              href={`https://www.onetonline.org/link/summary/${career.onetId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-outline btn-sm w-full"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              View on O*NET
-            </a>
-          </div>
+        <div className="pt-4 border-t border-border">
+          <a
+            href={`https://www.onetonline.org/link/summary/${career.onetId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-border text-sm text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all no-underline w-full justify-center"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View on O*NET
+          </a>
         </div>
       </div>
     </div>
