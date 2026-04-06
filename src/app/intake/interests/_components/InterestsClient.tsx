@@ -104,7 +104,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
           onChange={e => setCustomInterest(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAddCustomInterest()}
           placeholder="Add a custom interest..."
-          className="flex-1 px-5 py-2.5 rounded-full border border-border bg-surface/60 text-foreground text-sm placeholder:text-text-dim outline-none focus:border-border-hover transition-colors"
+          className="flex-1 px-5 py-2.5 rounded-full border border-border bg-surface/60 text-foreground text-sm placeholder:text-text-dim outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-border-hover transition-colors"
         />
         <button
           onClick={handleAddCustomInterest}

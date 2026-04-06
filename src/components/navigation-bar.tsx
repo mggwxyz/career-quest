@@ -86,7 +86,9 @@ export const NavigationBar = () => {
             {!loading && !isAnonymous && <CurrentUserAvatar />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
+              className="p-2.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
+              aria-label="Toggle navigation menu"
+              aria-expanded={mobileOpen}
             >
               <Menu size={20} />
             </button>
