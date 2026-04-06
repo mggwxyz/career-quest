@@ -34,9 +34,9 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
 
   return (
     <div className={cn('flex flex-col gap-6 w-full max-w-sm', className)} {...props}>
-      <div className="p-8 sm:p-10 bg-surface/60 border border-border rounded-[20px] backdrop-blur-xl">
+      <div className="p-8 sm:p-10 bg-surface/60 border border-border rounded-2xl backdrop-blur-xl">
         <div className="text-center mb-7">
-          <div className="w-10 h-10 mx-auto mb-3 bg-gradient-to-br from-primary to-secondary rounded-[10px] flex items-center justify-center text-lg shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+          <div className="w-10 h-10 mx-auto mb-3 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-lg shadow-[var(--shadow-glow-sm)]">
             <span aria-hidden="true">✦</span>
           </div>
           {success
@@ -59,10 +59,10 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
           <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="forgot-email" className="text-xs font-medium text-muted-foreground">Email</label>
-              <input id="forgot-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="px-4 py-2.5 rounded-[10px] border border-border bg-background/60 text-foreground text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-border-hover transition-colors placeholder:text-text-dim" />
+              <input id="forgot-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="px-4 py-2.5 rounded-xl border border-border bg-background/60 text-foreground text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-border-hover transition-colors placeholder:text-text-dim" />
             </div>
             {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
-            <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-[10px] bg-gradient-to-br from-primary to-secondary text-white text-sm font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] mt-1 disabled:opacity-50">
+            <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-xl bg-gradient-to-br from-primary to-secondary text-white text-sm font-semibold shadow-[var(--shadow-glow-sm)] mt-1 disabled:opacity-50">
               {isLoading ? 'Sending...' : 'Send Reset Email'}
             </button>
             <p className="text-center text-sm text-text-dim">

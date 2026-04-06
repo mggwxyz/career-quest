@@ -36,7 +36,7 @@ export function SocialLoginForm({ className, ...props }: React.ComponentPropsWit
     <div className={cn('', className)} {...props}>
       <form onSubmit={handleSocialLogin}>
         {error && <p className="text-xs text-destructive mb-3">{error}</p>}
-        <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-[10px] border border-border bg-surface/50 text-primary-soft text-sm font-medium flex items-center justify-center gap-2 hover:border-border-hover hover:bg-primary/5 transition-all disabled:opacity-50">
+        <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-xl border border-border bg-surface/50 text-primary-soft text-sm font-medium flex items-center justify-center gap-2 hover:border-border-hover hover:bg-primary/5 transition-all disabled:opacity-50">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />

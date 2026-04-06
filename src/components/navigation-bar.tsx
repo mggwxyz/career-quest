@@ -32,13 +32,13 @@ export const NavigationBar = () => {
   return (
     <nav className="fixed top-3 left-4 right-4 z-50">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center px-6 py-3 bg-[var(--surface-glass)] backdrop-blur-xl border border-border rounded-[14px] shadow-[0_4px_30px_rgba(0,0,0,0.4),0_0_40px_rgba(124,58,237,0.06)] relative">
+        <div className="flex items-center px-6 py-3 bg-[var(--surface-glass)] backdrop-blur-xl border border-border rounded-2xl shadow-[var(--shadow-card)] relative">
           {/* Bottom glow line */}
           <div className="absolute bottom-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-foreground no-underline">
-            <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-md flex items-center justify-center text-xs shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-md flex items-center justify-center text-xs shadow-[var(--shadow-glow-sm)]">
               <span aria-hidden="true">✦</span>
             </div>
             <span className="font-serif text-lg">Career Quest</span>
@@ -73,7 +73,7 @@ export const NavigationBar = () => {
                   : (
                     <>
                       <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
-                      <Link href="/intake/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all no-underline">Get Started</Link>
+                      <Link href="/intake/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-all no-underline">Get Started</Link>
                     </>
                   )
               )}
