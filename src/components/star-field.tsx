@@ -37,7 +37,7 @@ export function StarField({ count = 45, className = '' }: StarFieldProps) {
   }, [count])
 
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}>
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden motion-reduce:hidden ${className}`}>
       {stars.map(star => (
         <div
           key={star.id}
