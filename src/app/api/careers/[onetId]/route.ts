@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
-import { eq } from 'drizzle-orm'
-import { CareerRecommendation } from '@/lib/schemas/career'
+import { careerRecommendations } from '@/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 export async function GET(
   request: Request,
@@ -22,37 +21,31 @@ export async function GET(
       )
     }
 
-    // Get the user's career recommendations from user_info
-    const userData = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
+    const rows = await db.select().from(careerRecommendations)
+      .where(and(
+        eq(careerRecommendations.userId, user.id),
+        eq(careerRecommendations.onetId, onetId),
+      ))
       .limit(1)
 
-    if (!userData || userData.length === 0) {
-      return NextResponse.json(
-        { error: 'No user data found' },
-        { status: 404 },
-      )
-    }
-
-    const quizResults = userData[0].quizResults as unknown
-    if (!quizResults || !Array.isArray(quizResults)) {
-      return NextResponse.json(
-        { error: 'No career recommendations found' },
-        { status: 404 },
-      )
-    }
-
-    // Find the career with the matching onetId
-    const career = (quizResults as CareerRecommendation[]).find(c => c.onetId === onetId)
-
-    if (!career) {
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: 'Career not found' },
         { status: 404 },
       )
     }
 
-    return NextResponse.json({ career })
+    const row = rows[0]
+    return NextResponse.json({
+      career: {
+        title: row.title,
+        description: row.description,
+        onetId: row.onetId,
+        whyItMatches: row.whyItMatches,
+        jobGrowth: row.jobGrowth,
+        salaryRange: row.salaryRange,
+      },
+    })
   }
   catch {
     return NextResponse.json(

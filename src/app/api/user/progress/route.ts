@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { quizAnswers } from '@/db/schema'
+import { eq, sql } from 'drizzle-orm'
 
-// GET: Fetch user's saved progress
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -17,22 +16,23 @@ export async function GET() {
       )
     }
 
-    // Fetch user data from database
-    const userData = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
-      .limit(1)
+    const rows = await db.select().from(quizAnswers)
+      .where(eq(quizAnswers.userId, user.id))
 
-    if (!userData || userData.length === 0) {
-      return NextResponse.json({
-        progress: null,
-      })
+    const answers: Record<string, number> = {}
+    const skippedQuestions: string[] = []
+
+    for (const row of rows) {
+      if (row.selectedOption === null) {
+        skippedQuestions.push(row.questionId)
+      }
+      else {
+        answers[row.questionId] = row.selectedOption
+      }
     }
 
-    const user_data = userData[0]
-    const quizAnswers = user_data.quizAnswers as { answers: Record<string, number>, skippedQuestions: string[] } | null
-
     return NextResponse.json({
-      progress: quizAnswers || null,
+      progress: rows.length > 0 ? { answers, skippedQuestions } : null,
     })
   }
   catch {
@@ -43,10 +43,12 @@ export async function GET() {
   }
 }
 
-// POST: Save user's progress
 export async function POST(request: Request) {
   try {
-    const { answers, skippedQuestions } = await request.json()
+    const { answers, skippedQuestions } = await request.json() as {
+      answers: Record<string, number>
+      skippedQuestions: string[]
+    }
 
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -58,34 +60,28 @@ export async function POST(request: Request) {
       )
     }
 
-    const progressData = {
-      answers,
-      skippedQuestions: skippedQuestions || [],
+    const values: { userId: string, questionId: string, selectedOption: number | null }[] = []
+
+    for (const [questionId, option] of Object.entries(answers)) {
+      values.push({ userId: user.id, questionId, selectedOption: option })
     }
 
-    // Check if user exists
-    const existingUser = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
-      .limit(1)
+    for (const questionId of (skippedQuestions || [])) {
+      if (!(questionId in answers)) {
+        values.push({ userId: user.id, questionId, selectedOption: null })
+      }
+    }
 
-    if (existingUser.length > 0) {
-      // Update existing user
-      await db.update(userInfo)
-        .set({
-          quizAnswers: progressData,
-          updatedAt: new Date(),
+    if (values.length > 0) {
+      await db.insert(quizAnswers)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [quizAnswers.userId, quizAnswers.questionId],
+          set: {
+            selectedOption: sql`excluded.selected_option`,
+            updatedAt: new Date(),
+          },
         })
-        .where(eq(userInfo.id, user.id))
-    }
-    else {
-      // Insert new user
-      await db.insert(userInfo).values({
-        id: user.id,
-        email: user.email,
-        quizAnswers: progressData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
     }
 
     return NextResponse.json({ success: true })
