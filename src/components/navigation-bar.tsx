@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { useAuth } from '@/providers/auth-provider'
 import { LogoutButton } from './logout-button'
 import { CurrentUserAvatar } from './current-user-avatar'
 import { ThemeToggle } from './theme-toggle'
@@ -17,31 +16,9 @@ const navLinks = [
 ]
 
 export const NavigationBar = () => {
-  const [user, setUser] = useState<User | null>(null)
-  const isAnonymous = user?.is_anonymous ?? true
-  const [loading, setLoading] = useState(true)
+  const { loading, isAnonymous } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const supabase = createClient()
   const pathname = usePathname()
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }
-
-    getSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
-      },
-    )
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
 
   useEffect(() => {
     setMobileOpen(false)

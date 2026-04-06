@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { useRouter } from 'next/navigation'
-import { useIsAnonymous } from '@/hooks/use-is-anonymous'
+import { useAuth } from '@/providers/auth-provider'
 import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
@@ -33,7 +33,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
   const router = useRouter()
-  const isAnonymous = useIsAnonymous()
+  const { isAnonymous } = useAuth()
 
   useEffect(() => {
     const results = getDeckResults()
