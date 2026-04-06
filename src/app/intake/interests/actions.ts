@@ -2,65 +2,42 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
+import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 
 export async function saveInterestsAction(interests: string[]) {
-  try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const supabase = await createClient()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    if (userError || !user) {
-      throw new Error('Authentication required')
-    }
+  if (userError || !user) {
+    return { success: false, error: 'Authentication required' }
+  }
 
-    // Check if user exists
-    const existingUser = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
-      .limit(1)
+  const existingUser = await db.select().from(users)
+    .where(eq(users.id, user.id))
+    .limit(1)
 
-    if (existingUser.length > 0) {
-      // Update existing user
-      await db.update(userInfo)
-        .set({
-          interests: interests || existingUser[0].interests,
-          updatedAt: new Date(),
-        })
-        .where(eq(userInfo.id, user.id))
-    }
-    else {
-      // Insert new user
-      await db.insert(userInfo).values({
-        id: user.id,
-        email: user.email,
-        interests: interests || [],
-        createdAt: new Date(),
+  if (existingUser.length > 0) {
+    await db.update(users)
+      .set({
+        interests,
         updatedAt: new Date(),
       })
-    }
+      .where(eq(users.id, user.id))
+  }
+  else {
+    await db.insert(users).values({
+      id: user.id,
+      email: user.email,
+      interests,
+    })
+  }
 
-    return { success: true }
-  }
-  catch {
-    return { success: false, error: 'Failed to save interests' }
-  }
+  return { success: true }
 }
 
 export async function saveInterestsAndRedirect(interests: string[]) {
-  // Try to save interests for logged-in users, but don't block guest users
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-      await saveInterestsAction(interests)
-    }
-  }
-  catch {
-    // Silent fail for guest users
-  }
-
-  // Always redirect to the next step
+  await saveInterestsAction(interests)
   redirect('/intake/would-you-rather')
 }

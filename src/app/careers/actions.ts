@@ -4,7 +4,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { userInfo } from '@/db/schema'
+import { users, careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 
@@ -19,7 +19,7 @@ export async function generateCareerRecommendationsAction(
 ): Promise<{ success: boolean, careers?: CareerRecommendation[], error?: string }> {
   try {
     const prompt = `
-      Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match. 
+      Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match.
       For each career, provide a brief explanation of why it matches their profile.
       Format the response as a JSON array of objects, where each object has the following properties:
       - title: string (the title of the career)
@@ -38,7 +38,7 @@ export async function generateCareerRecommendationsAction(
 
     const result = await generateObject({
       model: openai.chat('gpt-4o'),
-      system: `You are a career counselor helping to match people with suitable careers based on their interests, values, and preferences. 
+      system: `You are a career counselor helping to match people with suitable careers based on their interests, values, and preferences.
       Consider both their explicitly selected interests and their assessment results when making recommendations.
       Prioritize careers that align with their selected interests while also matching their RIASEC profile, work values, and environment preferences.`,
       prompt,
@@ -49,7 +49,6 @@ export async function generateCareerRecommendationsAction(
       throw new Error('No response from OpenAI')
     }
 
-    // Save to database
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
@@ -57,32 +56,39 @@ export async function generateCareerRecommendationsAction(
       return { success: false, error: 'Authentication required' }
     }
 
-    // Check if user exists
-    const existingUser = await db.select().from(userInfo)
-      .where(eq(userInfo.id, user.id))
+    // Ensure user row exists
+    const existingUser = await db.select().from(users)
+      .where(eq(users.id, user.id))
       .limit(1)
 
-    if (existingUser.length > 0) {
-      // Update existing user
-      await db.update(userInfo)
-        .set({
-          interests,
-          quizResults: result.object.careers,
-          updatedAt: new Date(),
-        })
-        .where(eq(userInfo.id, user.id))
-    }
-    else {
-      // Insert new user
-      await db.insert(userInfo).values({
+    if (existingUser.length === 0) {
+      await db.insert(users).values({
         id: user.id,
         email: user.email,
         interests,
-        quizResults: result.object.careers,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
     }
+    else {
+      await db.update(users)
+        .set({ interests, updatedAt: new Date() })
+        .where(eq(users.id, user.id))
+    }
+
+    // Delete old recommendations and insert new ones
+    await db.delete(careerRecommendations)
+      .where(eq(careerRecommendations.userId, user.id))
+
+    await db.insert(careerRecommendations).values(
+      result.object.careers.map(career => ({
+        userId: user.id,
+        onetId: career.onetId,
+        title: career.title,
+        description: career.description,
+        whyItMatches: career.whyItMatches,
+        jobGrowth: career.jobGrowth,
+        salaryRange: career.salaryRange,
+      })),
+    )
 
     return { success: true, careers: result.object.careers }
   }
