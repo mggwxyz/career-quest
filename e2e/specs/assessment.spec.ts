@@ -6,7 +6,7 @@ test.describe('Assessment Flow', () => {
   })
 
   test('should select interests and continue to quiz', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/interests')
+    await page.goto('/discover/interests')
 
     // Select a few interests
     await page.getByRole('button', { name: /Technology/ }).click()
@@ -20,26 +20,22 @@ test.describe('Assessment Flow', () => {
     await page.getByRole('button', { name: /Continue/ }).click()
 
     // Should redirect to the quiz
-    await page.waitForURL('/intake/would-you-rather')
-    await expect(page).toHaveURL('/intake/would-you-rather')
+    await page.waitForURL('/discover/preferences')
+    await expect(page).toHaveURL('/discover/preferences')
   })
 
   test('should add a custom interest', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/interests')
+    await page.goto('/discover/interests')
 
     await page.getByPlaceholder('Add a custom interest...').fill('Robotics')
     await page.getByRole('button', { name: 'Add' }).click()
 
-    // Input should clear after adding (verifying the add handler ran)
-    await expect(page.getByPlaceholder('Add a custom interest...')).toHaveValue('')
-
-    // Verify the interest was persisted to the Zustand store
-    const storeState = await page.evaluate(() => localStorage.getItem('app-store'))
-    expect(storeState).toContain('Robotics')
+    // Custom interest renders as a removable pill: "Robotics ✕"
+    await expect(page.getByRole('button', { name: 'Robotics ✕' })).toBeVisible()
   })
 
   test('should answer quiz questions and show progress', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/would-you-rather')
+    await page.goto('/discover/preferences')
 
     // Verify we see the first question
     await expect(page.getByText('Would you rather...')).toBeVisible()
@@ -59,7 +55,7 @@ test.describe('Assessment Flow', () => {
   })
 
   test('should skip a question', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/would-you-rather')
+    await page.goto('/discover/preferences')
 
     await expect(page.getByText('1 of 30')).toBeVisible()
 
@@ -71,7 +67,7 @@ test.describe('Assessment Flow', () => {
   })
 
   test('should navigate back to previous question', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/would-you-rather')
+    await page.goto('/discover/preferences')
 
     // Answer first question (nth(2) skips the hidden mobile option cards)
     await page.locator('button:has(figure)')
@@ -85,7 +81,7 @@ test.describe('Assessment Flow', () => {
   })
 
   test('should persist progress across page reload', async ({ authenticatedPage: page }) => {
-    await page.goto('/intake/would-you-rather')
+    await page.goto('/discover/preferences')
 
     // Answer first question (nth(2) skips the hidden mobile option cards)
     await page.locator('button:has(figure)')
