@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rework `/intake/summary` with top 3 trait hero cards, a RIASEC radar chart, and illustrated work value + environment cards backed by AI-generated cartoon artwork.
+**Goal:** Rework `/discover/profile` with top 3 trait hero cards, a RIASEC radar chart, and illustrated work value + environment cards backed by AI-generated cartoon artwork.
 
-**Architecture:** The current page becomes thin orchestration. Four presentational components live in `src/app/intake/summary/_components/`. Two shared data files provide the RIASEC theme lookup and the work-value/environment image prompt map. The existing `scripts/generateImages.ts` is extended with a `--profile` CLI flag that generates 12 new PNGs into `public/profile/images/`.
+**Architecture:** The current page becomes thin orchestration. Four presentational components live in `src/app/discover/profile/_components/`. Two shared data files provide the RIASEC theme lookup and the work-value/environment image prompt map. The existing `scripts/generateImages.ts` is extended with a `--profile` CLI flag that generates 12 new PNGs into `public/profile/images/`.
 
 **Tech Stack:** Next.js 15 App Router, React, Tailwind CSS v4, Zustand (read-only), inline SVG (no chart library), Vercel AI SDK + OpenAI `gpt-image-1` (existing).
 
@@ -27,13 +27,13 @@ The validated design spec lives at `docs/superpowers/specs/2026-04-09-summary-pa
 **New files:**
 - `src/app/_data/riasecTheme.ts` — lookup table: code → { label, icon, colorHex, tailwindAccent, description }
 - `src/app/_data/profileImages.ts` — lookup table: code → { filename, prompt, shortLabel, description } for all 12 work-value + environment codes
-- `src/app/intake/summary/_components/TraitHeroCard.tsx`
-- `src/app/intake/summary/_components/RiasecRadarChart.tsx`
-- `src/app/intake/summary/_components/IllustratedTraitCard.tsx`
+- `src/app/discover/profile/_components/TraitHeroCard.tsx`
+- `src/app/discover/profile/_components/RiasecRadarChart.tsx`
+- `src/app/discover/profile/_components/IllustratedTraitCard.tsx`
 - `public/profile/images/*.png` — 12 generated files
 
 **Modified:**
-- `src/app/intake/summary/page.tsx` — slimmed to orchestration
+- `src/app/discover/profile/page.tsx` — slimmed to orchestration
 - `scripts/generateImages.ts` — extract shared throttled helper; add `generateProfileImages()` + `--profile` flag
 
 ---
@@ -372,12 +372,12 @@ git commit -m "feat(summary): generate illustrated work value and environment ar
 ## Task 4: Build the `TraitHeroCard` component
 
 **Files:**
-- Create: `src/app/intake/summary/_components/TraitHeroCard.tsx`
+- Create: `src/app/discover/profile/_components/TraitHeroCard.tsx`
 
 - [ ] **Step 1: Write the component**
 
 ```tsx
-// src/app/intake/summary/_components/TraitHeroCard.tsx
+// src/app/discover/profile/_components/TraitHeroCard.tsx
 import { getRiasecTheme } from '@/app/_data/riasecTheme'
 
 interface TraitHeroCardProps {
@@ -449,7 +449,7 @@ Expected: no errors in the new file.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/app/intake/summary/_components/TraitHeroCard.tsx
+git add src/app/discover/profile/_components/TraitHeroCard.tsx
 git commit -m "feat(summary): add TraitHeroCard component"
 ```
 
@@ -458,12 +458,12 @@ git commit -m "feat(summary): add TraitHeroCard component"
 ## Task 5: Build the `RiasecRadarChart` component
 
 **Files:**
-- Create: `src/app/intake/summary/_components/RiasecRadarChart.tsx`
+- Create: `src/app/discover/profile/_components/RiasecRadarChart.tsx`
 
 - [ ] **Step 1: Write the component**
 
 ```tsx
-// src/app/intake/summary/_components/RiasecRadarChart.tsx
+// src/app/discover/profile/_components/RiasecRadarChart.tsx
 import { RIASEC_AXIS_ORDER, RIASEC_THEME } from '@/app/_data/riasecTheme'
 
 interface RiasecRadarChartProps {
@@ -636,7 +636,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/app/intake/summary/_components/RiasecRadarChart.tsx
+git add src/app/discover/profile/_components/RiasecRadarChart.tsx
 git commit -m "feat(summary): add RIASEC radar chart component"
 ```
 
@@ -645,12 +645,12 @@ git commit -m "feat(summary): add RIASEC radar chart component"
 ## Task 6: Build the `IllustratedTraitCard` component
 
 **Files:**
-- Create: `src/app/intake/summary/_components/IllustratedTraitCard.tsx`
+- Create: `src/app/discover/profile/_components/IllustratedTraitCard.tsx`
 
 - [ ] **Step 1: Write the component**
 
 ```tsx
-// src/app/intake/summary/_components/IllustratedTraitCard.tsx
+// src/app/discover/profile/_components/IllustratedTraitCard.tsx
 import Image from 'next/image'
 import type { ProfileImageEntry } from '@/app/_data/profileImages'
 
@@ -700,7 +700,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/app/intake/summary/_components/IllustratedTraitCard.tsx
+git add src/app/discover/profile/_components/IllustratedTraitCard.tsx
 git commit -m "feat(summary): add IllustratedTraitCard component"
 ```
 
@@ -709,7 +709,7 @@ git commit -m "feat(summary): add IllustratedTraitCard component"
 ## Task 7: Rewrite the summary page to use the new components
 
 **Files:**
-- Modify: `src/app/intake/summary/page.tsx`
+- Modify: `src/app/discover/profile/page.tsx`
 
 Goal: Replace the existing bar chart and pill sections with the four new sections (trait hero cards, radar chart, illustrated work values, illustrated environment). Preserve the existing empty-state redirect, the page header, and the action row at the bottom.
 
@@ -764,7 +764,7 @@ export default function IntakeSummary() {
   useEffect(() => {
     if (Object.keys(answers).length === 0) {
       toast.error('No assessment data found. Please complete the assessment first.')
-      router.push('/intake/would-you-rather')
+      router.push('/discover/preferences')
     }
   }, [answers, router])
 
@@ -793,7 +793,7 @@ export default function IntakeSummary() {
               Complete the assessment to discover your career interests and get personalized recommendations.
             </p>
             <Link
-              href="/intake/would-you-rather"
+              href="/discover/preferences"
               className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
             >
               Start the Assessment
@@ -854,7 +854,7 @@ export default function IntakeSummary() {
             {/* Actions */}
             <div className="flex justify-center gap-4">
               <Link
-                href="/intake/would-you-rather"
+                href="/discover/preferences"
                 className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm"
               >
                 Retake Assessment
@@ -881,12 +881,12 @@ Expected: no errors.
 - [ ] **Step 3: Verify the build succeeds**
 
 Run: `pnpm build`
-Expected: build completes without errors. The `/intake/summary` route should be listed in the output.
+Expected: build completes without errors. The `/discover/profile` route should be listed in the output.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/app/intake/summary/page.tsx
+git add src/app/discover/profile/page.tsx
 git commit -m "feat(summary): wire up redesigned sections into summary page"
 ```
 
@@ -901,7 +901,7 @@ Expected: Next.js dev server starts, ready on `http://localhost:3000`.
 
 - [ ] **Step 2: Complete the assessment and land on the summary page**
 
-Navigate to `http://localhost:3000/intake/would-you-rather`, answer through to the end, then click through to `/intake/summary`.
+Navigate to `http://localhost:3000/discover/preferences`, answer through to the end, then click through to `/discover/profile`.
 
 **Verify:**
 - Top 3 trait hero cards appear with correct color/icon per code
@@ -922,11 +922,11 @@ Resize browser to ~375px width (or use device emulation).
 
 - [ ] **Step 4: Check empty state**
 
-Open DevTools → Application → Local Storage → clear the `app-store` entry. Refresh `/intake/summary`.
+Open DevTools → Application → Local Storage → clear the `app-store` entry. Refresh `/discover/profile`.
 
 **Verify:**
 - Toast error appears
-- Redirect to `/intake/would-you-rather` fires
+- Redirect to `/discover/preferences` fires
 - If the summary briefly renders before redirect, the "No Results Yet" empty state shows cleanly
 
 - [ ] **Step 5: Check edge cases in the radar chart**
