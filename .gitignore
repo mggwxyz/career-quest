@@ -45,3 +45,12 @@ next-env.d.ts
 
 # worktrees
 .worktrees/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# superpowers brainstorm
+.superpowers/
