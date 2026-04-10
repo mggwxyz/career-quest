@@ -6,15 +6,31 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { describeCode } from '@/app/_data/codeLabels'
+import { TraitHeroCard } from './_components/TraitHeroCard'
+import { RiasecRadarChart } from './_components/RiasecRadarChart'
+import { IllustratedTraitCard } from './_components/IllustratedTraitCard'
+import { WORK_VALUE_IMAGES, ENV_IMAGES, type ProfileImageEntry } from '@/app/_data/profileImages'
 
-const riasecColors: Record<string, string> = {
-  R: 'from-red-500 to-red-600',
-  I: 'from-indigo-500 to-indigo-600',
-  A: 'from-purple-500 to-purple-600',
-  S: 'from-cyan-500 to-cyan-600',
-  E: 'from-amber-500 to-amber-600',
-  C: 'from-green-500 to-green-600',
+type Rank = 1 | 2 | 3
+
+function topThree(counts: Record<string, number> | undefined): [string, number][] {
+  if (!counts) return []
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+}
+
+function pickImageEntries(
+  top: [string, number][],
+  source: Record<string, ProfileImageEntry>,
+): { entry: ProfileImageEntry, rank: Rank }[] {
+  return top
+    .map(([code], i) => {
+      const entry = source[code]
+      if (!entry) return null
+      return { entry, rank: (i + 1) as Rank }
+    })
+    .filter((v): v is { entry: ProfileImageEntry, rank: Rank } => v !== null)
 }
 
 export default function IntakeSummary() {
@@ -34,8 +50,12 @@ export default function IntakeSummary() {
     }
   }, [answers, router])
 
-  const hasResults = results.riasec && Object.keys(results.riasec).length > 0
-  const maxRiasec = hasResults ? Math.max(...Object.values(results.riasec)) : 1
+  const riasec = results.riasec ?? {}
+  const hasResults = Object.keys(riasec).length > 0
+  const maxRiasec = Math.max(...Object.values(riasec), 1)
+  const topRiasec = topThree(riasec)
+  const topWorkValues = pickImageEntries(topThree(results.workvalue), WORK_VALUE_IMAGES)
+  const topEnv = pickImageEntries(topThree(results.env), ENV_IMAGES)
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
@@ -64,91 +84,54 @@ export default function IntakeSummary() {
         )
         : (
           <>
-            {/* RIASEC bars — full width card */}
-            <div className="p-6 bg-surface/50 border border-border rounded-2xl mb-6">
-              <h2 className="font-serif text-lg text-foreground mb-5">Interest Profile (RIASEC)</h2>
-              <div className="flex flex-col gap-3">
-                {Object.entries(results.riasec || {})
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([code, count], i) => {
-                    const pct = Math.round((count / maxRiasec) * 100)
-                    const colorClass = riasecColors[code] || 'from-primary to-secondary'
-                    return (
-                      <div key={code} className="flex items-center gap-3">
-                        <span className="w-28 text-xs text-muted-foreground">{describeCode(code)}</span>
-                        <div className="flex-1 h-2 rounded-full bg-primary/10 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full bg-gradient-to-r ${colorClass}`}
-                            style={{
-                              width: `${pct}%`,
-                              transition: `width 0.8s ease ${i * 0.1}s`,
-                            }}
-                          />
-                        </div>
-                        <span className="w-9 text-right text-xs font-semibold text-primary-soft">
-                          {pct}
-                          %
-                        </span>
-                      </div>
-                    )
-                  })}
+            {/* Section 1 — Top 3 Trait Hero Cards */}
+            <section className="mb-10">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-[2px] text-center mb-4">
+                Your Top Traits
               </div>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {topRiasec.map(([code, count], i) => (
+                  <TraitHeroCard
+                    key={code}
+                    code={code}
+                    rank={(i + 1) as Rank}
+                    count={count}
+                    maxCount={maxRiasec}
+                  />
+                ))}
+              </div>
+            </section>
 
-            {/* Work Values + Environment — 2 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-              <div className="p-6 bg-surface/50 border border-border rounded-2xl">
-                <h2 className="font-serif text-lg text-foreground mb-4">Work Values</h2>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(results.workvalue || {})
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([code, count], i) => {
-                      const isTop = i < 2
-                      return (
-                        <span
-                          key={code}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-medium border ${
-                            isTop
-                              ? 'border-accent/30 bg-accent/10 text-accent'
-                              : 'border-border bg-primary/5 text-primary-soft'
-                          }`}
-                        >
-                          {describeCode(code)}
-                          {' ('}
-                          {count}
-                          )
-                        </span>
-                      )
-                    })}
-                </div>
-              </div>
+            {/* Section 2 — RIASEC Radar Chart */}
+            <section className="mb-10">
+              <RiasecRadarChart riasec={riasec} />
+            </section>
 
-              <div className="p-6 bg-surface/50 border border-border rounded-2xl">
-                <h2 className="font-serif text-lg text-foreground mb-4">Environment</h2>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(results.env || {})
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([code, count], i) => {
-                      const isTop = i < 2
-                      return (
-                        <span
-                          key={code}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-medium border ${
-                            isTop
-                              ? 'border-accent/30 bg-accent/10 text-accent'
-                              : 'border-border bg-primary/5 text-primary-soft'
-                          }`}
-                        >
-                          {describeCode(code)}
-                          {' ('}
-                          {count}
-                          )
-                        </span>
-                      )
-                    })}
+            {/* Section 3 — Top 3 Work Values */}
+            {topWorkValues.length > 0 && (
+              <section className="mb-10">
+                <h2 className="font-serif text-lg text-foreground mb-1">What You Value</h2>
+                <p className="text-xs text-muted-foreground mb-4">Top 3 work values</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {topWorkValues.map(({ entry, rank }) => (
+                    <IllustratedTraitCard key={entry.filename} entry={entry} rank={rank} />
+                  ))}
                 </div>
-              </div>
-            </div>
+              </section>
+            )}
+
+            {/* Section 4 — Top 3 Environment Preferences */}
+            {topEnv.length > 0 && (
+              <section className="mb-10">
+                <h2 className="font-serif text-lg text-foreground mb-1">Your Ideal Environment</h2>
+                <p className="text-xs text-muted-foreground mb-4">Top 3 workplace preferences</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {topEnv.map(({ entry, rank }) => (
+                    <IllustratedTraitCard key={entry.filename} entry={entry} rank={rank} />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Actions */}
             <div className="flex justify-center gap-4">
