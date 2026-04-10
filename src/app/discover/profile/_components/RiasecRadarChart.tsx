@@ -60,6 +60,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
       <svg
         viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
         className="w-full max-w-[340px] mx-auto block"
+        overflow="visible"
         role="img"
         aria-label="RIASEC radar chart"
       >
