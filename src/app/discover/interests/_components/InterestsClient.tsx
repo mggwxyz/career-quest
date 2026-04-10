@@ -124,7 +124,8 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
               onClick={() => removeInterest(interest)}
               className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)] animate-in fade-in"
             >
-              {interest} ✕
+              {interest}
+              {' ✕'}
             </button>
           ))}
         </div>
