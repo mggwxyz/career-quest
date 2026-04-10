@@ -2,11 +2,11 @@ import { unlinkSync, existsSync } from 'fs'
 import path from 'path'
 
 export default async function globalTeardown() {
-  // Clean up .env.test — it's generated fresh each run
-  const envPath = path.resolve(__dirname, '..', '.env.test')
+  // Clean up .env.development.local — it's generated fresh each run
+  const envPath = path.resolve(__dirname, '..', '.env.development.local')
   if (existsSync(envPath)) {
     unlinkSync(envPath)
-    console.log('[e2e] Cleaned up .env.test')
+    console.log('[e2e] Cleaned up .env.development.local')
   }
 
   // Note: we intentionally leave Supabase running between test runs

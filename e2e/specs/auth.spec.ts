@@ -40,6 +40,6 @@ test.describe('Authentication', () => {
     await page.getByLabel('Repeat Password').fill('different456')
     await page.getByRole('button', { name: 'Create Account' }).click()
 
-    await expect(page.getByRole('alert')).toContainText('Passwords do not match')
+    await expect(page.getByText('Passwords do not match')).toBeVisible()
   })
 })

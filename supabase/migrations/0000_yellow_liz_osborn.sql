@@ -23,7 +23,7 @@ CREATE TABLE "quiz_answers" (
 --> statement-breakpoint
 ALTER TABLE "quiz_answers" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" text PRIMARY KEY DEFAULT auth.uid() NOT NULL,
+	"id" text PRIMARY KEY DEFAULT auth.uid()::text NOT NULL,
 	"email" text,
 	"first_name" text,
 	"last_name" text,
@@ -35,13 +35,13 @@ CREATE TABLE "users" (
 ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "career_recommendations" ADD CONSTRAINT "career_recommendations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quiz_answers" ADD CONSTRAINT "quiz_answers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE POLICY "career_recommendations_select" ON "career_recommendations" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING (auth.uid() = user_id);--> statement-breakpoint
-CREATE POLICY "career_recommendations_insert" ON "career_recommendations" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK (auth.uid() = user_id);--> statement-breakpoint
-CREATE POLICY "career_recommendations_update" ON "career_recommendations" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING (auth.uid() = user_id);--> statement-breakpoint
-CREATE POLICY "career_recommendations_delete" ON "career_recommendations" AS PERMISSIVE FOR DELETE TO "anon", "authenticated" USING (auth.uid() = user_id);--> statement-breakpoint
-CREATE POLICY "quiz_answers_select" ON "quiz_answers" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING (auth.uid() = "quiz_answers"."user_id");--> statement-breakpoint
-CREATE POLICY "quiz_answers_insert" ON "quiz_answers" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK (auth.uid() = "quiz_answers"."user_id");--> statement-breakpoint
-CREATE POLICY "quiz_answers_update" ON "quiz_answers" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING (auth.uid() = "quiz_answers"."user_id");--> statement-breakpoint
-CREATE POLICY "users_select" ON "users" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING (auth.uid() = id);--> statement-breakpoint
-CREATE POLICY "users_insert" ON "users" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK (auth.uid() = id);--> statement-breakpoint
-CREATE POLICY "users_update" ON "users" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING (auth.uid() = id);
+CREATE POLICY "career_recommendations_select" ON "career_recommendations" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING ((select auth.uid())::text = user_id);--> statement-breakpoint
+CREATE POLICY "career_recommendations_insert" ON "career_recommendations" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK ((select auth.uid())::text = user_id);--> statement-breakpoint
+CREATE POLICY "career_recommendations_update" ON "career_recommendations" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING ((select auth.uid())::text = user_id);--> statement-breakpoint
+CREATE POLICY "career_recommendations_delete" ON "career_recommendations" AS PERMISSIVE FOR DELETE TO "anon", "authenticated" USING ((select auth.uid())::text = user_id);--> statement-breakpoint
+CREATE POLICY "quiz_answers_select" ON "quiz_answers" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING ((select auth.uid())::text = "quiz_answers"."user_id");--> statement-breakpoint
+CREATE POLICY "quiz_answers_insert" ON "quiz_answers" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK ((select auth.uid())::text = "quiz_answers"."user_id");--> statement-breakpoint
+CREATE POLICY "quiz_answers_update" ON "quiz_answers" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING ((select auth.uid())::text = "quiz_answers"."user_id");--> statement-breakpoint
+CREATE POLICY "users_select" ON "users" AS PERMISSIVE FOR SELECT TO "anon", "authenticated" USING ((select auth.uid())::text = id);--> statement-breakpoint
+CREATE POLICY "users_insert" ON "users" AS PERMISSIVE FOR INSERT TO "anon", "authenticated" WITH CHECK ((select auth.uid())::text = id);--> statement-breakpoint
+CREATE POLICY "users_update" ON "users" AS PERMISSIVE FOR UPDATE TO "anon", "authenticated" USING ((select auth.uid())::text = id);
