@@ -5,7 +5,6 @@ import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import { saveInterestsAndRedirect } from '../actions'
 import { toast } from 'sonner'
-import { CosmicBackground } from '@/components/cosmic-background'
 import { useEffect } from 'react'
 
 const commonInterests = [
@@ -67,8 +66,6 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      <CosmicBackground />
-
       {/* Page header */}
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">What Interests You?</h1>
@@ -92,8 +89,15 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
         ))}
       </div>
 
+      {/* Divider */}
+      <div className="flex items-center gap-4 max-w-md mx-auto mb-8">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground uppercase tracking-wider">or add your own</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
       {/* Custom input */}
-      <div className="flex gap-2.5 max-w-md mx-auto mb-10">
+      <div className="flex gap-2.5 max-w-md mx-auto mb-4">
         <input
           type="text"
           value={customInterest}
@@ -110,6 +114,21 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
           Add
         </button>
       </div>
+
+      {/* Custom interest pills */}
+      {interests.filter(i => !commonInterests.includes(i)).length > 0 && (
+        <div className="flex flex-wrap gap-2.5 justify-center max-w-md mx-auto mb-10">
+          {interests.filter(i => !commonInterests.includes(i)).map(interest => (
+            <button
+              key={interest}
+              onClick={() => removeInterest(interest)}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)] animate-in fade-in"
+            >
+              {interest} ✕
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Continue */}
       <div className="text-center">

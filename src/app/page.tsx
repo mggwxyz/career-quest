@@ -1,4 +1,3 @@
-import { CosmicBackground } from '@/components/cosmic-background'
 import { AnimatedHero } from './_components/AnimatedHero'
 import { HowItWorksCard } from './_components/HowItWorksCard'
 
@@ -13,8 +12,6 @@ export default function Home() {
     <div className="relative">
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-        <CosmicBackground variant="hero" starCount={55} />
-
         <AnimatedHero />
       </section>
 

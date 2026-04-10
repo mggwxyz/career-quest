@@ -36,10 +36,10 @@ The application is a career exploration tool built around psychological assessme
    - Each question presents two options with psychological codes (R, I, A, S, E, C for RIASEC)
    - Images and prompts support each option
 
-2. **Assessment Flow**:
-   - `/intake/would-you-rather` - Main assessment interface
-   - `/intake/interests` - Interest-based questions
-   - `/intake/summary` - Results summary
+2. **Discovery Flow**:
+   - `/discover/interests` - Interest selection
+   - `/discover/preferences` - Would-you-rather assessment interface
+   - `/discover/profile` - Results profile
    - `/careers` - AI-powered career recommendations
 
 3. **State Management** (`src/store/`):

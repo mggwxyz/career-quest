@@ -46,7 +46,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <NavigationBar />
-            <main id="main-content" className="mt-20">{children}</main>
+            <main id="main-content" className="pt-20">{children}</main>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

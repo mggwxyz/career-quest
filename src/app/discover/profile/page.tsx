@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { describeCode } from '@/app/_data/codeLabels'
-import { CosmicBackground } from '@/components/cosmic-background'
 
 const riasecColors: Record<string, string> = {
   R: 'from-red-500 to-red-600',
@@ -31,7 +30,7 @@ export default function IntakeSummary() {
   useEffect(() => {
     if (Object.keys(answers).length === 0) {
       toast.error('No assessment data found. Please complete the assessment first.')
-      router.push('/intake/would-you-rather')
+      router.push('/discover/preferences')
     }
   }, [answers, router])
 
@@ -40,8 +39,6 @@ export default function IntakeSummary() {
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      <CosmicBackground />
-
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Profile</h1>
         <p className="text-sm text-muted-foreground">
@@ -58,7 +55,7 @@ export default function IntakeSummary() {
               Complete the assessment to discover your career interests and get personalized recommendations.
             </p>
             <Link
-              href="/intake/would-you-rather"
+              href="/discover/preferences"
               className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
             >
               Start the Assessment
@@ -156,7 +153,7 @@ export default function IntakeSummary() {
             {/* Actions */}
             <div className="flex justify-center gap-4">
               <Link
-                href="/intake/would-you-rather"
+                href="/discover/preferences"
                 className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm"
               >
                 Retake Assessment

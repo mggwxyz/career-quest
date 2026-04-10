@@ -9,7 +9,6 @@ import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { CosmicBackground } from '@/components/cosmic-background'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -109,12 +108,11 @@ export default function WouldYouRather() {
   if (currentQuestionIndex >= allQuestions.length) {
     return (
       <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-        <CosmicBackground />
         <div className="text-center pt-20">
           <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
           <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
           <div className="flex flex-col gap-3 items-center">
-            <Link href="/intake/summary" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
+            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
               View Your Results
             </Link>
             <Link href="/careers" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
@@ -131,8 +129,6 @@ export default function WouldYouRather() {
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      <CosmicBackground />
-
       {/* Progress bar */}
       <div className="flex items-center gap-3 mb-2">
         <div className="flex-1 h-1 rounded-full bg-primary/10 overflow-hidden">

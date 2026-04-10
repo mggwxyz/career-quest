@@ -160,12 +160,28 @@
   --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 30px rgba(109, 40, 217, 0.04);
 }
 
+html {
+  height: 100%;
+  background-color: var(--background);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply h-full bg-background text-foreground font-sans;
+  }
+  a[href],
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  select,
+  label[for],
+  summary {
+    cursor: pointer;
   }
   a:focus-visible,
   button:focus-visible,

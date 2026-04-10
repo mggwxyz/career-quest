@@ -78,7 +78,7 @@ export default function CareerChatPage() {
             <Link href="/careers" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold text-sm no-underline">
               View All Careers
             </Link>
-            <Link href="/intake/would-you-rather" className="px-6 py-2.5 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
+            <Link href="/discover/preferences" className="px-6 py-2.5 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
               Retake Assessment
             </Link>
           </div>

@@ -39,5 +39,5 @@ export async function saveInterestsAction(interests: string[]) {
 
 export async function saveInterestsAndRedirect(interests: string[]) {
   await saveInterestsAction(interests)
-  redirect('/intake/would-you-rather')
+  redirect('/discover/preferences')
 }

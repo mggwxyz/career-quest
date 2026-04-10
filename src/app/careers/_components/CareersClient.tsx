@@ -5,12 +5,10 @@ import { motion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/providers/auth-provider'
 import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
-import { CosmicBackground } from '@/components/cosmic-background'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -40,14 +38,13 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
   const router = useRouter()
-  const { isAnonymous } = useAuth()
 
   useEffect(() => {
     const results = getDeckResults()
     const hasResults = Object.values(results).some(deck => Object.keys(deck).length > 0)
     if (!hasResults && Object.keys(answers).length === 0) {
       toast.error('No assessment results found. Please complete the assessment first.')
-      router.push('/intake/interests')
+      router.push('/discover/interests')
     }
   }, [answers, getDeckResults, router])
 
@@ -91,8 +88,6 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
-      <CosmicBackground />
-
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>
         <p className="text-sm text-muted-foreground">Ranked by how well they fit your profile</p>
@@ -131,29 +126,14 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
         )
         : careers.length === 0
           ? (
-            /* Empty states */
+            /* Empty state */
             <div className="text-center py-12">
-              {isAnonymous
-                ? (
-                  <div className="p-8 rounded-2xl border border-border bg-surface/50 max-w-lg mx-auto">
-                    <h3 className="font-serif text-xl text-foreground mb-3">Get AI-Powered Career Matches</h3>
-                    <p className="text-sm text-muted-foreground mb-6">Sign in to generate personalized career recommendations based on your assessment results.</p>
-                    <div className="flex gap-3 justify-center">
-                      <Link href="/auth/login" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold text-sm no-underline">Log In</Link>
-                      <Link href="/auth/sign-up" className="px-6 py-2.5 rounded-full border border-border text-primary-soft text-sm font-medium no-underline">Sign Up</Link>
-                    </div>
-                  </div>
-                )
-                : (
-                  <>
-                    <div className="text-5xl mb-4">🎯</div>
-                    <h2 className="font-serif text-2xl text-foreground mb-3">Ready to Find Your Perfect Career?</h2>
-                    <p className="text-muted-foreground max-w-lg mx-auto mb-8">Based on your assessment results and selected interests, we can generate personalized career recommendations.</p>
-                    <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all">
-                      Generate Career Recommendations
-                    </button>
-                  </>
-                )}
+              <div className="text-5xl mb-4">🎯</div>
+              <h2 className="font-serif text-2xl text-foreground mb-3">Ready to Find Your Perfect Career?</h2>
+              <p className="text-muted-foreground max-w-lg mx-auto mb-8">Based on your assessment results and selected interests, we can generate personalized career recommendations.</p>
+              <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all">
+                Generate Career Recommendations
+              </button>
             </div>
           )
           : (
@@ -202,7 +182,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                 <button onClick={generateCareerRecommendations} disabled={isPending} className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] transition-all text-sm">
                   {hasExistingData ? 'Regenerate' : 'Generate New'}
                 </button>
-                <Link href="/intake/summary" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
+                <Link href="/discover/profile" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
                   View Results
                 </Link>
               </div>
