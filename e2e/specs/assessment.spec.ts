@@ -27,7 +27,7 @@ test.describe('Assessment Flow', () => {
   test('should add a custom interest', async ({ authenticatedPage: page }) => {
     await page.goto('/intake/interests')
 
-    await page.getByPlaceholder('Add a custom interest').fill('Robotics')
+    await page.getByPlaceholder('Add a custom interest...').fill('Robotics')
     await page.getByRole('button', { name: 'Add' }).click()
 
     // Custom interest should appear as a selected chip
@@ -41,8 +41,13 @@ test.describe('Assessment Flow', () => {
     await expect(page.getByText('Would you rather...')).toBeVisible()
     await expect(page.getByText('1 of 30')).toBeVisible()
 
-    // The option cards are clickable divs — click the first one
-    await page.locator('img').first()
+    // The option cards are motion.button elements — click the first visible one
+    // (mobile cards are hidden at desktop viewport, so we filter for visible)
+    // Desktop grid is the visible container at 1280px viewport
+    // Mobile cards (block sm:hidden) come first in DOM but are hidden
+    // Desktop cards (hidden sm:grid) come after — indexes 2 and 3
+    await page.locator('button:has(figure)')
+      .nth(2)
       .click()
 
     // After the 500ms animation, should advance to question 2
@@ -64,8 +69,9 @@ test.describe('Assessment Flow', () => {
   test('should navigate back to previous question', async ({ authenticatedPage: page }) => {
     await page.goto('/intake/would-you-rather')
 
-    // Answer first question
-    await page.locator('img').first()
+    // Answer first question (nth(2) skips the hidden mobile option cards)
+    await page.locator('button:has(figure)')
+      .nth(2)
       .click()
     await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
 
@@ -77,8 +83,9 @@ test.describe('Assessment Flow', () => {
   test('should persist progress across page reload', async ({ authenticatedPage: page }) => {
     await page.goto('/intake/would-you-rather')
 
-    // Answer first question
-    await page.locator('img').first()
+    // Answer first question (nth(2) skips the hidden mobile option cards)
+    await page.locator('button:has(figure)')
+      .nth(2)
       .click()
     await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
 

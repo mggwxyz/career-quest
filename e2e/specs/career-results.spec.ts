@@ -6,7 +6,7 @@ test.describe('Career Results', () => {
     await dbUtils.truncateAppTables()
   })
 
-  test('should generate and display career recommendations', async ({ authenticatedPage: page, dbUtils }) => {
+  test('should generate and display career recommendations', async ({ authenticatedPage: page, dbUtils, seedZustandStore }) => {
     const userId = await dbUtils.getTestUserId()
 
     // Seed the user with interests and quiz answers so the summary page works.
@@ -24,6 +24,9 @@ test.describe('Career Results', () => {
       `
     }
 
+    // Seed Zustand store so the /careers page doesn't redirect due to empty quiz state
+    await seedZustandStore(page)
+
     await page.goto('/careers')
 
     // Verify all 10 careers render
@@ -32,7 +35,7 @@ test.describe('Career Results', () => {
     }
   })
 
-  test('should navigate to career detail page', async ({ authenticatedPage: page, dbUtils }) => {
+  test('should navigate to career detail page', async ({ authenticatedPage: page, dbUtils, seedZustandStore }) => {
     const userId = await dbUtils.getTestUserId()
 
     // Seed one career
@@ -42,6 +45,9 @@ test.describe('Career Results', () => {
       VALUES (${userId}, ${career.onetId}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
     `
 
+    // Seed Zustand store for career detail page context
+    await seedZustandStore(page)
+
     await page.goto(`/careers/${career.onetId}`)
 
     // Verify career details render
@@ -49,7 +55,7 @@ test.describe('Career Results', () => {
     await expect(page.getByText(career.salaryRange).first()).toBeVisible()
   })
 
-  test('should show career generation via server action (MSW mocked)', async ({ authenticatedPage: page, dbUtils }) => {
+  test('should show career generation via server action (MSW mocked)', async ({ authenticatedPage: page, dbUtils, seedZustandStore }) => {
     const userId = await dbUtils.getTestUserId()
 
     // Ensure user has interests
@@ -80,6 +86,9 @@ test.describe('Career Results', () => {
         ON CONFLICT (user_id, question_id) DO UPDATE SET selected_option = 1
       `
     }
+
+    // Seed Zustand store so the /careers page doesn't redirect due to empty quiz state
+    await seedZustandStore(page)
 
     // Navigate to careers page and verify it loads without errors
     await page.goto('/careers')

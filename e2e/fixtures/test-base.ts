@@ -23,6 +23,11 @@ type TestFixtures = {
   }
   /** Set up the page.route mock for the chat streaming endpoint. */
   mockChatStream: (page: Page) => Promise<void>
+  /**
+   * Seed the Zustand store in localStorage so pages that check for
+   * quiz answers (e.g. /careers) won't redirect away.
+   */
+  seedZustandStore: (page: Page, overrides?: { answers?: Record<string, number>, interests?: string[] }) => Promise<void>
 }
 
 export const test = base.extend<TestFixtures>({
@@ -82,5 +87,32 @@ export const test = base.extend<TestFixtures>({
       })
     }
     await use(setupMock)
+  },
+
+  seedZustandStore: async ({}, use) => {
+    const seed = async (page: Page, overrides?: { answers?: Record<string, number>, interests?: string[] }) => {
+      // Build default quiz answers for all 30 questions so getDeckResults() returns data
+      const defaultAnswers: Record<string, number> = {}
+      for (let i = 1; i <= 10; i++) {
+        defaultAnswers[`riasec-${i}`] = 1
+        defaultAnswers[`workvalue-${i}`] = 1
+        defaultAnswers[`env-${i}`] = 1
+      }
+
+      const storeState = {
+        state: {
+          interests: overrides?.interests ?? ['Technology', 'Science'],
+          currentQuestionIndex: 30,
+          answers: overrides?.answers ?? defaultAnswers,
+          skippedQuestions: [],
+        },
+        version: 0,
+      }
+
+      await page.evaluate((state) => {
+        localStorage.setItem('app-store', JSON.stringify(state))
+      }, storeState)
+    }
+    await use(seed)
   },
 })

@@ -28,7 +28,7 @@ The median salary is around **$120,000** and job growth is projected at **25%** 
  * Splits the response into chunks to simulate realistic streaming.
  */
 export function buildChatStreamBody(): string {
-  const chunks = MOCK_CHAT_RESPONSE.match(/.{1,40}/gs) ?? [MOCK_CHAT_RESPONSE]
+  const chunks = MOCK_CHAT_RESPONSE.match(/[\s\S]{1,40}/g) ?? [MOCK_CHAT_RESPONSE]
   const lines: string[] = []
   for (const chunk of chunks) {
     lines.push(`0:${JSON.stringify(chunk)}\n`)
