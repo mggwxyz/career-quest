@@ -1,16 +1,18 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import Link from 'next/link'
 
 export function AnimatedHero() {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <div className="relative z-10 max-w-2xl">
       <motion.div
         className="text-xs uppercase tracking-[0.2em] text-accent font-semibold mb-5"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0.15 : 0.5 }}
       >
         <span aria-hidden="true">✦</span>
         {' '}
@@ -19,9 +21,9 @@ export function AnimatedHero() {
 
       <motion.h1
         className="font-serif text-4xl sm:text-5xl md:text-[56px] leading-[1.15] text-foreground mb-5"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0.15 : 0.5, delay: shouldReduceMotion ? 0 : 0.1 }}
       >
         Find the Career You Were
         {' '}
@@ -30,18 +32,18 @@ export function AnimatedHero() {
 
       <motion.p
         className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto mb-9 leading-relaxed"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0.15 : 0.5, delay: shouldReduceMotion ? 0 : 0.2 }}
       >
         Answer a few questions about your interests, values, and work style — then let AI match you with careers that actually fit.
       </motion.p>
 
       <motion.div
         className="flex flex-col sm:flex-row items-center justify-center gap-3"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0.15 : 0.5, delay: shouldReduceMotion ? 0 : 0.3 }}
       >
         <Link
           href="/discover/interests"
