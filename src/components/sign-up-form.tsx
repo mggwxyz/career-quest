@@ -5,6 +5,18 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { z } from 'zod'
+
+const signUpSchema = z
+  .object({
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    repeatPassword: z.string(),
+  })
+  .refine(data => data.password === data.repeatPassword, {
+    message: 'Passwords do not match',
+    path: ['repeatPassword'],
+  })
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
@@ -20,8 +32,9 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     setIsLoading(true)
     setError(null)
 
-    if (password !== repeatPassword) {
-      setError('Passwords do not match')
+    const parsed = signUpSchema.safeParse({ email, password, repeatPassword })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Invalid input')
       setIsLoading(false)
       return
     }
