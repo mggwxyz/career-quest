@@ -18,8 +18,26 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: 'Career Quest',
-  description: 'Career Quest',
+  title: {
+    default: 'Career Quest',
+    template: '%s | Career Quest',
+  },
+  description:
+    'Discover careers that fit you. Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+  applicationName: 'Career Quest',
+  openGraph: {
+    type: 'website',
+    siteName: 'Career Quest',
+    title: 'Career Quest — Find careers that fit who you are',
+    description:
+      'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Career Quest — Find careers that fit who you are',
+    description:
+      'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+  },
 }
 
 export default function RootLayout({
