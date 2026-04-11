@@ -13,6 +13,24 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+const MAX_INTEREST_LENGTH = 64
+const MAX_INTERESTS = 30
+
+function sanitizeInterestsForPrompt(rawInterests: string[]): string[] {
+  return rawInterests
+    .slice(0, MAX_INTERESTS)
+    .map(interest =>
+      interest
+        // Strip control characters and common prompt-injection delimiters
+        .replace(/[\x00-\x1f\x7f]/g, ' ')
+        .replace(/[`<>]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, MAX_INTEREST_LENGTH),
+    )
+    .filter(interest => interest.length > 0)
+}
+
 export async function generateCareerRecommendationsAction(
   results: Record<string, Record<string, number>>,
   interests: string[],
@@ -30,7 +48,7 @@ export async function generateCareerRecommendationsAction(
       - salaryRange: string (the salary range of the career)
 
       Selected Interests:
-      ${interests.join(', ')}
+      ${sanitizeInterestsForPrompt(interests).join(', ')}
 
       Assessment Results:
       ${JSON.stringify(results, null, 2)}
