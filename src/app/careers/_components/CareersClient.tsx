@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useRouter } from 'next/navigation'
@@ -38,6 +38,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
   const router = useRouter()
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     const results = getDeckResults()
@@ -143,9 +144,12 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                 {careers.map((career, index) => (
                   <motion.div
                     key={career.onetId}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.08 }}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+                    animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                    transition={{
+                      duration: shouldReduceMotion ? 0.15 : 0.3,
+                      delay: shouldReduceMotion ? 0 : index * 0.08,
+                    }}
                   >
                     <Link
                       href={`/careers/${career.onetId}`}

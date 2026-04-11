@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
 import { questions } from '@/app/_data/questions'
 import OptionCard from './_components/OptionCard'
@@ -26,6 +26,7 @@ export default function WouldYouRather() {
       skippedQuestions: s.skippedQuestions,
     })),
   )
+  const shouldReduceMotion = useReducedMotion()
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -136,7 +137,7 @@ export default function WouldYouRather() {
             className="h-full rounded-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(124,58,237,0.5)]"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.4, ease: 'easeOut' }}
           />
         </div>
         <span className="text-xs text-text-dim whitespace-nowrap">
@@ -157,10 +158,10 @@ export default function WouldYouRather() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestion.id}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 50 }}
+          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -50 }}
+          transition={{ duration: shouldReduceMotion ? 0.15 : 0.3, ease: 'easeInOut' }}
         >
           <div className="relative max-w-3xl mx-auto">
             {/* "or" badge — desktop only */}
