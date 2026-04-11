@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { WouldYouRatherQuestionOption } from '@/store/slices/wouldYouRatherSlice'
 
 interface OptionCardProps {
@@ -12,7 +12,6 @@ interface OptionCardProps {
 }
 
 export default function OptionCard({ option, isSelected, showCheckmark, onClick }: OptionCardProps) {
-  const shouldReduceMotion = useReducedMotion()
   return (
     <motion.button
       className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-300 ${
@@ -21,9 +20,9 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
           : 'border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_0_40px_rgba(124,58,237,0.15)] focus-visible:border-primary/70 focus-visible:shadow-[0_0_40px_rgba(124,58,237,0.2)]'
       }`}
       onClick={onClick}
-      whileHover={shouldReduceMotion ? undefined : { y: -4 }}
-      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
-      transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
     >
       {/* Image with cosmic overlay */}
       <figure className="relative w-full h-[200px] sm:h-[250px] overflow-hidden">
@@ -49,9 +48,9 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
         {showCheckmark && isSelected && (
           <motion.div
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-[0_0_20px_rgba(124,58,237,0.5)] z-10"
-            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-            transition={shouldReduceMotion ? { duration: 0.15 } : { duration: 0.3, type: 'spring', stiffness: 300, damping: 15 }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 15 }}
           >
             ✓
           </motion.div>

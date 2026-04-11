@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, Instrument_Serif } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
+import { MotionProvider } from '@/providers/motion-provider'
 import { NavigationBar } from '@/components/navigation-bar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -65,9 +66,11 @@ export default function RootLayout({
           themes={['light', 'dark']}
         >
           <AuthProvider>
-            <NavigationBar />
-            <main id="main-content" className="pt-20">{children}</main>
-            <Toaster />
+            <MotionProvider>
+              <NavigationBar />
+              <main id="main-content" className="pt-20">{children}</main>
+              <Toaster />
+            </MotionProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
