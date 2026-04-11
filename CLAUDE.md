@@ -88,7 +88,7 @@ The application uses `dotenv-flow` for environment management. Database credenti
 - TypeScript strict mode enabled
 
 ### Assessment Logic
-The "would you rather" format presents psychological choices that map to career interest codes. The `tallyResults.ts` helper processes user responses to generate personality profiles for AI career matching.
+The "would you rather" format presents psychological choices that map to career interest codes. The `getDeckResults()` selector on the Zustand store (`src/store/slices/wouldYouRatherSlice.ts`) processes user responses into RIASEC/work-value/environment tallies for AI career matching.
 
 ### AI Integration
 Career recommendations are generated using OpenAI models through the Vercel AI SDK, taking user assessment results as input for personalized career suggestions.
