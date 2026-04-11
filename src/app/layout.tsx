@@ -17,7 +17,11 @@ const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
 })
 
+const SOCIAL_DESCRIPTION
+  = 'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: {
     default: 'Career Quest',
     template: '%s | Career Quest',
@@ -29,14 +33,12 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Career Quest',
     title: 'Career Quest — Find careers that fit who you are',
-    description:
-      'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+    description: SOCIAL_DESCRIPTION,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Career Quest — Find careers that fit who you are',
-    description:
-      'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+    description: SOCIAL_DESCRIPTION,
   },
 }
 
