@@ -26,7 +26,8 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       salaryRange: row.salaryRange,
     }))
   }
-  catch {
+  catch (error) {
+    console.error('[careers/page] getUserCareers failed:', error)
     return []
   }
 }

@@ -23,7 +23,8 @@ async function getUserInterests(): Promise<string[]> {
 
     return userData[0].interests || []
   }
-  catch {
+  catch (error) {
+    console.error('[discover/interests/page] getUserInterests failed:', error)
     return []
   }
 }
