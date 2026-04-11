@@ -1,0 +1,97 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+# Only one review in flight per PR; cancel stale runs when a new push lands.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip drafts and bot PRs (dependabot, renovate, etc.).
+    if: |
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Claude review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are reviewing pull request #${{ github.event.pull_request.number }}
+            on the Career Quest Next.js project. The PR targets the `main` branch.
+
+            ## Your Task
+
+            1. Read the PR metadata:
+               `gh pr view ${{ github.event.pull_request.number }} --json title,body,files,additions,deletions`
+            2. Read the diff against main:
+               `git fetch origin main && git diff origin/main...HEAD`
+            3. Evaluate the change against these criteria:
+               - **Correctness** — does the code do what the PR description claims?
+               - **Tests** — is new behavior covered, do existing tests still apply?
+               - **Style** — project uses ESLint with `@stylistic` rules: 2-space indent, no semicolons, single quotes. See `eslint.config.mjs`.
+               - **Security** — any injection, auth bypass, or data-exposure concerns?
+               - **Accessibility** — a11y regressions in UI changes?
+               - **Scope** — is the PR focused, or does it sprawl beyond its description?
+               - **Architecture** — Next.js 15 App Router conventions (server vs client components), Drizzle schema, Zustand store, Supabase RLS, Vercel AI SDK usage.
+            4. Write your full review to `review.md` with these sections:
+               - `## Summary` — one-paragraph overview
+               - `## Strengths` — what was done well
+               - `## Issues` — grouped as `### Critical`, `### Important`, `### Minor` (omit empty sections)
+               - `## Final Score: N/5`
+            5. Post the review as a PR comment:
+               `gh pr comment ${{ github.event.pull_request.number }} -F review.md`
+            6. Write the final numeric score (a single integer from 1 to 5) to `.claude-review-score`:
+               `echo N > .claude-review-score` — where N is your score with no extra whitespace or characters.
+
+            ## Scoring Rubric
+
+            Be honest. Do not inflate scores — a score of 5 triggers auto-merge.
+
+            - **5** — Merge-ready. No issues found. Tests pass or are not applicable. Clean, focused, matches project conventions.
+            - **4** — Merge-ready with only Minor nits that don't block. No Important or Critical issues.
+            - **3** — Needs changes before merge. One or more Important issues.
+            - **2** — Significant concerns. Multiple Important issues, or a Critical issue.
+            - **1** — Do not merge. Critical bugs, broken tests, security problems, or wrong approach.
+
+            A PR with any failing test, any injection risk, any broken build, or any stated scope that isn't actually implemented cannot score above 3.
+          claude_args: |
+            --max-turns 25
+            --model claude-sonnet-4-6
+
+      - name: Extract review score
+        id: score
+        run: |
+          if [ -f .claude-review-score ]; then
+            SCORE=$(tr -d '[:space:]' < .claude-review-score)
+            echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+            echo "Claude review score: $SCORE"
+          else
+            echo "score=0" >> "$GITHUB_OUTPUT"
+            echo "::warning::Claude did not produce .claude-review-score — skipping auto-merge"
+          fi
+
+      - name: Enable auto-merge (score == 5)
+        if: steps.score.outputs.score == '5'
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --auto \
+            --squash \
+            --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
