@@ -24,6 +24,12 @@ async function getUserInterests(): Promise<string[]> {
     return userData[0].interests || []
   }
   catch (error) {
+    // Let Next.js handle its dynamic-rendering probe — re-throw so
+    // static analysis can mark the route as dynamic without surfacing
+    // a phantom error in build logs.
+    if ((error as { digest?: string }).digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error
+    }
     console.error('[discover/interests/page] getUserInterests failed:', error)
     return []
   }

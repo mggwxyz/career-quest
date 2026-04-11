@@ -27,6 +27,12 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     }))
   }
   catch (error) {
+    // Let Next.js handle its dynamic-rendering probe — re-throw so
+    // static analysis can mark the route as dynamic without surfacing
+    // a phantom error in build logs.
+    if ((error as { digest?: string }).digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error
+    }
     console.error('[careers/page] getUserCareers failed:', error)
     return []
   }
