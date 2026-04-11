@@ -16,13 +16,27 @@ const openai = createOpenAI({
 const MAX_INTEREST_LENGTH = 64
 const MAX_INTERESTS = 30
 
+/**
+ * Sanitize free-text interests before interpolating them into the OpenAI prompt.
+ *
+ * Mitigates: oversized payload attacks (item count / per-item length), control
+ * characters, and code-fence / HTML delimiter injection (backtick, angle brackets).
+ *
+ * Does NOT attempt to block plain-text role-injection phrases ("System:",
+ * "Ignore previous instructions", etc.). That is handled at a higher layer by:
+ *   1. Zod output schema (CareersResponseSchema) — structurally validates the
+ *      model response so a poisoned payload cannot return arbitrary data.
+ *   2. OpenAI role separation — interests are interpolated into the user turn,
+ *      not the system turn, so text that says "System:" does not elevate
+ *      privileges at the wire level.
+ */
 function sanitizeInterestsForPrompt(rawInterests: string[]): string[] {
   return rawInterests
     .slice(0, MAX_INTERESTS)
     .map(interest =>
       interest
-        // Strip control characters and common prompt-injection delimiters
-        .replace(/[\x00-\x1f\x7f]/g, ' ')
+        // Strip C0 + DEL + C1 control characters
+        .replace(/[\x00-\x1f\x7f-\x9f]/g, ' ')
         .replace(/[`<>]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
