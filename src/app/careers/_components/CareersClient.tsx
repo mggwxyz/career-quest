@@ -70,7 +70,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
         const response = await generateCareerRecommendationsAction(results, interests)
         if (response.success && response.careers) {
           setCareers(response.careers)
-          toast.success('Career recommendations generated!', { id: loadingToastId })
+          toast.dismiss(loadingToastId)
         }
         else {
           const msg = response.error || 'Failed to generate recommendations'

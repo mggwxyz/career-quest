@@ -61,7 +61,6 @@ export const NavigationBar = () => {
             ))}
 
             <div className="flex items-center gap-2 ml-3">
-              <ThemeToggle />
               {!loading && (
                 !isAnonymous
                   ? (
@@ -71,12 +70,10 @@ export const NavigationBar = () => {
                     </>
                   )
                   : (
-                    <>
-                      <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
-                      <Link href="/discover/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-all no-underline">Get Started</Link>
-                    </>
+                    <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
                   )
               )}
+              <ThemeToggle />
             </div>
           </div>
 
@@ -115,7 +112,6 @@ export const NavigationBar = () => {
               {!loading && isAnonymous && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-border">
                   <Link href="/auth/login" className="text-sm text-muted-foreground no-underline">Log In</Link>
-                  <Link href="/discover/interests" className="text-sm font-semibold text-white bg-gradient-to-br from-primary to-secondary px-4 py-1.5 rounded-full no-underline">Get Started</Link>
                 </div>
               )}
               {!loading && !isAnonymous && (
