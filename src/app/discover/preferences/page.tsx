@@ -8,7 +8,6 @@ import OptionCard from './_components/OptionCard'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import Link from 'next/link'
-import { toast } from 'sonner'
 
 const allQuestions = questions.decks.flatMap(deck => deck.questions)
 
@@ -90,11 +89,6 @@ export default function WouldYouRather() {
       setShowCheckmark(false)
       setSelectedOption(null)
       nextQuestion()
-      if (currentQuestionIndex === allQuestions.length - 1) {
-        toast.success('Assessment completed!', {
-          description: 'Your preferences have been recorded. Ready to explore your career matches?',
-        })
-      }
     }, 500)
   }
 

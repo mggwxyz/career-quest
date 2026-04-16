@@ -22,7 +22,6 @@ export function SocialLoginForm({ className, ...props }: React.ComponentPropsWit
         options: { redirectTo: `${getURL()}/auth/oauth?next=/` },
       })
       if (error) throw error
-      toast.success('Redirecting to Google...')
     }
     catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'An error occurred'

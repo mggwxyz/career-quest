@@ -12,7 +12,6 @@ export function LogoutButton() {
     try {
       const supabase = createClient()
       await supabase.auth.signOut()
-      toast.success('Successfully logged out!')
       router.push('/auth/login')
     }
     catch (error) {
