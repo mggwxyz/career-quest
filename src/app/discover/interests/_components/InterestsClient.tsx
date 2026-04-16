@@ -73,12 +73,12 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
       </div>
 
       {/* Interest chips */}
-      <div className="flex flex-wrap gap-2.5 justify-center max-w-2xl mx-auto mb-8">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2.5 max-w-2xl mx-auto mb-8">
         {commonInterests.map(interest => (
           <button
             key={interest}
             onClick={() => toggleInterest(interest)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+            className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 border ${
               interests.includes(interest)
                 ? 'border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)]'
                 : 'border-border bg-surface/60 text-muted-foreground hover:border-border-hover hover:text-primary-soft hover:bg-primary/5'
@@ -117,12 +117,12 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
 
       {/* Custom interest pills */}
       {interests.filter(i => !commonInterests.includes(i)).length > 0 && (
-        <div className="flex flex-wrap gap-2.5 justify-center max-w-md mx-auto mb-10">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2.5 max-w-md mx-auto mb-10">
           {interests.filter(i => !commonInterests.includes(i)).map(interest => (
             <button
               key={interest}
               onClick={() => removeInterest(interest)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)] animate-in fade-in"
+              className="px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)] animate-in fade-in"
             >
               {interest}
               {' ✕'}
