@@ -134,7 +134,7 @@ export default function IntakeSummary() {
             )}
 
             {/* Actions */}
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <Link
                 href="/discover/preferences"
                 className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm"

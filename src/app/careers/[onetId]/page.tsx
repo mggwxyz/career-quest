@@ -50,7 +50,7 @@ export default function CareerChatPage() {
   if (loading) {
     return (
       <div className={containerClassName}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Career Details Panel Skeleton */}
           <div className="lg:col-span-1">
             <CareerDetailSkeleton />
@@ -89,7 +89,7 @@ export default function CareerChatPage() {
 
   return (
     <div className={containerClassName}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Career Details Panel */}
         <div className="lg:col-span-1">
           <CareerDetails career={career} />

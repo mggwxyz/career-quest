@@ -103,7 +103,7 @@ export default function WouldYouRather() {
     return (
       <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
         <div className="text-center pt-20">
-          <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
+          <h1 className="font-serif text-2xl sm:text-3xl text-foreground mb-4">Assessment Complete</h1>
           <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
           <div className="flex flex-col gap-3 items-center">
             <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">

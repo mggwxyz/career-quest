@@ -68,7 +68,7 @@ export default function RootLayout({
           <AuthProvider>
             <MotionProvider>
               <NavigationBar />
-              <main id="main-content" className="pt-20">{children}</main>
+              <main id="main-content" className="pt-16 md:pt-20">{children}</main>
               <Toaster />
             </MotionProvider>
           </AuthProvider>

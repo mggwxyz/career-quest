@@ -22,7 +22,7 @@ export function TraitHeroCard({ code, rank, count, maxCount }: TraitHeroCardProp
     <div
       role="img"
       aria-label={`Rank ${rank}: ${theme.label} — ${theme.description} (${pct}%)`}
-      className="relative p-5 rounded-2xl border text-center overflow-hidden"
+      className="relative p-4 sm:p-5 rounded-2xl border text-center overflow-hidden"
       style={{
         background: `linear-gradient(135deg, ${theme.colorHex}26, ${theme.colorHex}0d)`,
         borderColor: `${theme.colorHex}59`,
@@ -47,7 +47,7 @@ export function TraitHeroCard({ code, rank, count, maxCount }: TraitHeroCardProp
       >
         {theme.label}
       </div>
-      <div className="text-[11px] text-muted-foreground leading-snug min-h-[2.2em]">
+      <div className="text-xs text-muted-foreground leading-snug min-h-[2.2em]">
         {theme.description}
       </div>
       <div

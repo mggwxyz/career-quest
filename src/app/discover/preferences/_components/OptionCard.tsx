@@ -58,8 +58,8 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
       </figure>
 
       {/* Card body */}
-      <div className="p-5 flex-none text-left">
-        <h2 className="text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
+      <div className="p-4 sm:p-5 flex-none text-left">
+        <h2 className="text-sm sm:text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
           {option.text}
         </h2>
       </div>

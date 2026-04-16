@@ -31,7 +31,7 @@ export function CareerChat({ career }: CareerChatProps) {
   })
 
   return (
-    <div className="bg-surface/50 border border-border rounded-2xl h-[600px] flex flex-col overflow-hidden">
+    <div className="bg-surface/50 border border-border rounded-2xl h-[500px] md:h-[600px] flex flex-col overflow-hidden">
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold text-foreground">
           Chat about

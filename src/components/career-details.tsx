@@ -15,8 +15,8 @@ interface CareerDetailsProps {
 
 export function CareerDetails({ career }: CareerDetailsProps) {
   return (
-    <div className="p-6 bg-surface/50 border border-border rounded-2xl">
-      <h2 className="font-serif text-xl text-foreground mb-5">{career.title}</h2>
+    <div className="p-4 sm:p-6 bg-surface/50 border border-border rounded-2xl">
+      <h2 className="font-serif text-lg sm:text-xl text-foreground mb-4 sm:mb-5">{career.title}</h2>
 
       <div className="space-y-5">
         <div>

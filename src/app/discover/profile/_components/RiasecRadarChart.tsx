@@ -53,7 +53,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
   const dataPolygon = dataPoints.map(p => `${p.x},${p.y}`).join(' ')
 
   return (
-    <div className="p-6 rounded-2xl border border-border bg-surface/60">
+    <div className="p-4 sm:p-6 rounded-2xl border border-border bg-surface/60">
       <h2 className="font-serif text-lg text-foreground text-center mb-1">Interest Profile</h2>
       <p className="text-xs text-muted-foreground text-center mb-4">Your RIASEC personality map</p>
 

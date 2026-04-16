@@ -13,7 +13,7 @@ interface HowItWorksCardProps {
 export function HowItWorksCard({ num, icon, title, desc, index }: HowItWorksCardProps) {
   return (
     <motion.div
-      className="text-center p-8 bg-surface/50 border border-border rounded-2xl hover:border-border-hover hover:bg-surface/80 hover:shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all"
+      className="text-center p-6 sm:p-8 bg-surface/50 border border-border rounded-2xl hover:border-border-hover hover:bg-surface/80 hover:shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

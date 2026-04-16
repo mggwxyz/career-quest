@@ -11,21 +11,21 @@ export default function Home() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+      <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-4 sm:px-6 overflow-hidden">
         <AnimatedHero />
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="relative max-w-4xl mx-auto px-6 pb-20">
+      <section id="how-it-works" className="relative max-w-4xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
         {/* Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent mb-16" />
 
         <div className="text-center mb-12">
-          <h2 className="font-serif text-3xl text-foreground mb-2">How It Works</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground mb-2">How It Works</h2>
           <p className="text-sm text-text-dim">Three steps to find careers that fit</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {steps.map((step, i) => (
             <HowItWorksCard
               key={step.num}
