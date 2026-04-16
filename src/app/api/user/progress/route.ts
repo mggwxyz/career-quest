@@ -35,7 +35,8 @@ export async function GET() {
       progress: rows.length > 0 ? { answers, skippedQuestions } : null,
     })
   }
-  catch {
+  catch (error) {
+    console.error('[api/user/progress] GET failed:', error)
     return NextResponse.json(
       { error: 'Failed to fetch progress' },
       { status: 500 },
@@ -86,7 +87,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   }
-  catch {
+  catch (error) {
+    console.error('[api/user/progress] POST failed:', error)
     return NextResponse.json(
       { error: 'Failed to save progress' },
       { status: 500 },

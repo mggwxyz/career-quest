@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, Instrument_Serif } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
+import { MotionProvider } from '@/providers/motion-provider'
 import { NavigationBar } from '@/components/navigation-bar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -17,9 +18,29 @@ const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
 })
 
+const SOCIAL_DESCRIPTION
+  = 'Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.'
+
 export const metadata: Metadata = {
-  title: 'Career Quest',
-  description: 'Career Quest',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  title: {
+    default: 'Career Quest',
+    template: '%s | Career Quest',
+  },
+  description:
+    'Discover careers that fit you. Answer would-you-rather questions, explore your RIASEC profile, and get AI-powered career recommendations.',
+  applicationName: 'Career Quest',
+  openGraph: {
+    type: 'website',
+    siteName: 'Career Quest',
+    title: 'Career Quest — Find careers that fit who you are',
+    description: SOCIAL_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Career Quest — Find careers that fit who you are',
+    description: SOCIAL_DESCRIPTION,
+  },
 }
 
 export default function RootLayout({
@@ -45,9 +66,11 @@ export default function RootLayout({
           themes={['light', 'dark']}
         >
           <AuthProvider>
-            <NavigationBar />
-            <main id="main-content" className="pt-20">{children}</main>
-            <Toaster />
+            <MotionProvider>
+              <NavigationBar />
+              <main id="main-content" className="pt-20">{children}</main>
+              <Toaster />
+            </MotionProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

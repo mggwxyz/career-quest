@@ -58,7 +58,8 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
       try {
         await saveInterestsAndRedirect(interests)
       }
-      catch {
+      catch (error) {
+        console.error('[InterestsClient] saveInterestsAndRedirect failed:', error)
         toast.error('Failed to save interests. Please try again.')
       }
     })

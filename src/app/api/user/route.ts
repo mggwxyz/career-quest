@@ -37,7 +37,8 @@ export async function GET() {
       lastName: row.lastName,
     })
   }
-  catch {
+  catch (error) {
+    console.error('[api/user] GET failed:', error)
     return NextResponse.json(
       { error: 'Failed to fetch user data' },
       { status: 500 },
@@ -81,7 +82,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   }
-  catch {
+  catch (error) {
+    console.error('[api/user] POST failed:', error)
     return NextResponse.json(
       { error: 'Failed to save user data' },
       { status: 500 },
