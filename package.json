@@ -71,5 +71,6 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix"
-  }
+  },
+  "packageManager": "pnpm@10.27.0"
 }
