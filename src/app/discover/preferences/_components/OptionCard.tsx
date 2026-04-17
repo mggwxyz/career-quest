@@ -24,24 +24,13 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Image with cosmic overlay */}
-      <figure className="relative w-full h-[200px] sm:h-[250px] overflow-hidden">
+      <figure className="relative w-full h-[200px] sm:h-[250px]">
         <Image
           src={option.imageUrl}
           alt={option.prompt}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="(max-width: 640px) 100vw, 50vw"
-        />
-        {/* Cosmic gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `
-              linear-gradient(180deg, rgba(10, 10, 26, 0) 40%, rgba(10, 10, 26, 0.85) 100%),
-              linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, transparent 50%)
-            `,
-          }}
         />
 
         {/* Checkmark badge */}
