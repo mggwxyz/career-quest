@@ -1,9 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth/client'
 import { useState } from 'react'
-import { getURL } from '@/lib/utils'
 import { toast } from 'sonner'
 
 export function SocialLoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -12,19 +11,23 @@ export function SocialLoginForm({ className, ...props }: React.ComponentPropsWit
 
   const handleSocialLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await authClient.signIn.social({
         provider: 'google',
-        options: { redirectTo: `${getURL()}/auth/oauth?next=/` },
+        callbackURL: '/',
       })
-      if (error) throw error
+      if (error) {
+        const msg = error.message ?? 'An error occurred'
+        setError(msg)
+        toast.error(`Login failed: ${msg}`)
+        setIsLoading(false)
+      }
     }
-    catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'An error occurred'
+    catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
       setError(msg)
       toast.error(`Login failed: ${msg}`)
       setIsLoading(false)

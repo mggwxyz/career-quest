@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -11,15 +11,11 @@ export async function GET(
   try {
     const { onetId } = await params
 
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 },
-      )
+    const session = await getSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
+    const user = session.user
 
     const rows = await db.select().from(careerRecommendations)
       .where(and(

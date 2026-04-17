@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -28,7 +28,6 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -40,18 +39,21 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error } = await authClient.signUp.email({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/` },
+        name: email.split('@')[0],
+        callbackURL: '/',
       })
-      if (error) throw error
-      router.push('/auth/sign-up-success')
+      if (error) {
+        setError(error.message ?? 'An error occurred')
+        setIsLoading(false)
+        return
+      }
+      router.push('/')
     }
-    catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    }
-    finally {
+    catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
       setIsLoading(false)
     }
   }

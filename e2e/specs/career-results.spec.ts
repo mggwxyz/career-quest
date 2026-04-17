@@ -9,14 +9,9 @@ test.describe('Career Results', () => {
   test('should generate and display career recommendations', async ({ authenticatedPage: page, dbUtils, seedZustandStore }) => {
     const userId = await dbUtils.getTestUserId()
 
-    // Seed the user with interests and quiz answers so the summary page works.
-    // We'll pre-populate the DB directly rather than clicking through 30 questions.
-    await dbUtils.sql`
-      UPDATE users SET interests = ARRAY['Technology', 'Science']
-      WHERE id = ${userId}
-    `
-
-    // Seed career recommendations directly to test the list rendering
+    // Seed career recommendations directly to test the list rendering.
+    // Interests no longer live in a `users` table — they live in the Zustand
+    // store, which we seed below via `seedZustandStore`.
     for (const career of mockCareers.careers) {
       await dbUtils.sql`
         INSERT INTO career_recommendations (user_id, onet_id, title, description, why_it_matches, job_growth, salary_range)
@@ -58,13 +53,9 @@ test.describe('Career Results', () => {
   test('should show career generation via server action (MSW mocked)', async ({ authenticatedPage: page, dbUtils, seedZustandStore }) => {
     const userId = await dbUtils.getTestUserId()
 
-    // Ensure user has interests
-    await dbUtils.sql`
-      UPDATE users SET interests = ARRAY['Technology', 'Science']
-      WHERE id = ${userId}
-    `
-
-    // Seed quiz answers for all 30 questions so getDeckResults() returns data
+    // Seed quiz answers for all 30 questions so getDeckResults() returns data.
+    // Interests come from the Zustand store seeded below; there is no longer a
+    // `users` table to update.
     for (let i = 1; i <= 10; i++) {
       await dbUtils.sql`
         INSERT INTO quiz_answers (user_id, question_id, selected_option)

@@ -1,25 +1,28 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { test as base, type Page } from '@playwright/test'
-import postgres from 'postgres'
+import { readFileSync } from 'fs'
+import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
 import { buildChatStreamBody } from './chat-response'
+import { TEST_USER_FILE, type TestUserRecord } from '../global-setup'
 
 // Re-export expect so specs can import from one place
 export { expect } from '@playwright/test'
 
-const TEST_USER_EMAIL = 'test@example.com'
-const TEST_USER_PASSWORD = 'testpassword123'
+function loadTestUser(): TestUserRecord {
+  return JSON.parse(readFileSync(TEST_USER_FILE, 'utf-8')) as TestUserRecord
+}
 
 type TestFixtures = {
-  /** A page already logged in as the pre-seeded test user. */
+  /** A page already logged in as the per-run test user. */
   authenticatedPage: Page
   /** Helpers for direct database operations. */
   dbUtils: {
-    /** Truncate all app tables (preserves auth.users). */
+    /** Delete this run's test-user rows from the app tables. */
     truncateAppTables: () => Promise<void>
-    /** Get the pre-seeded test user's ID. */
+    /** Get the per-run test user's ID (from the file global-setup wrote). */
     getTestUserId: () => Promise<string>
-    /** Run arbitrary SQL. */
-    sql: postgres.Sql
+    /** Tagged-template SQL via the Neon HTTP driver. */
+    sql: NeonQueryFunction<false, false>
   }
   /** Set up the page.route mock for the chat streaming endpoint. */
   mockChatStream: (page: Page) => Promise<void>
@@ -32,9 +35,10 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page }, use) => {
+    const testUser = loadTestUser()
     await page.goto('/auth/login')
-    await page.getByLabel('Email').fill(TEST_USER_EMAIL)
-    await page.getByLabel('Password').fill(TEST_USER_PASSWORD)
+    await page.getByLabel('Email').fill(testUser.email)
+    await page.getByLabel('Password').fill(testUser.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
     // Wait for redirect after login
     await page.waitForURL('/')
@@ -42,34 +46,25 @@ export const test = base.extend<TestFixtures>({
   },
 
   dbUtils: async ({}, use) => {
-    const dbUrl = process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
-    const sql = postgres(dbUrl)
+    const dbUrl = process.env.DATABASE_URL
+    if (!dbUrl) {
+      throw new Error('[e2e] DATABASE_URL not set — cannot run DB fixtures')
+    }
+    const sql = neon(dbUrl)
+    const testUser = loadTestUser()
 
     const truncateAppTables = async () => {
-      await sql`TRUNCATE career_recommendations, quiz_answers, users CASCADE`
-      // Re-insert the test user row in the app's users table
-      // (auth.users is not truncated — it persists from the seed)
-      const [authUser] = await sql`
-        SELECT id, email FROM auth.users WHERE email = ${TEST_USER_EMAIL} LIMIT 1
-      `
-      if (authUser) {
-        await sql`
-          INSERT INTO users (id, email)
-          VALUES (${authUser.id}, ${authUser.email})
-          ON CONFLICT (id) DO NOTHING
-        `
-      }
+      // Scoped delete: we only own this run's user_id rows. We cannot TRUNCATE
+      // because neon_auth.users_sync (managed) lives in the same DB and could
+      // reference rows from other concurrent test users in the future.
+      await sql`DELETE FROM quiz_answers WHERE user_id = ${testUser.userId}`
+      await sql`DELETE FROM career_recommendations WHERE user_id = ${testUser.userId}`
     }
 
-    const getTestUserId = async (): Promise<string> => {
-      const [row] = await sql`
-        SELECT id FROM auth.users WHERE email = ${TEST_USER_EMAIL} LIMIT 1
-      `
-      return row.id as string
-    }
+    const getTestUserId = async (): Promise<string> => testUser.userId
 
     await use({ truncateAppTables, getTestUserId, sql })
-    await sql.end()
+    // No connection to close — neon() is HTTP/fetch-based.
   },
 
   mockChatStream: async ({}, use) => {

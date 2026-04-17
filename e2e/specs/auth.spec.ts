@@ -1,7 +1,9 @@
+import { readFileSync } from 'fs'
 import { test, expect } from '../fixtures/test-base'
+import { TEST_USER_FILE, type TestUserRecord } from '../global-setup'
 
 test.describe('Authentication', () => {
-  test('should sign up a new user and redirect to success page', async ({ page }) => {
+  test('should sign up a new user and redirect to home', async ({ page }) => {
     const uniqueEmail = `e2e-${Date.now()}@example.com`
 
     await page.goto('/auth/sign-up')
@@ -10,14 +12,16 @@ test.describe('Authentication', () => {
     await page.getByLabel('Repeat Password').fill('testpassword123')
     await page.getByRole('button', { name: 'Create Account' }).click()
 
-    await page.waitForURL('/auth/sign-up-success')
-    await expect(page).toHaveURL('/auth/sign-up-success')
+    await page.waitForURL('/')
+    await expect(page).toHaveURL('/')
   })
 
-  test('should log in with the pre-seeded test user', async ({ page }) => {
+  test('should log in with the per-run test user', async ({ page }) => {
+    const testUser = JSON.parse(readFileSync(TEST_USER_FILE, 'utf-8')) as TestUserRecord
+
     await page.goto('/auth/login')
-    await page.getByLabel('Email').fill('test@example.com')
-    await page.getByLabel('Password').fill('testpassword123')
+    await page.getByLabel('Email').fill(testUser.email)
+    await page.getByLabel('Password').fill(testUser.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
 
     await page.waitForURL('/')

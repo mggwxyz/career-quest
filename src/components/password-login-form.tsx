@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -15,19 +15,20 @@ export function PasswordLoginForm({ className, ...props }: React.ComponentPropsW
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      const { error } = await authClient.signIn.email({ email, password, callbackURL: '/' })
+      if (error) {
+        setError(error.message ?? 'Invalid email or password')
+        setIsLoading(false)
+        return
+      }
       router.push('/')
     }
-    catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    }
-    finally {
+    catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
       setIsLoading(false)
     }
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -13,19 +13,22 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.updateUser({ password })
-      if (error) throw error
+      const url = new URL(window.location.href)
+      const token = url.searchParams.get('token') ?? ''
+      const { error } = await authClient.resetPassword({ newPassword: password, token })
+      if (error) {
+        setError(error.message ?? 'An error occurred')
+        setIsLoading(false)
+        return
+      }
       router.push('/')
     }
-    catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    }
-    finally {
+    catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
       setIsLoading(false)
     }
   }

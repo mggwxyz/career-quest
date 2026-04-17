@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useRef,
   useState,
   type ReactElement,
@@ -68,7 +69,9 @@ export function Chat({
   const isTyping = lastMessage?.role === 'user'
 
   const messagesRef = useRef(messages)
-  messagesRef.current = messages
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
 
   // Enhanced stop function that marks pending tool calls as cancelled
   const handleStop = useCallback(() => {
