@@ -50,6 +50,12 @@ export async function generateCareerRecommendationsAction(
   interests: string[],
 ): Promise<{ success: boolean, careers?: CareerRecommendation[], error?: string }> {
   try {
+    const session = await getSession()
+    if (!session?.user) {
+      return { success: false, error: 'Authentication required' }
+    }
+    const user = session.user
+
     const prompt = `
       Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match.
       For each career, provide a brief explanation of why it matches their profile.
@@ -80,12 +86,6 @@ export async function generateCareerRecommendationsAction(
     if (!result) {
       throw new Error('No response from OpenAI')
     }
-
-    const session = await getSession()
-    if (!session?.user) {
-      return { success: false, error: 'Authentication required' }
-    }
-    const user = session.user
 
     // Delete old recommendations and insert new ones
     await db.delete(careerRecommendations)
