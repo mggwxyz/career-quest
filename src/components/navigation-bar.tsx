@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/providers/auth-provider'
 import { LogoutButton } from './logout-button'
@@ -19,10 +19,12 @@ export const NavigationBar = () => {
   const { loading, isAnonymous } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
+  const [prevPathname, setPrevPathname] = useState(pathname)
 
-  useEffect(() => {
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname)
     setMobileOpen(false)
-  }, [pathname])
+  }
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'

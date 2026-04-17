@@ -50,6 +50,12 @@ export function MessageInput({
 }: MessageInputProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [showInterruptPrompt, setShowInterruptPrompt] = useState(false)
+  const [prevIsGenerating, setPrevIsGenerating] = useState(isGenerating)
+
+  if (prevIsGenerating !== isGenerating) {
+    setPrevIsGenerating(isGenerating)
+    if (!isGenerating) setShowInterruptPrompt(false)
+  }
 
   const {
     isListening,
@@ -65,12 +71,6 @@ export function MessageInput({
       props.onChange?.({ target: { value: text } } as ChangeEvent<HTMLTextAreaElement>)
     },
   })
-
-  useEffect(() => {
-    if (!isGenerating) {
-      setShowInterruptPrompt(false)
-    }
-  }, [isGenerating])
 
   const addFiles = (files: File[] | null) => {
     if (props.allowAttachments) {
@@ -118,10 +118,7 @@ export function MessageInput({
     if (text && text.length > 500 && props.allowAttachments) {
       event.preventDefault()
       const blob = new Blob([text], { type: 'text/plain' })
-      const file = new File([blob], 'Pasted text', {
-        type: 'text/plain',
-        lastModified: Date.now(),
-      })
+      const file = new File([blob], 'Pasted text', { type: 'text/plain' })
       addFiles([file])
       return
     }

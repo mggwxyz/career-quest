@@ -44,70 +44,6 @@ export function AudioVisualizer({
     }
   }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return cleanup
-  }, [])
-
-  // Start or stop visualization based on recording state
-  useEffect(() => {
-    if (stream && isRecording) {
-      startVisualization()
-    }
-    else {
-      cleanup()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, isRecording])
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (canvasRef.current && containerRef.current) {
-        const container = containerRef.current
-        const canvas = canvasRef.current
-        const dpr = window.devicePixelRatio || 1
-
-        // Set canvas size based on container and device pixel ratio
-        const rect = container.getBoundingClientRect()
-        // Account for the 2px total margin (1px on each side)
-        canvas.width = (rect.width - 2) * dpr
-        canvas.height = (rect.height - 2) * dpr
-
-        // Scale canvas CSS size to match container minus margins
-        canvas.style.width = `${rect.width - 2}px`
-        canvas.style.height = `${rect.height - 2}px`
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    // Initial setup
-    handleResize()
-
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  // Initialize audio context and start visualization
-  const startVisualization = async () => {
-    try {
-      const audioContext = new AudioContext()
-      audioContextRef.current = audioContext
-
-      const analyser = audioContext.createAnalyser()
-      analyser.fftSize = AUDIO_CONFIG.FFT_SIZE
-      analyser.smoothingTimeConstant = AUDIO_CONFIG.SMOOTHING
-      analyserRef.current = analyser
-
-      const source = audioContext.createMediaStreamSource(stream!)
-      source.connect(analyser)
-
-      draw()
-    }
-    catch (error) {
-      console.error('Error starting visualization:', error)
-    }
-  }
-
   // Calculate the color intensity based on bar height
   const getBarColor = (normalizedHeight: number) => {
     const intensity
@@ -187,6 +123,70 @@ export function AudioVisualizer({
 
     drawFrame()
   }
+
+  // Initialize audio context and start visualization
+  const startVisualization = async () => {
+    try {
+      const audioContext = new AudioContext()
+      audioContextRef.current = audioContext
+
+      const analyser = audioContext.createAnalyser()
+      analyser.fftSize = AUDIO_CONFIG.FFT_SIZE
+      analyser.smoothingTimeConstant = AUDIO_CONFIG.SMOOTHING
+      analyserRef.current = analyser
+
+      const source = audioContext.createMediaStreamSource(stream!)
+      source.connect(analyser)
+
+      draw()
+    }
+    catch (error) {
+      console.error('Error starting visualization:', error)
+    }
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup
+  }, [])
+
+  // Start or stop visualization based on recording state
+  useEffect(() => {
+    if (stream && isRecording) {
+      startVisualization()
+    }
+    else {
+      cleanup()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream, isRecording])
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current && containerRef.current) {
+        const container = containerRef.current
+        const canvas = canvasRef.current
+        const dpr = window.devicePixelRatio || 1
+
+        // Set canvas size based on container and device pixel ratio
+        const rect = container.getBoundingClientRect()
+        // Account for the 2px total margin (1px on each side)
+        canvas.width = (rect.width - 2) * dpr
+        canvas.height = (rect.height - 2) * dpr
+
+        // Scale canvas CSS size to match container minus margins
+        canvas.style.width = `${rect.width - 2}px`
+        canvas.style.height = `${rect.height - 2}px`
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    // Initial setup
+    handleResize()
+
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
     <div
