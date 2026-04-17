@@ -38,18 +38,24 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       return
     }
 
-    const { error } = await authClient.signUp.email({
-      email,
-      password,
-      name: email.split('@')[0],
-      callbackURL: '/',
-    })
-    if (error) {
-      setError(error.message ?? 'An error occurred')
-      setIsLoading(false)
-      return
+    try {
+      const { error } = await authClient.signUp.email({
+        email,
+        password,
+        name: email.split('@')[0],
+        callbackURL: '/',
+      })
+      if (error) {
+        setError(error.message ?? 'An error occurred')
+        setIsLoading(false)
+        return
+      }
+      router.push('/')
     }
-    router.push('/')
+    catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+      setIsLoading(false)
+    }
   }
 
   return (
