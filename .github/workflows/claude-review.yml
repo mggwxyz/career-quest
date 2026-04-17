@@ -21,6 +21,10 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEON_AUTH_BASE_URL: ${{ secrets.NEON_AUTH_BASE_URL }}
+      NEON_AUTH_COOKIE_SECRET: ${{ secrets.NEON_AUTH_COOKIE_SECRET }}
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
@@ -49,7 +53,7 @@ jobs:
                - **Security** — any injection, auth bypass, or data-exposure concerns?
                - **Accessibility** — a11y regressions in UI changes?
                - **Scope** — is the PR focused, or does it sprawl beyond its description?
-               - **Architecture** — Next.js 15 App Router conventions (server vs client components), Drizzle schema, Zustand store, Supabase RLS, Vercel AI SDK usage.
+               - **Architecture** — Next.js 16 App Router conventions (server vs client components), Drizzle schema, Zustand store, Neon Auth (`@neondatabase/auth` / Better Auth) session handling, Vercel AI SDK usage.
             4. Write your full review to `review.md` with these sections:
                - `## Summary` — one-paragraph overview
                - `## Strengths` — what was done well
