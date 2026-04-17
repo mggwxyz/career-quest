@@ -6,7 +6,7 @@ export async function GET() {
   if (!session?.user) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
   }
-  const { user } = session
+  const user = session.user
   return NextResponse.json({
     email: user.email ?? null,
     firstName: user.name?.split(' ')[0] ?? null,
