@@ -1,12 +1,10 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
-import { User, Session } from '@supabase/supabase-js'
+import { createContext, useContext, useMemo } from 'react'
+import { authClient } from '@/lib/auth/client'
 
 interface AuthContext {
-  user: User | null
-  session: Session | null
+  user: { id: string, email: string | null, name: string, isAnonymous: boolean } | null
   loading: boolean
   isLoggedIn: boolean
   isAnonymous: boolean
@@ -14,65 +12,29 @@ interface AuthContext {
 
 const AuthContext = createContext<AuthContext>({
   user: null,
-  session: null,
   loading: true,
   isLoggedIn: false,
   isAnonymous: true,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: session, isPending } = authClient.useSession()
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      ),
-    [],
-  )
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        const { error } = await supabase.auth.signInAnonymously()
-        if (error) {
-          console.error('Failed to create anonymous session:', error.message)
-        }
-      }
-      else {
-        setSession(session)
-      }
-      setLoading(false)
+  const value = useMemo(() => {
+    const u = session?.user
+    if (!u) {
+      return { user: null, loading: isPending, isLoggedIn: false, isAnonymous: true }
     }
+    const isAnon = !!(u as { isAnonymous?: boolean }).isAnonymous
+    return {
+      user: { id: u.id, email: u.email ?? null, name: u.name ?? '', isAnonymous: isAnon },
+      loading: isPending,
+      isLoggedIn: !isAnon,
+      isAnonymous: isAnon,
+    }
+  }, [session, isPending])
 
-    getSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session)
-        setLoading(false)
-      },
-    )
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
-
-  const value = useMemo(() => ({
-    user: session?.user ?? null,
-    session,
-    loading,
-    isLoggedIn: !!session?.user,
-    isAnonymous: session?.user?.is_anonymous ?? true,
-  }), [session, loading])
-
-  return (
-    <AuthContext value={value}>
-      {children}
-    </AuthContext>
-  )
+  return <AuthContext value={value}>{children}</AuthContext>
 }
 
 export const useAuth = () => useContext(AuthContext)
