@@ -1,40 +1,25 @@
 import { defineConfig, devices } from '@playwright/test'
-import { execSync } from 'child_process'
+import { config as loadEnv } from 'dotenv'
 import path from 'path'
 
-// Read Supabase status synchronously at config-load time so webServer
-// gets the correct env vars BEFORE Next.js starts. globalSetup runs
-// in parallel with webServer, so it can't be relied on for env setup.
-function getSupabaseEnv() {
-  try {
-    const raw = execSync('npx supabase status --output json', {
-      cwd: path.resolve(__dirname, '..'),
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim()
-    const status = JSON.parse(raw)
-    return {
-      NEXT_PUBLIC_SUPABASE_URL: status.API_URL ?? 'http://127.0.0.1:54321',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: status.ANON_KEY ?? '',
-      DATABASE_URL: status.DB_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
-    }
-  }
-  catch {
-    // Supabase not running yet — globalSetup will start it.
-    // Use defaults; webServer will be restarted via reuseExistingServer=false in CI.
-    return {
-      NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
-      DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
-    }
-  }
-}
+// Load .env.local so DATABASE_URL / NEON_AUTH_BASE_URL / NEON_AUTH_COOKIE_SECRET
+// are available both for our globalSetup (which talks to Neon directly) and for
+// the spawned dev server. Playwright reads this file at config-load time, before
+// either webServer or globalSetup is started.
+loadEnv({ path: path.resolve(__dirname, '..', '.env.local') })
 
-const supabaseEnv = getSupabaseEnv()
+const requiredEnv = ['DATABASE_URL', 'NEON_AUTH_BASE_URL', 'NEON_AUTH_COOKIE_SECRET'] as const
+const missing = requiredEnv.filter(name => !process.env[name])
+if (missing.length > 0) {
+  throw new Error(
+    `[e2e] Missing required env vars in .env.local: ${missing.join(', ')}. `
+    + `Populate them before running the Playwright suite.`,
+  )
+}
 
 export default defineConfig({
   testDir: './specs',
-  fullyParallel: false, // run specs sequentially — they share one DB
+  fullyParallel: false, // run specs sequentially — they share one test user
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
@@ -63,7 +48,9 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
     env: {
-      ...supabaseEnv,
+      DATABASE_URL: process.env.DATABASE_URL!,
+      NEON_AUTH_BASE_URL: process.env.NEON_AUTH_BASE_URL!,
+      NEON_AUTH_COOKIE_SECRET: process.env.NEON_AUTH_COOKIE_SECRET!,
       OPENAI_API_KEY: 'sk-fake-e2e-not-used',
       TEST_MSW: 'true',
     },

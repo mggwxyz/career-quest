@@ -1,4 +1,6 @@
+import { readFileSync } from 'fs'
 import { test, expect } from '../fixtures/test-base'
+import { TEST_USER_FILE, type TestUserRecord } from '../global-setup'
 
 test.describe('Authentication', () => {
   test('should sign up a new user and redirect to success page', async ({ page }) => {
@@ -14,10 +16,12 @@ test.describe('Authentication', () => {
     await expect(page).toHaveURL('/auth/sign-up-success')
   })
 
-  test('should log in with the pre-seeded test user', async ({ page }) => {
+  test('should log in with the per-run test user', async ({ page }) => {
+    const testUser = JSON.parse(readFileSync(TEST_USER_FILE, 'utf-8')) as TestUserRecord
+
     await page.goto('/auth/login')
-    await page.getByLabel('Email').fill('test@example.com')
-    await page.getByLabel('Password').fill('testpassword123')
+    await page.getByLabel('Email').fill(testUser.email)
+    await page.getByLabel('Password').fill(testUser.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
 
     await page.waitForURL('/')
