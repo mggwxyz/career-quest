@@ -2,9 +2,9 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
-import { users, careerRecommendations } from '@/db/schema'
+import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 
@@ -81,30 +81,11 @@ export async function generateCareerRecommendationsAction(
       throw new Error('No response from OpenAI')
     }
 
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    const session = await getSession()
+    if (!session?.user) {
       return { success: false, error: 'Authentication required' }
     }
-
-    // Ensure user row exists
-    const existingUser = await db.select().from(users)
-      .where(eq(users.id, user.id))
-      .limit(1)
-
-    if (existingUser.length === 0) {
-      await db.insert(users).values({
-        id: user.id,
-        email: user.email,
-        interests,
-      })
-    }
-    else {
-      await db.update(users)
-        .set({ interests, updatedAt: new Date() })
-        .where(eq(users.id, user.id))
-    }
+    const user = session.user
 
     // Delete old recommendations and insert new ones
     await db.delete(careerRecommendations)

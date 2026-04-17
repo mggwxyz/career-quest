@@ -1,20 +1,16 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { quizAnswers } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 },
-      )
+    const session = await getSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
+    const user = session.user
 
     const rows = await db.select().from(quizAnswers)
       .where(eq(quizAnswers.userId, user.id))
@@ -51,15 +47,11 @@ export async function POST(request: Request) {
       skippedQuestions: string[]
     }
 
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 },
-      )
+    const session = await getSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
+    const user = session.user
 
     const values: { userId: string, questionId: string, selectedOption: number | null }[] = []
 

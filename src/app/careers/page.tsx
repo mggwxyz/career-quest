@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -7,12 +7,11 @@ import { CareerRecommendation } from '@/lib/schemas/career'
 
 async function getUserCareers(): Promise<CareerRecommendation[]> {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    const session = await getSession()
+    if (!session?.user) {
       return []
     }
+    const user = session.user
 
     const rows = await db.select().from(careerRecommendations)
       .where(eq(careerRecommendations.userId, user.id))

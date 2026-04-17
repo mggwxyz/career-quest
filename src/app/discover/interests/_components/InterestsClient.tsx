@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
-import { saveInterestsAndRedirect } from '../actions'
 import { toast } from 'sonner'
-import { useEffect } from 'react'
 
 const commonInterests = [
   '🎨 Art & Design', '🔬 Science', '💻 Technology', '📊 Business',
@@ -20,6 +19,7 @@ interface InterestsClientProps {
 }
 
 export default function InterestsClient({ initialInterests }: InterestsClientProps) {
+  const router = useRouter()
   const [customInterest, setCustomInterest] = useState('')
   const [isPending, startTransition] = useTransition()
   const { interests, addInterest, removeInterest, setInterests } = useAppStore(
@@ -54,13 +54,15 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
   }
 
   const handleContinue = () => {
-    startTransition(async () => {
+    startTransition(() => {
       try {
-        await saveInterestsAndRedirect(interests)
+        // Interests are already in the Zustand store (persisted to localStorage).
+        // Just navigate forward — no server round-trip needed.
+        router.push('/discover/preferences')
       }
       catch (error) {
-        console.error('[InterestsClient] saveInterestsAndRedirect failed:', error)
-        toast.error('Failed to save interests. Please try again.')
+        console.error('[InterestsClient] navigation failed:', error)
+        toast.error('Failed to continue. Please try again.')
       }
     })
   }
