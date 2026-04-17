@@ -37,8 +37,8 @@ export default function WouldYouRather() {
         hydrateFromDB(data.progress.answers, data.progress.skippedQuestions || [])
       }
     }
-    catch {
-      // Silent fail
+    catch (error) {
+      console.error('[preferences/page] loadSavedProgress failed:', error)
     }
     finally {
       setIsHydrated(true)
@@ -56,8 +56,8 @@ export default function WouldYouRather() {
         }),
       })
     }
-    catch {
-      // Silent fail
+    catch (error) {
+      console.error('[preferences/page] saveProgressToDB failed:', error)
     }
   }, [answers, skippedQuestions])
 

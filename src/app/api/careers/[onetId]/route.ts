@@ -47,7 +47,8 @@ export async function GET(
       },
     })
   }
-  catch {
+  catch (error) {
+    console.error('[api/careers/[onetId]] GET failed:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },
