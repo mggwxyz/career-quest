@@ -37,8 +37,8 @@ async function waitForDevServer(): Promise<void> {
  * SDK has no admin API for user creation in this version, so the only path is
  * self-serve sign-up. We use a UUID-suffixed email so each test run gets an
  * isolated identity (the previous test run's identity is left behind in
- * neon_auth.users_sync — which is read-only — but its quizAnswers /
- * careerRecommendations rows are cleaned up in teardown).
+ * neon_auth.users_sync — which is read-only — but its careerRecommendations
+ * rows are cleaned up in teardown).
  */
 async function createTestUserViaApi(): Promise<TestUserRecord> {
   const email = `e2e-${randomUUID()}@test.career-quest.local`
@@ -83,7 +83,6 @@ export default async function globalSetup() {
   // Wipe any stale app data for this user id (paranoid — id is freshly minted,
   // but a UUID collision or partially-failed previous run could leave junk).
   const sql = neon(databaseUrl)
-  await sql`DELETE FROM quiz_answers WHERE user_id = ${testUser.userId}`
   await sql`DELETE FROM career_recommendations WHERE user_id = ${testUser.userId}`
 
   writeFileSync(TEST_USER_FILE, JSON.stringify(testUser, null, 2) + '\n')
