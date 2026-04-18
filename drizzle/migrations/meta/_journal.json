@@ -8,6 +8,13 @@
       "when": 1776393752256,
       "tag": "0000_stiff_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776536593234,
+      "tag": "0001_modern_fixer",
+      "breakpoints": true
     }
   ]
 }
