@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/discover/interests', label: 'Discover' },
   { href: '/careers', label: 'My Matches' },
+  { href: '/careers/explore', label: 'Explore' },
 ]
 
 export const NavigationBar = () => {
@@ -28,7 +29,17 @@ export const NavigationBar = () => {
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
-    return pathname.startsWith(href)
+    if (!pathname.startsWith(href)) return false
+    // Require the match to be exact or followed by '/' (not another char like 's').
+    if (pathname.length === href.length) return true
+    if (pathname[href.length] !== '/') return false
+    // Longest-prefix wins: this link is active ONLY if no other navLink has a longer matching prefix.
+    return !navLinks.some(other =>
+      other.href !== href
+      && other.href.length > href.length
+      && pathname.startsWith(other.href)
+      && (pathname.length === other.href.length || pathname[other.href.length] === '/'),
+    )
   }
 
   return (
