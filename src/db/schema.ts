@@ -1,34 +1,27 @@
 import { sql } from 'drizzle-orm'
 import {
-  boolean, index, integer, jsonb, pgTable, serial, smallint, text,
+  boolean, index, integer, jsonb, pgTable, smallint, text,
   timestamp, unique, uniqueIndex, uuid,
 } from 'drizzle-orm/pg-core'
 
-export const quizAnswers = pgTable('quiz_answers', {
-  id: serial().primaryKey(),
-  userId: text('user_id').notNull(),
-  questionId: text('question_id').notNull(),
-  selectedOption: smallint('selected_option'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
-    .notNull(),
-}, table => [
-  unique('quiz_answers_user_question_unique').on(table.userId, table.questionId),
-])
-
 export const careerRecommendations = pgTable('career_recommendations', {
-  id: serial().primaryKey(),
+  id: uuid().primaryKey()
+    .defaultRandom(),
+  runId: uuid('run_id').notNull()
+    .references(() => recommendationRuns.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull(),
+  rank: smallint().notNull(),
   onetId: text('onet_id').notNull(),
   title: text().notNull(),
   description: text().notNull(),
   whyItMatches: text('why_it_matches').notNull(),
-  jobGrowth: text('job_growth').notNull(),
-  salaryRange: text('salary_range').notNull(),
+  jobGrowth: text('job_growth'),
+  salaryRange: text('salary_range'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
     .notNull(),
-})
+}, t => [
+  index('career_recommendations_user_run_idx').on(t.userId, t.runId),
+])
 
 export const userProfiles = pgTable('user_profiles', {
   userId: text('user_id').primaryKey(),

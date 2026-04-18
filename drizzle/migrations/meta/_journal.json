@@ -22,6 +22,13 @@
       "when": 1776536904072,
       "tag": "0002_cynical_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776551756306,
+      "tag": "0003_pink_thunderbolt",
+      "breakpoints": true
     }
   ]
 }
