@@ -2,10 +2,10 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { WouldYouRatherQuestionOption } from '@/store/slices/wouldYouRatherSlice'
+import { Option } from '@/lib/assessment'
 
 interface OptionCardProps {
-  option: WouldYouRatherQuestionOption
+  option: Pick<Option, 'id' | 'text' | 'imageUrl' | 'prompt'>
   isSelected: boolean
   showCheckmark: boolean
   onClick: () => void
@@ -14,6 +14,7 @@ interface OptionCardProps {
 export default function OptionCard({ option, isSelected, showCheckmark, onClick }: OptionCardProps) {
   return (
     <motion.button
+      type="button"
       className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-300 ${
         isSelected
           ? 'border-primary/70 shadow-[0_0_50px_rgba(124,58,237,0.25),0_0_100px_rgba(124,58,237,0.1)]'
@@ -24,16 +25,15 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
-      <figure className="relative w-full h-[200px] sm:h-[250px]">
+      <figure className="relative w-full">
         <Image
           src={option.imageUrl}
           alt={option.prompt}
-          fill
-          className="object-contain"
+          width={1024}
+          height={1024}
+          className="w-full h-auto block"
           sizes="(max-width: 640px) 100vw, 50vw"
         />
-
-        {/* Checkmark badge */}
         {showCheckmark && isSelected && (
           <motion.div
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-[0_0_20px_rgba(124,58,237,0.5)] z-10"
@@ -45,8 +45,6 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
           </motion.div>
         )}
       </figure>
-
-      {/* Card body */}
       <div className="p-5 flex-none text-left">
         <h2 className="text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
           {option.text}
