@@ -76,6 +76,13 @@ export async function GET() {
         },
       })
     }
+    // defense-in-depth — signals DB/engine skew when log contains only unknown item IDs
+    if (!lastAdvance) {
+      console.warn(
+        '[api/assessment/session] GET: rebuildSessionFromLog returned no advance despite answeredCount=%d for session %s',
+        answeredCount, active.sessionId,
+      )
+    }
     const nextItem = lastAdvance?.kind === 'next' ? lastAdvance.nextItem : null
     return NextResponse.json({
       active: {
