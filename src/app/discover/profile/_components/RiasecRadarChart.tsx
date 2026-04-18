@@ -66,8 +66,8 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
       >
         <defs>
           <radialGradient id="riasec-radar-fill">
-            <stop offset="0%" stopColor="rgba(124,58,237,0.5)" />
-            <stop offset="100%" stopColor="rgba(124,58,237,0.15)" />
+            <stop offset="0%" stopColor="rgba(57,255,20,0.45)" />
+            <stop offset="100%" stopColor="rgba(57,255,20,0.12)" />
           </radialGradient>
         </defs>
         <g transform={`translate(${CENTER},${CENTER})`}>
@@ -77,7 +77,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
               key={i}
               points={points}
               fill="none"
-              stroke="rgba(139,92,246,0.15)"
+              stroke="rgba(57,255,20,0.16)"
               strokeWidth={1}
             />
           ))}
@@ -91,7 +91,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
                 y1={0}
                 x2={Math.cos(angle) * RADIUS}
                 y2={Math.sin(angle) * RADIUS}
-                stroke="rgba(139,92,246,0.12)"
+                stroke="rgba(57,255,20,0.12)"
                 strokeWidth={1}
               />
             )
@@ -100,7 +100,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
           <polygon
             points={dataPolygon}
             fill="url(#riasec-radar-fill)"
-            stroke="#7c3aed"
+            stroke="#39ff14"
             strokeWidth={2}
           />
           {/* Data vertices */}
@@ -112,7 +112,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
                 cx={p.x}
                 cy={p.y}
                 r={topCodes.has(p.code) ? 5 : 4}
-                fill={theme?.colorHex ?? '#7c3aed'}
+                fill={theme?.colorHex ?? '#39ff14'}
                 stroke="#0a0a1a"
                 strokeWidth={2}
               />
@@ -135,7 +135,7 @@ export function RiasecRadarChart({ riasec }: RiasecRadarChartProps) {
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={highlighted ? 700 : 500}
-                fill={highlighted ? theme?.colorHex ?? '#c4b5fd' : '#9f99be'}
+                fill={highlighted ? theme?.colorHex ?? '#b7ff6a' : '#9f99be'}
               >
                 {theme?.label ?? code}
               </text>

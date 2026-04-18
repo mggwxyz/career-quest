@@ -106,7 +106,7 @@ export default function WouldYouRather() {
           <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
           <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
           <div className="flex flex-col gap-3 items-center">
-            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
+            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline">
               View Your Results
             </Link>
             <Link href="/careers" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
@@ -127,7 +127,7 @@ export default function WouldYouRather() {
       <div className="flex items-center gap-3 mb-2">
         <div className="flex-1 h-1 rounded-full bg-primary/10 overflow-hidden">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(124,58,237,0.5)]"
+            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(57,255,20,0.55)]"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}

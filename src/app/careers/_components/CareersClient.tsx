@@ -131,7 +131,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
               <div className="text-5xl mb-4">🎯</div>
               <h2 className="font-serif text-2xl text-foreground mb-3">Ready to Find Your Perfect Career?</h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">Based on your assessment results and selected interests, we can generate personalized career recommendations.</p>
-              <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] transition-all">
+              <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-all">
                 Generate Career Recommendations
               </button>
             </div>
@@ -179,7 +179,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
               </div>
 
               <div className="flex justify-center gap-4">
-                <button onClick={generateCareerRecommendations} disabled={isPending} className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] transition-all text-sm">
+                <button onClick={generateCareerRecommendations} disabled={isPending} className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] transition-all text-sm">
                   {hasExistingData ? 'Regenerate' : 'Generate New'}
                 </button>
                 <Link href="/discover/profile" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">

@@ -40,7 +40,7 @@ export const NavigationBar = () => {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-foreground no-underline">
-            <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-md flex items-center justify-center text-xs shadow-[var(--shadow-glow-sm)]">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-md flex items-center justify-center text-xs text-primary-foreground shadow-[var(--shadow-glow-sm)]">
               <span aria-hidden="true">✦</span>
             </div>
             <span className="font-serif text-lg">Career Quest</span>

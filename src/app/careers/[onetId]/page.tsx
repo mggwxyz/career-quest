@@ -75,7 +75,7 @@ export default function CareerChatPage() {
             {error || 'We couldn\'t find the career you\'re looking for. It may have been removed or the link is incorrect.'}
           </p>
           <div className="flex justify-center gap-4">
-            <Link href="/careers" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold text-sm no-underline">
+            <Link href="/careers" className="px-6 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold text-sm no-underline">
               View All Careers
             </Link>
             <Link href="/discover/preferences" className="px-6 py-2.5 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">

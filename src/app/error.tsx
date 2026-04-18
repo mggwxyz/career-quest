@@ -32,7 +32,7 @@ export default function ErrorBoundary({
         <button
           type="button"
           onClick={reset}
-          className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-sm font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] hover:-translate-y-0.5 transition-all"
+          className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] hover:-translate-y-0.5 transition-all"
         >
           Try again
         </button>
