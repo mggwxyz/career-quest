@@ -25,7 +25,7 @@ const SKIP_WEIGHT = 0.4
 type LoadingDiff = number
 
 function updateScale(prior: ScaleEstimate, diff: LoadingDiff, weight: number): ScaleEstimate {
-  if (diff === 0) return prior
+  if (diff === 0) return { ...prior }
   const meanShift = LEARN_RATE * weight * diff * prior.variance
   const varianceShrink = (LEARN_RATE * weight * diff) ** 2 * prior.variance
   const newVariance = Math.max(0.01, prior.variance / (1 + varianceShrink))

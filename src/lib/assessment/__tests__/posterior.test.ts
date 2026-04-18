@@ -104,6 +104,17 @@ describe('updatePosterior — RIASEC update direction', () => {
     expect(after.riasec.A).toEqual(before.riasec.A)
     expect(after.riasec.C).toEqual(before.riasec.C)
   })
+
+  it('shifts mean toward option2 when choice = 2 (sign-flip catch)', () => {
+    const item = makeItem(
+      { riasec: { R: 3, I: 0, A: 0, S: 0, E: 0, C: 0 }, workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 0, WC: 0 }, workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: 0 } },
+      { riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 }, workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 0, WC: 0 }, workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: 0 } },
+    )
+    const before = initialPosterior()
+    const after = updatePosterior(before, item, 2) // picked option2 (S-loaded)
+    expect(after.riasec.S.mean).toBeGreaterThan(before.riasec.S.mean)
+    expect(after.riasec.R.mean).toBeLessThan(before.riasec.R.mean)
+  })
 })
 
 describe('updatePosterior — skip handling', () => {
@@ -119,5 +130,17 @@ describe('updatePosterior — skip handling', () => {
     const chooseDelta = before.riasec.R.variance - chosen.riasec.R.variance
     expect(skipDelta).toBeGreaterThan(0)
     expect(skipDelta).toBeLessThan(chooseDelta)
+  })
+
+  it('skips pull mean DOWN on positively-loaded scales (sign check)', () => {
+    // Both options positively load R: a skip should mildly drop R toward zero,
+    // not raise it. Catches a dropped negative sign in the skip formula.
+    const item = makeItem(
+      { riasec: { R: 2, I: 0, A: 0, S: 0, E: 0, C: 0 }, workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 0, WC: 0 }, workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: 0 } },
+      { riasec: { R: 2, I: 0, A: 0, S: 0, E: 0, C: 0 }, workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 0, WC: 0 }, workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: 0 } },
+    )
+    const before = initialPosterior() // R.mean = 0
+    const skipped = updatePosterior(before, item, null)
+    expect(skipped.riasec.R.mean).toBeLessThan(before.riasec.R.mean) // pulled negative
   })
 })
