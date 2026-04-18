@@ -26,7 +26,7 @@ export default async function CareerDetailPage({
   }
 
   const session = await getSession()
-  if (!session?.user) redirect(`/login?redirect=/careers/${slug}`)
+  if (!session?.user) redirect(`/auth/login?redirect=${encodeURIComponent(`/careers/${slug}`)}`)
 
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()

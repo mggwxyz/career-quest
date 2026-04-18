@@ -1767,7 +1767,7 @@ export default async function CareerDetailPage({
   }
 
   const session = await getSession()
-  if (!session?.user) redirect(`/login?redirect=/careers/${slug}`)
+  if (!session?.user) redirect(`/auth/login?redirect=${encodeURIComponent(`/careers/${slug}`)}`)
 
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()
@@ -1991,7 +1991,7 @@ export default async function ExplorePage({
   searchParams: Promise<SearchParams>
 }) {
   const session = await getSession()
-  if (!session?.user) redirect('/login?redirect=/careers/explore')
+  if (!session?.user) redirect('/auth/login?redirect=/careers/explore')
 
   const params = await searchParams
   const filters = {
