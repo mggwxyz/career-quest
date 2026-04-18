@@ -68,7 +68,7 @@ The application is a career exploration tool built around psychological assessme
 - `src/proxy.ts` - Next.js middleware (project uses `proxy.ts`, not `middleware.ts`); wraps `auth.middleware()` from Neon Auth
 
 #### Core Components
-- `src/app/intake/would-you-rather/_components/OptionCard.tsx` - Assessment UI
+- `src/app/discover/preferences/_components/OptionCard.tsx` - Adaptive assessment option card
 - `src/components/navigation-bar.tsx` - Main navigation
 - `src/components/ui/` - shadcn/ui components
 
