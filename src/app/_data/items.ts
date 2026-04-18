@@ -1774,4 +1774,533 @@ export const items: Item[] = [
     },
     'middle',
   ),
+
+  // ======================================================================
+  // EXTRA ITEMS — added to improve engine accuracy on within-top-3 ordering
+  // 5 adjacent pairs × 1 item + 7 opposite items = 12 items total
+  // ======================================================================
+
+  // Adjacent: I ↔ A (add 1, was 2 → now 3)
+  buildItem(
+    'ia-biology-design',
+    {
+      id: 'ia-biology-design-1',
+      text: 'Dissect and label a specimen for biology class',
+      imageUrl: '/would-you-rather/images/ia-biology-design-1.png',
+      prompt: 'A student with gloves and a scalpel examining a specimen on a tray',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 0 },
+      },
+    },
+    {
+      id: 'ia-biology-design-2',
+      text: 'Design a logo for a school club',
+      imageUrl: '/would-you-rather/images/ia-biology-design-2.png',
+      prompt: 'A student sketching logo concepts on a tablet with design software',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 3, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    'early-hs',
+  ),
+
+  // Adjacent: A ↔ S (add 1, was 1 → now 2)
+  buildItem(
+    'as-photography-community',
+    {
+      id: 'as-photography-community-1',
+      text: 'Take photos for a school art exhibition',
+      imageUrl: '/would-you-rather/images/as-photography-community-1.png',
+      prompt: 'A student with a camera composing a shot in a school corridor',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 3, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: 1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'as-photography-community-2',
+      text: 'Volunteer at a community food bank',
+      imageUrl: '/would-you-rather/images/as-photography-community-2.png',
+      prompt: 'A teen sorting and packing food boxes alongside other volunteers',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 2 },
+      },
+    },
+    'middle',
+  ),
+
+  // Adjacent: S ↔ E (add 1, was 1 → now 2)
+  buildItem(
+    'se-listening-campaign',
+    {
+      id: 'se-listening-campaign-1',
+      text: 'Listen and offer advice to a friend going through something hard',
+      imageUrl: '/would-you-rather/images/se-listening-campaign-1.png',
+      prompt: 'Two teens talking quietly on a bench outside school',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: 1 },
+      },
+    },
+    {
+      id: 'se-listening-campaign-2',
+      text: 'Run a campaign to get elected to student government',
+      imageUrl: '/would-you-rather/images/se-listening-campaign-2.png',
+      prompt: 'A student posting flyers and greeting classmates in a busy hallway',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 3, C: 0 },
+        workValues: { ACH: 1, IND: 0, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: 0, soloTeam: 2 },
+      },
+    },
+    'middle',
+  ),
+
+  // Adjacent: E ↔ C (add 1, was 1 → now 2)
+  buildItem(
+    'ec-debate-bookkeeping',
+    {
+      id: 'ec-debate-bookkeeping-1',
+      text: 'Compete in a debate tournament at another school',
+      imageUrl: '/would-you-rather/images/ec-debate-bookkeeping-1.png',
+      prompt: 'A student at a podium making a convincing argument to judges',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 3, C: 0 },
+        workValues: { ACH: 1, IND: 0, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    {
+      id: 'ec-debate-bookkeeping-2',
+      text: 'Keep the club\'s financial records organized and accurate',
+      imageUrl: '/would-you-rather/images/ec-debate-bookkeeping-2.png',
+      prompt: 'A student updating a budget spreadsheet with receipts nearby',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    'middle',
+  ),
+
+  // Adjacent: C ↔ R (add 1, was 2 → now 3)
+  buildItem(
+    'cr-inventory-construction',
+    {
+      id: 'cr-inventory-construction-1',
+      text: 'Count and record inventory in a storeroom',
+      imageUrl: '/would-you-rather/images/cr-inventory-construction-1.png',
+      prompt: 'A student with a clipboard checking items on shelves in a supply room',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'cr-inventory-construction-2',
+      text: 'Help build a deck at a Habitat for Humanity project',
+      imageUrl: '/would-you-rather/images/cr-inventory-construction-2.png',
+      prompt: 'Volunteers nailing boards onto a deck frame at a construction site',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 3, I: 0, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 0, REC: 0, REL: 0, SUP: 0, WC: 1 },
+        workContext: { structureVariety: 0, indoorOutdoor: 2, soloTeam: 1 },
+      },
+    },
+    'early-hs',
+  ),
+
+  // Opposite: R ↔ S (add 2, was 10 → now 12) — balance adjacent additions
+  buildItem(
+    'rs-wiring-advocacy',
+    {
+      id: 'rs-wiring-advocacy-1',
+      text: 'Wire an electrical outlet under supervision',
+      imageUrl: '/would-you-rather/images/rs-wiring-advocacy-1.png',
+      prompt: 'A student carefully connecting wires in an electrical outlet box',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 3, I: 0, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'rs-wiring-advocacy-2',
+      text: 'Advocate for a classmate being treated unfairly',
+      imageUrl: '/would-you-rather/images/rs-wiring-advocacy-2.png',
+      prompt: 'A student speaking up to a teacher on behalf of a friend',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'early-hs',
+  ),
+  buildItem(
+    'rs-engine-counselor',
+    {
+      id: 'rs-engine-counselor-1',
+      text: 'Diagnose what is wrong with a small engine',
+      imageUrl: '/would-you-rather/images/rs-engine-counselor-1.png',
+      prompt: 'A student examining a small lawn mower engine with a diagnostic tool',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 3, I: 0, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'rs-engine-counselor-2',
+      text: 'Be a camp counselor supporting homesick kids',
+      imageUrl: '/would-you-rather/images/rs-engine-counselor-2.png',
+      prompt: 'A counselor sitting with a small group of campers around a campfire',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: 2, soloTeam: 2 },
+      },
+    },
+    'early-hs',
+  ),
+
+  // Opposite: I ↔ E (add 2, was 10 → now 12)
+  buildItem(
+    'ie-geology-marketing',
+    {
+      id: 'ie-geology-marketing-1',
+      text: 'Study rock samples to identify their mineral content',
+      imageUrl: '/would-you-rather/images/ie-geology-marketing-1.png',
+      prompt: 'A student examining rock samples under a magnifier with labeled jars nearby',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ie-geology-marketing-2',
+      text: 'Plan a marketing campaign for a local small business',
+      imageUrl: '/would-you-rather/images/ie-geology-marketing-2.png',
+      prompt: 'A student sketching a marketing plan on a whiteboard',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 3, C: 0 },
+        workValues: { ACH: 1, IND: 0, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'early-hs',
+  ),
+  buildItem(
+    'ie-chemistry-negotiate',
+    {
+      id: 'ie-chemistry-negotiate-1',
+      text: 'Complete a chemistry experiment independently',
+      imageUrl: '/would-you-rather/images/ie-chemistry-negotiate-1.png',
+      prompt: 'A student carefully titrating a solution in a lab setting',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ie-chemistry-negotiate-2',
+      text: 'Negotiate a budget allocation for your school club',
+      imageUrl: '/would-you-rather/images/ie-chemistry-negotiate-2.png',
+      prompt: 'A student presenting a budget proposal to a school administrator',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 3, C: 0 },
+        workValues: { ACH: 1, IND: 0, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'early-hs',
+  ),
+
+  // Alternate: C ↔ I (add 3, was 3 → now 6) — critical for C-top and I-top ordering
+  buildItem(
+    'ci-filing-research',
+    {
+      id: 'ci-filing-research-1',
+      text: 'Set up and maintain a filing system for club records',
+      imageUrl: '/would-you-rather/images/ci-filing-research-1.png',
+      prompt: 'A student organizing folders in a filing cabinet with labels',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ci-filing-research-2',
+      text: 'Investigate why plants grow faster in certain soils',
+      imageUrl: '/would-you-rather/images/ci-filing-research-2.png',
+      prompt: 'A student examining seedlings in different soil types in a greenhouse',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: 1, soloTeam: -1 },
+      },
+    },
+    'early-hs',
+  ),
+  buildItem(
+    'ci-schedule-decode',
+    {
+      id: 'ci-schedule-decode-1',
+      text: 'Build a weekly schedule for a school event series',
+      imageUrl: '/would-you-rather/images/ci-schedule-decode-1.png',
+      prompt: 'A student filling in a color-coded weekly schedule on a large calendar',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ci-schedule-decode-2',
+      text: 'Decode a cipher to find a hidden message',
+      imageUrl: '/would-you-rather/images/ci-schedule-decode-2.png',
+      prompt: 'A student working through a coded message using a cipher grid',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: -2 },
+      },
+    },
+    'middle',
+  ),
+  buildItem(
+    'ci-checklist-physics',
+    {
+      id: 'ci-checklist-physics-1',
+      text: 'Create a detailed checklist for the school supply drive',
+      imageUrl: '/would-you-rather/images/ci-checklist-physics-1.png',
+      prompt: 'A student typing a formatted checklist on a laptop at a desk',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ci-checklist-physics-2',
+      text: 'Experiment to test how angle affects a projectile\'s range',
+      imageUrl: '/would-you-rather/images/ci-checklist-physics-2.png',
+      prompt: 'A student launching a small ball at different angles and measuring distances',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 3, A: 0, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 0, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: 0, soloTeam: -1 },
+      },
+    },
+    'middle',
+  ),
+
+  // Alternate: C ↔ S (add 3, was 3 → now 6) — critical for C-top ordering vs S
+  buildItem(
+    'cs-timesheet-counselor',
+    {
+      id: 'cs-timesheet-counselor-1',
+      text: 'Fill in timesheets and track hours for a club project',
+      imageUrl: '/would-you-rather/images/cs-timesheet-counselor-1.png',
+      prompt: 'A student entering hours into a time-tracking spreadsheet',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'cs-timesheet-counselor-2',
+      text: 'Run a peer tutoring session for struggling students',
+      imageUrl: '/would-you-rather/images/cs-timesheet-counselor-2.png',
+      prompt: 'A teen guiding a younger student through a math problem at a table',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'middle',
+  ),
+  buildItem(
+    'cs-data-entry-mentoring',
+    {
+      id: 'cs-data-entry-mentoring-1',
+      text: 'Enter survey results into a database accurately',
+      imageUrl: '/would-you-rather/images/cs-data-entry-mentoring-1.png',
+      prompt: 'A student typing responses into a database one by one',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -2 },
+      },
+    },
+    {
+      id: 'cs-data-entry-mentoring-2',
+      text: 'Mentor a younger student through a challenging personal situation',
+      imageUrl: '/would-you-rather/images/cs-data-entry-mentoring-2.png',
+      prompt: 'An older teen and a younger student in a supportive conversation',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 0, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'middle',
+  ),
+  buildItem(
+    'cs-compliance-volunteer',
+    {
+      id: 'cs-compliance-volunteer-1',
+      text: 'Check that club activities comply with school rules',
+      imageUrl: '/would-you-rather/images/cs-compliance-volunteer-1.png',
+      prompt: 'A student reviewing a rulebook and marking items on a checklist',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'cs-compliance-volunteer-2',
+      text: 'Volunteer at a hospital to support patients and families',
+      imageUrl: '/would-you-rather/images/cs-compliance-volunteer-2.png',
+      prompt: 'A teen volunteer pushing a cart to deliver items to patients',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 3, E: 0, C: 0 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 1, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: 1 },
+      },
+    },
+    'early-hs',
+  ),
+
+  // Opposite: A ↔ C (add 3, was 10 → now 13)
+  buildItem(
+    'ac-animation-filing',
+    {
+      id: 'ac-animation-filing-1',
+      text: 'Create a short animation using simple software',
+      imageUrl: '/would-you-rather/images/ac-animation-filing-1.png',
+      prompt: 'A student moving frames in animation software on a laptop',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 3, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ac-animation-filing-2',
+      text: 'File and organize a backlog of club documents',
+      imageUrl: '/would-you-rather/images/ac-animation-filing-2.png',
+      prompt: 'A student sorting papers into clearly labeled binders at a desk',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    'middle',
+  ),
+  buildItem(
+    'ac-ceramics-spreadsheet',
+    {
+      id: 'ac-ceramics-spreadsheet-1',
+      text: 'Throw a ceramic vase on a pottery wheel',
+      imageUrl: '/would-you-rather/images/ac-ceramics-spreadsheet-1.png',
+      prompt: 'A student shaping clay on a spinning pottery wheel in an art room',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 3, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    {
+      id: 'ac-ceramics-spreadsheet-2',
+      text: 'Enter survey results into a structured spreadsheet',
+      imageUrl: '/would-you-rather/images/ac-ceramics-spreadsheet-2.png',
+      prompt: 'A student carefully inputting data rows into a formatted spreadsheet',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    'middle',
+  ),
+  buildItem(
+    'ac-journaling-reporting',
+    {
+      id: 'ac-journaling-reporting-1',
+      text: 'Write journal entries exploring your thoughts on a topic',
+      imageUrl: '/would-you-rather/images/ac-journaling-reporting-1.png',
+      prompt: 'A student writing freely in a personal journal at a sunny window',
+      desirability: 3.5,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 3, S: 0, E: 0, C: 0 },
+        workValues: { ACH: 1, IND: 1, REC: 1, REL: 0, SUP: 0, WC: 0 },
+        workContext: { structureVariety: 1, indoorOutdoor: -1, soloTeam: -2 },
+      },
+    },
+    {
+      id: 'ac-journaling-reporting-2',
+      text: 'Compile a detailed compliance report for a student organization',
+      imageUrl: '/would-you-rather/images/ac-journaling-reporting-2.png',
+      prompt: 'A student assembling formatted pages into a report with a cover sheet',
+      desirability: 3,
+      loadings: {
+        riasec: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 3 },
+        workValues: { ACH: 0, IND: 0, REC: 0, REL: 0, SUP: 1, WC: 0 },
+        workContext: { structureVariety: -2, indoorOutdoor: -1, soloTeam: -1 },
+      },
+    },
+    'middle',
+  ),
 ]

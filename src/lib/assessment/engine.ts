@@ -6,9 +6,16 @@ import { AssessmentResult, GradeBand, Item, Posterior, ResponseChoice, RIASEC_SC
 
 const CONTEST_THRESHOLD = 0.3
 const TOP3_RANK_BONUS = 0.5
+// A scale must have emerged above this mean to count as "in the top race".
+// Prevents low-vs-low comparisons from dominating item selection early in the session.
+const TOP_RACE_MEAN_FLOOR = 0.2
 
 export function scoreItemForSelection(item: Item, p: Posterior): number {
-  const top3 = new Set(rankRiasec(p).slice(0, 4)) // top-3 + 4th-place "challenger"
+  const ranked = rankRiasec(p)
+  const top4 = new Set(ranked.slice(0, 4)) // top-3 + 4th-place "challenger"
+  // Only scales with positive-enough means qualify for the race bonus.
+  const inRace = (s: (typeof RIASEC_SCALES)[number]) =>
+    top4.has(s) && p.riasec[s].mean >= TOP_RACE_MEAN_FLOOR
   let score = 0
 
   for (let i = 0; i < RIASEC_SCALES.length; i++) {
@@ -16,7 +23,7 @@ export function scoreItemForSelection(item: Item, p: Posterior): number {
       const si = RIASEC_SCALES[i]
       const sj = RIASEC_SCALES[j]
       const meansClose = Math.abs(p.riasec[si].mean - p.riasec[sj].mean) < CONTEST_THRESHOLD
-      const inTopRace = top3.has(si) && top3.has(sj)
+      const inTopRace = inRace(si) && inRace(sj)
       if (!meansClose && !inTopRace) continue
       const di = item.option1.loadings.riasec[si] - item.option2.loadings.riasec[si]
       const dj = item.option1.loadings.riasec[sj] - item.option2.loadings.riasec[sj]
