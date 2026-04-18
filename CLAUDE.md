@@ -13,7 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Database Commands
 - `npx drizzle-kit generate` - Generate database migrations
-- `npx drizzle-kit push` - Push schema changes to database
+- `npx drizzle-kit push` - Push schema changes to database (fast dev flow — cannot apply custom SQL like CREATE EXTENSION or trigram indexes)
+- `npx drizzle-kit migrate` (or `pnpm dk:migrate`) - Apply checked-in migration SQL files via the drizzle migration runner. Use this for migrations that include custom SQL not expressible in schema.ts (e.g., `CREATE EXTENSION pg_trgm`, `gin_trgm_ops`, partial indexes).
 - `npx drizzle-kit studio` - Open Drizzle Studio for database inspection
 
 ## Architecture Overview

@@ -757,7 +757,69 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "onet_occupations_job_zone_idx": {
+          "name": "onet_occupations_job_zone_idx",
+          "columns": [
+            {
+              "expression": "job_zone",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "onet_occupations_bright_idx": {
+          "name": "onet_occupations_bright_idx",
+          "columns": [
+            {
+              "expression": "bright_outlook",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"onet_occupations\".\"bright_outlook\"",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "onet_occupations_riasec_idx": {
+          "name": "onet_occupations_riasec_idx",
+          "columns": [
+            {
+              "expression": "riasec_all",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        },
+        "onet_occupations_title_trgm": {
+          "name": "onet_occupations_title_trgm",
+          "columns": [
+            {
+              "expression": "\"title\" gin_trgm_ops",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {

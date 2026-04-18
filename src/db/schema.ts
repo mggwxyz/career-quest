@@ -136,4 +136,10 @@ export const onetOccupations = pgTable('onet_occupations', {
     .default([]),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
     .notNull(),
-})
+}, table => [
+  index('onet_occupations_job_zone_idx').on(table.jobZone),
+  index('onet_occupations_bright_idx').on(table.brightOutlook)
+    .where(sql`${table.brightOutlook}`),
+  index('onet_occupations_riasec_idx').using('gin', table.riasecAll),
+  index('onet_occupations_title_trgm').using('gin', sql`${table.title} gin_trgm_ops`),
+])

@@ -10,6 +10,7 @@
     "lint:fix": "NODE_NO_WARNINGS=1 pnpm eslint --fix",
     "dk:push": "drizzle-kit push",
     "dk:generate": "drizzle-kit generate",
+    "dk:migrate": "drizzle-kit migrate",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
