@@ -1,0 +1,112 @@
+import { NextResponse } from 'next/server'
+import { and, eq, isNull } from 'drizzle-orm'
+import { getSession } from '@/lib/auth/get-session'
+import { db } from '@/db'
+import { assessmentResponses, assessmentSessions } from '@/db/schema'
+import { finalize, GradeBand, ResponseChoice } from '@/lib/assessment'
+import { rebuildSessionFromLog } from '@/lib/assessment/serverSession'
+
+type Body = { sessionId?: string, itemId?: string, choice?: number | null, responseMs?: number }
+
+function isValidChoice(c: unknown): c is ResponseChoice {
+  return c === 1 || c === 2 || c === null
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await getSession()
+    if (!auth?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+    const body = await request.json().catch(() => ({})) as Body
+    const choiceInput = body.choice ?? null
+    if (!body.sessionId || !body.itemId || !isValidChoice(choiceInput)) {
+      return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+    }
+    const choice: ResponseChoice = choiceInput
+
+    // Verify session belongs to this user and is active
+    const [sessionRow] = await db.select().from(assessmentSessions)
+      .where(and(
+        eq(assessmentSessions.id, body.sessionId),
+        eq(assessmentSessions.userId, auth.user.id),
+        isNull(assessmentSessions.completedAt),
+        isNull(assessmentSessions.abandonedAt),
+      ))
+      .limit(1)
+    if (!sessionRow) {
+      return NextResponse.json({ error: 'Session not found or inactive' }, { status: 404 })
+    }
+
+    // Record the response against the outstanding row for this item in this session
+    const [shownRow] = await db.select().from(assessmentResponses)
+      .where(and(
+        eq(assessmentResponses.sessionId, body.sessionId),
+        eq(assessmentResponses.itemId, body.itemId),
+        isNull(assessmentResponses.choice),
+      ))
+      .limit(1)
+    if (!shownRow) {
+      return NextResponse.json({ error: 'Item not outstanding in this session' }, { status: 409 })
+    }
+    await db.update(assessmentResponses)
+      .set({ choice, respondedAt: new Date(), responseMs: body.responseMs ?? null })
+      .where(eq(assessmentResponses.id, shownRow.id))
+
+    // Load full response log and rebuild engine state
+    const allRows = await db.select().from(assessmentResponses)
+      .where(eq(assessmentResponses.sessionId, body.sessionId))
+      .orderBy(assessmentResponses.position)
+    const answered = allRows.filter(r => r.choice !== null && r.choice !== undefined)
+
+    const { session: engineSession, lastAdvance } = rebuildSessionFromLog({
+      gradeBand: (sessionRow.gradeBand ?? undefined) as GradeBand | undefined,
+      responses: answered.map(r => ({
+        itemId: r.itemId, choice: r.choice as ResponseChoice, responseMs: r.responseMs,
+      })),
+    })
+
+    if (!lastAdvance) {
+      // Should not happen: we just inserted an answered response, so replay must advance at least once.
+      console.error(
+        '[api/assessment/response] engine rebuild produced no advance for session %s (answered=%d)',
+        body.sessionId, answered.length,
+      )
+      return NextResponse.json({ error: 'Engine rebuild failed' }, { status: 500 })
+    }
+
+    await db.update(assessmentSessions)
+      .set({ posterior: engineSession.posterior })
+      .where(eq(assessmentSessions.id, body.sessionId))
+
+    if (lastAdvance.kind === 'stop') {
+      const result = finalize(engineSession)
+      await db.update(assessmentSessions).set({
+        completedAt: new Date(),
+        result,
+        inconsistency: result.meta.inconsistencyFlag,
+      })
+        .where(eq(assessmentSessions.id, body.sessionId))
+      return NextResponse.json({ kind: 'stop', reason: lastAdvance.reason, result })
+    }
+
+    // Record the next item as shown (unanswered row) — position is allRows.length + 1
+    const nextPosition = allRows.length + 1
+    await db.insert(assessmentResponses).values({
+      sessionId: body.sessionId,
+      itemId: lastAdvance.nextItem.id,
+      position: nextPosition,
+    })
+
+    return NextResponse.json({
+      kind: 'next',
+      item: lastAdvance.nextItem,
+      itemsAnswered: answered.length,
+      posteriorSnapshot: engineSession.posterior,
+    })
+  }
+  catch (err) {
+    console.error('[api/assessment/response] POST failed:', err)
+    return NextResponse.json({ error: 'Failed to record response' }, { status: 500 })
+  }
+}
