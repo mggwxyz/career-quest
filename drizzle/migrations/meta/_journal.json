@@ -15,6 +15,13 @@
       "when": 1776536593234,
       "tag": "0001_modern_fixer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776536904072,
+      "tag": "0002_cynical_captain_stacy",
+      "breakpoints": true
     }
   ]
 }

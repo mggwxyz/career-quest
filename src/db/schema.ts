@@ -69,6 +69,9 @@ export const assessmentSessions = pgTable('assessment_sessions', {
   abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
 }, t => [
   index('assessment_sessions_user_started_idx').on(t.userId, t.startedAt),
+  index('assessment_sessions_user_completed_idx')
+    .on(t.userId, t.completedAt)
+    .where(sql`${t.completedAt} IS NOT NULL`),
   uniqueIndex('assessment_sessions_one_active_per_user')
     .on(t.userId)
     .where(sql`${t.completedAt} IS NULL AND ${t.abandonedAt} IS NULL`),
@@ -108,6 +111,7 @@ export const recommendationRuns = pgTable('recommendation_runs', {
   error: text(),
 }, t => [
   index('recommendation_runs_user_created_idx').on(t.userId, t.createdAt),
+  index('recommendation_runs_session_idx').on(t.sessionId),
 ])
 
 export const careerUserActions = pgTable('career_user_actions', {

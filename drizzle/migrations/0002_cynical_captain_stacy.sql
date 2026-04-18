@@ -1,0 +1,2 @@
+CREATE INDEX "assessment_sessions_user_completed_idx" ON "assessment_sessions" USING btree ("user_id","completed_at") WHERE "assessment_sessions"."completed_at" IS NOT NULL;--> statement-breakpoint
+CREATE INDEX "recommendation_runs_session_idx" ON "recommendation_runs" USING btree ("session_id");
