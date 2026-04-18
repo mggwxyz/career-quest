@@ -1,101 +1,68 @@
 import { test, expect } from '../fixtures/test-base'
 
-test.describe('Assessment Flow', () => {
+test.describe('Adaptive Assessment Flow', () => {
   test.beforeEach(async ({ dbUtils }) => {
     await dbUtils.truncateAppTables()
   })
 
-  test('should select interests and continue to quiz', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/interests')
-
-    // Select a few interests
-    await page.getByRole('button', { name: /Technology/ }).click()
-    await page.getByRole('button', { name: /Science/ }).click()
-    await page.getByRole('button', { name: /Art & Design/ }).click()
-
-    // Verify they appear selected (have the active border class)
-    await expect(page.getByRole('button', { name: /Technology/ })).toHaveClass(/border-primary/)
-
-    // Click continue
-    await page.getByRole('button', { name: /Continue/ }).click()
-
-    // Should redirect to the quiz
-    await page.waitForURL('/discover/preferences')
-    await expect(page).toHaveURL('/discover/preferences')
-  })
-
-  test('should add a custom interest', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/interests')
-
-    await page.getByPlaceholder('Add a custom interest...').fill('Robotics')
-    await page.getByRole('button', { name: 'Add' }).click()
-
-    // Custom interest renders as a removable pill: "Robotics ✕"
-    await expect(page.getByRole('button', { name: 'Robotics ✕' })).toBeVisible()
-  })
-
-  test('should answer quiz questions and show progress', async ({ authenticatedPage: page }) => {
+  test('shows grade question, then intro, then first item', async ({ authenticatedPage: page }) => {
     await page.goto('/discover/preferences')
+    await expect(page.getByText(/What grade are you in/i)).toBeVisible()
+    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await expect(page.getByText(/Ready\?/i)).toBeVisible()
+    await page.getByRole('button', { name: /Let's go/i }).click()
+    await expect(page.getByText(/Would you rather/i)).toBeVisible()
+  })
 
-    // Verify we see the first question
-    await expect(page.getByText('Would you rather...')).toBeVisible()
-    await expect(page.getByText('1 of 30')).toBeVisible()
+  test('clicking an option advances to the next item', async ({ authenticatedPage: page }) => {
+    await page.goto('/discover/preferences')
+    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.getByRole('button', { name: /Let's go/i }).click()
 
-    // The option cards are motion.button elements — click the first visible one
-    // (mobile cards are hidden at desktop viewport, so we filter for visible)
-    // Desktop grid is the visible container at 1280px viewport
-    // Mobile cards (block sm:hidden) come first in DOM but are hidden
-    // Desktop cards (hidden sm:grid) come after — indexes 2 and 3
-    await page.locator('button:has(figure)')
-      .nth(2)
+    const firstCard = page.locator('button:has(figure)').nth(2) // desktop grid first card
+    const firstText = await firstCard.locator('h2').innerText()
+    await firstCard.click()
+
+    // New item should have different option text
+    await expect(page.locator('button:has(figure) h2').first()).not.toHaveText(firstText, { timeout: 5000 })
+  })
+
+  test('skip advances without recording an answer', async ({ authenticatedPage: page }) => {
+    await page.goto('/discover/preferences')
+    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.getByRole('button', { name: /Let's go/i }).click()
+
+    const firstCard = page.locator('button:has(figure)').nth(2)
+    const firstText = await firstCard.locator('h2').innerText()
+    await page.getByRole('button', { name: /Skip/i }).click()
+    await expect(page.locator('button:has(figure) h2').first()).not.toHaveText(firstText, { timeout: 5000 })
+  })
+
+  test('peek button appears after 8 answers', async ({ authenticatedPage: page }) => {
+    await page.goto('/discover/preferences')
+    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.getByRole('button', { name: /Let's go/i }).click()
+
+    for (let i = 0; i < 8; i++) {
+      await page.locator('button:has(figure)').nth(2)
+        .click()
+      // Wait for the next item to render
+      await page.waitForTimeout(700)
+    }
+    await expect(page.getByRole('button', { name: /Peek at profile/i })).toBeVisible()
+  })
+
+  test('session persists across reload', async ({ authenticatedPage: page }) => {
+    await page.goto('/discover/preferences')
+    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.getByRole('button', { name: /Let's go/i }).click()
+    await page.locator('button:has(figure)').nth(2)
       .click()
+    await page.waitForTimeout(1000)
 
-    // After the 500ms animation, should advance to question 2
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
-  })
-
-  test('should skip a question', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-
-    await expect(page.getByText('1 of 30')).toBeVisible()
-
-    // Click skip
-    await page.getByRole('button', { name: /Skip/ }).click()
-
-    // Should advance to question 2
-    await expect(page.getByText('2 of 30')).toBeVisible()
-  })
-
-  test('should navigate back to previous question', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-
-    // Answer first question (nth(2) skips the hidden mobile option cards)
-    await page.locator('button:has(figure)')
-      .nth(2)
-      .click()
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
-
-    // Go back
-    await page.getByRole('button', { name: /Back/ }).click()
-    await expect(page.getByText('1 of 30')).toBeVisible()
-  })
-
-  test('should persist progress across page reload', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-
-    // Answer first question (nth(2) skips the hidden mobile option cards)
-    await page.locator('button:has(figure)')
-      .nth(2)
-      .click()
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
-
-    // Wait for the 2-second debounce save to complete
-    await page.waitForTimeout(3000)
-
-    // Reload the page
     await page.reload()
-
-    // Should restore to question 2 (hydrated from DB)
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 5000 })
+    // After reload: no grade question — we resumed mid-session
+    await expect(page.getByText(/What grade are you in/i)).not.toBeVisible()
+    await expect(page.getByText(/Would you rather/i)).toBeVisible({ timeout: 5000 })
   })
 })
