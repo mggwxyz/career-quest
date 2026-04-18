@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "NODE_NO_WARNINGS=1 eslint .",
     "lint:fix": "NODE_NO_WARNINGS=1 pnpm eslint --fix",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm exec node ./node_modules/typescript/bin/tsc --noEmit",
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "assets:webp": "tsx scripts/convertPngToWebp.ts public",
     "assets:webp:force": "tsx scripts/convertPngToWebp.ts public --force",
