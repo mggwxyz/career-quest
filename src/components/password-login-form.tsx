@@ -48,7 +48,7 @@ export function PasswordLoginForm({ className, ...props }: React.ComponentPropsW
           <input id="login-password" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="px-4 py-2.5 rounded-xl border border-border bg-background/60 text-foreground text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background focus:border-border-hover transition-colors placeholder:text-text-dim" />
         </div>
         {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
-        <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-xl bg-gradient-to-br from-primary to-secondary text-white text-sm font-semibold shadow-[var(--shadow-glow-sm)] mt-1 disabled:opacity-50">
+        <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow-sm)] mt-1 disabled:opacity-50">
           {isLoading ? 'Signing in...' : 'Sign In'}
         </button>
         <p className="text-center text-sm text-text-dim">

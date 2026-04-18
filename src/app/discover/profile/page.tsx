@@ -76,7 +76,7 @@ export default function IntakeSummary() {
             </p>
             <Link
               href="/discover/preferences"
-              className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
+              className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline"
             >
               Start the Assessment
             </Link>
@@ -143,7 +143,7 @@ export default function IntakeSummary() {
               </Link>
               <Link
                 href="/careers"
-                className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline"
+                className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline"
               >
                 Explore Careers →
               </Link>

@@ -69,7 +69,7 @@ export function CareerChatSkeleton() {
 
             {/* User Message */}
             <div className="chat chat-end">
-              <div className="chat-bubble bg-primary text-primary-content">
+              <div className="chat-bubble bg-primary text-primary-foreground">
                 <div className="skeleton h-4 w-36"></div>
               </div>
             </div>
