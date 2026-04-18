@@ -8,5 +8,5 @@ export {
   startSession, advance, finalize, chooseFirstItem,
   FLOOR_ITEMS, CAP_ITEMS,
 } from './engine'
-export type { StopReason, AdvanceOutput } from './engine'
+export type { StopReason, AdvanceOutput, Session } from './engine'
 export { formatResultForPrompt } from './promptFormat'
