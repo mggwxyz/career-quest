@@ -1,7 +1,7 @@
+import { and, desc, eq } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
-import { careerRecommendations } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { careerRecommendations, recommendationRuns } from '@/db/schema'
 import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
 
@@ -13,16 +13,30 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     }
     const user = session.user
 
-    const rows = await db.select().from(careerRecommendations)
-      .where(eq(careerRecommendations.userId, user.id))
+    const [latestRun] = await db.select({ id: recommendationRuns.id })
+      .from(recommendationRuns)
+      .where(eq(recommendationRuns.userId, user.id))
+      .orderBy(desc(recommendationRuns.createdAt))
+      .limit(1)
+    if (!latestRun) {
+      return []
+    }
+
+    const rows = await db.select()
+      .from(careerRecommendations)
+      .where(and(
+        eq(careerRecommendations.userId, user.id),
+        eq(careerRecommendations.runId, latestRun.id),
+      ))
+      .orderBy(careerRecommendations.rank)
 
     return rows.map(row => ({
       title: row.title,
       description: row.description,
       onetId: row.onetId,
       whyItMatches: row.whyItMatches,
-      jobGrowth: row.jobGrowth,
-      salaryRange: row.salaryRange,
+      jobGrowth: row.jobGrowth ?? '',
+      salaryRange: row.salaryRange ?? '',
     }))
   }
   catch (error) {

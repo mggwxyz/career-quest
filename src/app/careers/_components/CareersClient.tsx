@@ -66,8 +66,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
       setError(null)
       const loadingToastId = toast.loading('Generating career recommendations...')
       try {
-        const results = getDeckResults()
-        const response = await generateCareerRecommendationsAction(results, interests)
+        const response = await generateCareerRecommendationsAction(interests)
         if (response.success && response.careers) {
           setCareers(response.careers)
           toast.dismiss(loadingToastId)
