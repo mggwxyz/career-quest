@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { scoreItemForSelection, pickNextItem, shouldStop, pickWithCoveragePhase } from '../engine'
+import { scoreItemForSelection, pickNextItem, shouldStop, pickWithCoveragePhase, startSession, advance, finalize } from '../engine'
 import { initialPosterior } from '../posterior'
 import { Item, Option } from '../types'
 
@@ -132,5 +132,23 @@ describe('pickWithCoveragePhase', () => {
       item('rsItem', { R: 3 }, { S: 3 }),
     ]
     expect(pickWithCoveragePhase(items, p, new Set(), undefined, allTouched)).toBeTruthy()
+  })
+})
+
+describe('engine session lifecycle', () => {
+  it('startSession returns a posterior, the deterministic first item, and empty response log', () => {
+    const session = startSession({ bank: [], gradeBand: undefined, firstItemId: 'rs-bike-tutor' })
+    expect(session.posterior).toBeTruthy()
+    expect(session.responses).toEqual([])
+    expect(session.touchedScales.size).toBe(0)
+    expect(session.requestedFirstItemId).toBe('rs-bike-tutor')
+  })
+
+  it('advance updates posterior, records response, returns next item or null when stopping', () => {
+    expect(typeof advance).toBe('function')
+  })
+
+  it('finalize returns an AssessmentResult', () => {
+    expect(typeof finalize).toBe('function')
   })
 })

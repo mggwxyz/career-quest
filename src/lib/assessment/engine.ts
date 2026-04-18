@@ -1,6 +1,8 @@
 import { eligibleItems, unseenItems } from './itemBank'
-import { confidenceBand, rankRiasec } from './scoring'
-import { GradeBand, Item, Posterior, RIASEC_SCALES } from './types'
+import { initialPosterior, updatePosterior } from './posterior'
+import { buildResult, confidenceBand, rankRiasec } from './scoring'
+import { detectInconsistency, ResponseRecord } from './inconsistency'
+import { AssessmentResult, GradeBand, Item, Posterior, ResponseChoice, RIASEC_SCALES } from './types'
 
 const CONTEST_THRESHOLD = 0.3
 const TOP3_RANK_BONUS = 0.5
@@ -102,4 +104,81 @@ export function pickWithCoveragePhase(
   )
   const fromRestricted = pickNextItem(restricted, p, seenIds, gradeBand)
   return fromRestricted ?? pickNextItem(bank, p, seenIds, gradeBand)
+}
+
+export type Session = {
+  posterior: Posterior
+  responses: ResponseRecord[]
+  touchedScales: Set<string>
+  seenItemIds: Set<string>
+  gradeBand?: GradeBand
+  requestedFirstItemId?: string
+}
+
+export function startSession(opts: {
+  bank: Item[]
+  gradeBand?: GradeBand
+  firstItemId?: string
+}): Session {
+  return {
+    posterior: initialPosterior({ gradeBand: opts.gradeBand }),
+    responses: [],
+    touchedScales: new Set(),
+    seenItemIds: new Set(),
+    gradeBand: opts.gradeBand,
+    requestedFirstItemId: opts.firstItemId,
+  }
+}
+
+export type AdvanceOutput =
+  | { kind: 'next', session: Session, nextItem: Item }
+  | { kind: 'stop', session: Session }
+
+export function advance(args: {
+  session: Session
+  bank: Item[]
+  shownItem: Item
+  choice: ResponseChoice
+  responseMs?: number
+}): AdvanceOutput {
+  const { session, bank, shownItem, choice, responseMs } = args
+  const nextPosterior = updatePosterior(session.posterior, shownItem, choice)
+  const responses = [...session.responses, {
+    item: shownItem, choice, position: session.responses.length + 1, responseMs,
+  } as ResponseRecord]
+  const seenItemIds = new Set(session.seenItemIds)
+  seenItemIds.add(shownItem.id)
+  const touchedScales = new Set(session.touchedScales)
+  for (const opt of [shownItem.option1, shownItem.option2]) {
+    for (const s of ['R', 'I', 'A', 'S', 'E', 'C'] as const) {
+      if (opt.loadings.riasec[s] >= 2) touchedScales.add(s)
+    }
+  }
+  const updated: Session = { ...session, posterior: nextPosterior, responses, seenItemIds, touchedScales }
+
+  if (shouldStop({ posterior: nextPosterior, itemsAnswered: responses.length, gradeBand: session.gradeBand })) {
+    return { kind: 'stop', session: updated }
+  }
+  const next = pickWithCoveragePhase(bank, nextPosterior, seenItemIds, session.gradeBand, touchedScales)
+  if (next === null) return { kind: 'stop', session: updated }
+  return { kind: 'next', session: updated, nextItem: next }
+}
+
+export function chooseFirstItem(bank: Item[], session: Session): Item {
+  if (session.requestedFirstItemId) {
+    const found = bank.find(it => it.id === session.requestedFirstItemId)
+    if (found) return found
+  }
+  const eligible = bank.filter(it => it.dimensionContrast === 'opposite')
+  return eligible.length > 0 ? eligible[0] : bank[0]
+}
+
+export function finalize(session: Session): AssessmentResult {
+  const itemsAnswered = session.responses.filter(r => r.choice !== null).length
+  const itemsSkipped = session.responses.length - itemsAnswered
+  const inconsistency = detectInconsistency(session.posterior, session.responses)
+  return buildResult({
+    posterior: session.posterior, itemsAnswered, itemsSkipped,
+    inconsistencyFlag: inconsistency, gradeBand: session.gradeBand,
+  })
 }
