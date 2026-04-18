@@ -62,3 +62,32 @@ describe('runSimulatedSession', () => {
     expect(out.result.meta.itemsAnswered).toBeLessThanOrEqual(20)
   })
 })
+
+describe('engine accuracy sweep across all 120 Holland codes', () => {
+  it('recovers the top-1 letter for ≥85% of synthetic users', { timeout: 60_000 }, () => {
+    let top1Hits = 0
+    let top3Overlap = 0
+    let total = 0
+    const codes = allHollandCodes()
+    const SEEDS = [1, 7, 13, 21] // 4 seeds per code = 480 simulated users
+
+    for (const code of codes) {
+      for (const seed of SEEDS) {
+        const user = makeSyntheticUser({ topCode: code, seed })
+        const { result } = runSimulatedSession({ user, bank: items, gradeBand: 'late-hs', seed })
+        total += 1
+        if (result.hollandCode[0] === code[0]) top1Hits += 1
+        const overlap = new Set(result.hollandCode.split(''))
+        const truth = new Set(code.split(''))
+        const inter = [...overlap].filter(x => truth.has(x)).length
+        if (inter >= 2) top3Overlap += 1
+      }
+    }
+    const top1Pct = top1Hits / total
+    const top3Pct = top3Overlap / total
+
+    console.log(`Sweep: top-1=${(top1Pct * 100).toFixed(1)}%, top-3-overlap≥2=${(top3Pct * 100).toFixed(1)}%`)
+    expect(top1Pct).toBeGreaterThan(0.85)
+    expect(top3Pct).toBeGreaterThan(0.85)
+  })
+})
