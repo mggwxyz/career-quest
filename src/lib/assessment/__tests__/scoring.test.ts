@@ -104,4 +104,15 @@ describe('buildResult', () => {
     })
     expect(result.workValues.suppressed).toBe(true)
   })
+
+  it('flags degenerate when top-3 means are all <= 0 (underanswered posterior)', () => {
+    const result = buildResult({
+      posterior: initialPosterior(), // all means 0
+      itemsAnswered: 2,
+      itemsSkipped: 0,
+      inconsistencyFlag: false,
+      gradeBand: 'late-hs',
+    })
+    expect(result.meta.degenerate).toBe(true)
+  })
 })

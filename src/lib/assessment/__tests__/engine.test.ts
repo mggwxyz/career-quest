@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { scoreItemForSelection, pickNextItem, shouldStop, pickWithCoveragePhase, startSession, advance, finalize } from '../engine'
+import { scoreItemForSelection, pickNextItem, shouldStop, pickWithCoveragePhase, startSession, advance, finalize, CAP_ITEMS } from '../engine'
 import { initialPosterior } from '../posterior'
-import { Item, Option } from '../types'
+import { Item, Option, ResponseChoice } from '../types'
 
 function opt(id: string, riasec: Partial<Record<'R' | 'I' | 'A' | 'S' | 'E' | 'C', number>>, desirability = 3): Option {
   return {
@@ -150,5 +150,23 @@ describe('engine session lifecycle', () => {
 
   it('finalize returns an AssessmentResult', () => {
     expect(typeof finalize).toBe('function')
+  })
+
+  it('advance returns reason="capped" when at CAP_ITEMS', () => {
+    const shownItem = item('seed', { R: 3 }, { I: 3 })
+    const bank = [shownItem, item('extra', { A: 3 }, { S: 3 })]
+
+    // Build a session already at CAP_ITEMS - 1 responses
+    const fakeRecord = { item: shownItem, choice: 1 as ResponseChoice, position: 1, responseMs: 1000 }
+    const session = {
+      ...startSession({ bank, gradeBand: 'late-hs' }),
+      responses: Array.from({ length: CAP_ITEMS - 1 }, (_, i) => ({ ...fakeRecord, position: i + 1 })),
+    }
+
+    const out = advance({ session, bank, shownItem, choice: 1 })
+    expect(out.kind).toBe('stop')
+    if (out.kind === 'stop') {
+      expect(out.reason).toBe('capped')
+    }
   })
 })

@@ -57,6 +57,8 @@ export function buildResult(opts: {
   const { posterior: p, itemsAnswered, itemsSkipped, inconsistencyFlag, gradeBand } = opts
   const ranked = rankRiasec(p)
 
+  const top3MeansBelowZero = ranked.slice(0, 3).every(s => p.riasec[s].mean <= 0)
+
   const riasec = Object.fromEntries(RIASEC_SCALES.map(s => [s, {
     score: meanToScore(p.riasec[s].mean),
     rank: (ranked.indexOf(s) + 1) as 1 | 2 | 3 | 4 | 5 | 6,
@@ -89,6 +91,7 @@ export function buildResult(opts: {
       completedAt: new Date().toISOString(),
       engineVersion: ENGINE_VERSION,
       inconsistencyFlag,
+      ...(top3MeansBelowZero ? { degenerate: true } : {}),
     },
   }
 }

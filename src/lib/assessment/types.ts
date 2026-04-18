@@ -84,6 +84,7 @@ export type AssessmentResult = {
     completedAt: string
     engineVersion: string
     inconsistencyFlag: boolean
+    degenerate?: boolean
   }
 }
 

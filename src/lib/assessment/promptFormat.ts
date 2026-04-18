@@ -35,6 +35,7 @@ export function formatResultForPrompt(r: AssessmentResult): string {
   const notes: string[] = []
   if (r.workValues.suppressed) notes.push('Work-value results are tentative (younger user).')
   if (r.meta.inconsistencyFlag) notes.push('Some answers seemed inconsistent — treat as exploratory.')
+  if (r.meta.degenerate) notes.push('Assessment result may be unreliable — too few informative responses.')
 
   return [
     `User Profile:`,

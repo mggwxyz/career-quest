@@ -101,10 +101,10 @@ export function pickWithCoveragePhase(
   bank: Item[], p: Posterior, seenIds: Set<string>,
   gradeBand: GradeBand | undefined, touchedScales: Set<string>,
 ): Item | null {
-  const allTouched = (['R', 'I', 'A', 'S', 'E', 'C'] as const).every(s => touchedScales.has(s))
+  const allTouched = RIASEC_SCALES.every(s => touchedScales.has(s))
   if (allTouched) return pickNextItem(bank, p, seenIds, gradeBand)
 
-  const untouched = (['R', 'I', 'A', 'S', 'E', 'C'] as const).filter(s => !touchedScales.has(s))
+  const untouched = RIASEC_SCALES.filter(s => !touchedScales.has(s))
   const restricted = bank.filter(it =>
     untouched.some(s =>
       it.option1.loadings.riasec[s] >= 2 || it.option2.loadings.riasec[s] >= 2),
@@ -137,9 +137,11 @@ export function startSession(opts: {
   }
 }
 
+export type StopReason = 'converged' | 'capped' | 'exhausted'
+
 export type AdvanceOutput =
   | { kind: 'next', session: Session, nextItem: Item }
-  | { kind: 'stop', session: Session }
+  | { kind: 'stop', session: Session, reason: StopReason }
 
 export function advance(args: {
   session: Session
@@ -157,17 +159,20 @@ export function advance(args: {
   seenItemIds.add(shownItem.id)
   const touchedScales = new Set(session.touchedScales)
   for (const opt of [shownItem.option1, shownItem.option2]) {
-    for (const s of ['R', 'I', 'A', 'S', 'E', 'C'] as const) {
+    for (const s of RIASEC_SCALES) {
       if (opt.loadings.riasec[s] >= 2) touchedScales.add(s)
     }
   }
   const updated: Session = { ...session, posterior: nextPosterior, responses, seenItemIds, touchedScales }
 
+  if (responses.length >= CAP_ITEMS) {
+    return { kind: 'stop', session: updated, reason: 'capped' }
+  }
   if (shouldStop({ posterior: nextPosterior, itemsAnswered: responses.length, gradeBand: session.gradeBand })) {
-    return { kind: 'stop', session: updated }
+    return { kind: 'stop', session: updated, reason: 'converged' }
   }
   const next = pickWithCoveragePhase(bank, nextPosterior, seenItemIds, session.gradeBand, touchedScales)
-  if (next === null) return { kind: 'stop', session: updated }
+  if (next === null) return { kind: 'stop', session: updated, reason: 'exhausted' }
   return { kind: 'next', session: updated, nextItem: next }
 }
 
