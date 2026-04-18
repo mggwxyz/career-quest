@@ -19,7 +19,7 @@ export function initialPosterior(opts: { gradeBand?: GradeBand } = {}): Posterio
   }
 }
 
-const LEARN_RATE = 0.5
+const LEARN_RATE = 0.2
 const SKIP_WEIGHT = 0.4
 
 type LoadingDiff = number
