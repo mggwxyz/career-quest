@@ -2,10 +2,13 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
-import { and, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
-import { assessmentSessions, careerRecommendations, recommendationRuns, userInterests } from '@/db/schema'
+import {
+  assessmentSessions, careerRecommendations, onetOccupations,
+  recommendationRuns, userInterests,
+} from '@/db/schema'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 import { AssessmentResult, ENGINE_VERSION, formatResultForPrompt } from '@/lib/assessment'
 
@@ -97,6 +100,16 @@ Respond as a JSON array.
       throw new Error('No response from OpenAI')
     }
 
+    // Resolve slugs from the O*NET mirror so links can use canonical URLs.
+    // AI returns onetId only; slug is looked up server-side in a single round-trip.
+    const codes = result.object.careers.map(c => c.onetId)
+    const mirrorRows = codes.length > 0
+      ? await db.select({ code: onetOccupations.code, slug: onetOccupations.slug })
+        .from(onetOccupations)
+        .where(inArray(onetOccupations.code, codes))
+      : []
+    const slugByCode = new Map(mirrorRows.map(r => [r.code, r.slug]))
+
     // NOTE: these two inserts are NOT wrapped in a transaction. The Neon HTTP
     // driver (`@neondatabase/serverless`) supports only a batch-style transaction
     // API, which does not let us read `run.id` from the first insert before
@@ -121,6 +134,7 @@ Respond as a JSON array.
         userId: user.id,
         rank: i + 1,
         onetId: c.onetId,
+        slug: slugByCode.get(c.onetId) ?? null,
         title: c.title,
         description: c.description,
         whyItMatches: c.whyItMatches,
@@ -129,7 +143,10 @@ Respond as a JSON array.
       })),
     )
 
-    return { success: true, careers: result.object.careers }
+    return {
+      success: true,
+      careers: result.object.careers.map(c => ({ ...c, slug: slugByCode.get(c.onetId) ?? null })),
+    }
   }
   catch (error) {
     console.error('Error generating career recommendations:', error)
