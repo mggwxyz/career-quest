@@ -1,5 +1,36 @@
+import type { NeonQueryFunction } from '@neondatabase/serverless'
 import { test, expect } from '../fixtures/test-base'
 import { mockCareers } from '../fixtures/career-recommendations'
+
+/**
+ * Seed a single career_recommendations row for the given user, creating the
+ * minimal assessment_sessions + recommendation_runs ancestors required by the
+ * current schema (both FKs are NOT NULL).
+ */
+async function seedCareerRecommendation(
+  sql: NeonQueryFunction<false, false>,
+  userId: string,
+  career: typeof mockCareers.careers[number],
+) {
+  const sessionRows = await sql`
+    INSERT INTO assessment_sessions (user_id, engine_version, posterior, completed_at)
+    VALUES (${userId}, 'e2e-test', '{}'::jsonb, NOW())
+    RETURNING id
+  ` as Array<{ id: string }>
+  const sessionId = sessionRows[0].id
+
+  const runRows = await sql`
+    INSERT INTO recommendation_runs (user_id, session_id, interests_snapshot, prompt, model, engine_version)
+    VALUES (${userId}, ${sessionId}, ARRAY[]::text[], 'e2e', 'e2e', 'e2e-test')
+    RETURNING id
+  ` as Array<{ id: string }>
+  const runId = runRows[0].id
+
+  await sql`
+    INSERT INTO career_recommendations (run_id, user_id, rank, onet_id, title, description, why_it_matches, job_growth, salary_range)
+    VALUES (${runId}, ${userId}, 1, ${career.onetId}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
+  `
+}
 
 test.describe('Career Chat', () => {
   test.beforeEach(async ({ dbUtils }) => {
@@ -15,10 +46,7 @@ test.describe('Career Chat', () => {
     const userId = await dbUtils.getTestUserId()
     const career = mockCareers.careers[0]
 
-    await dbUtils.sql`
-      INSERT INTO career_recommendations (user_id, onet_id, title, description, why_it_matches, job_growth, salary_range)
-      VALUES (${userId}, ${career.onetId}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
-    `
+    await seedCareerRecommendation(dbUtils.sql, userId, career)
 
     await page.goto(`/careers/${career.onetId}`)
 
@@ -38,10 +66,7 @@ test.describe('Career Chat', () => {
     const userId = await dbUtils.getTestUserId()
     const career = mockCareers.careers[0]
 
-    await dbUtils.sql`
-      INSERT INTO career_recommendations (user_id, onet_id, title, description, why_it_matches, job_growth, salary_range)
-      VALUES (${userId}, ${career.onetId}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
-    `
+    await seedCareerRecommendation(dbUtils.sql, userId, career)
 
     await page.goto(`/careers/${career.onetId}`)
 
