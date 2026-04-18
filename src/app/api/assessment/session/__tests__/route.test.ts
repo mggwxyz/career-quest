@@ -9,7 +9,7 @@ vi.mock('@/db', () => ({
   },
 }))
 
-import { POST } from '../route'
+import { POST, GET } from '../route'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 
@@ -89,5 +89,68 @@ describe('POST /api/assessment/session', () => {
     })
     const res = await POST(req)
     expect(res.status).toBe(400)
+  })
+})
+
+describe('GET /api/assessment/session', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 401 when not authenticated', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+    const res = await GET()
+    expect(res.status).toBe(401)
+  })
+
+  it('returns { active: null } when no active session', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const selectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([]),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>).mockReturnValue(selectChain)
+
+    const res = await GET()
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(body.active).toBeNull()
+  })
+
+  it('returns the next item when an active session has zero answered responses', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+
+    // loadActiveSession performs two selects:
+    //   1) the session row (with .where(...).limit(1))
+    //   2) the responses list (with .where(...).orderBy(...))
+    const sessionSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([{
+        id: 'sess-1',
+        userId: 'u1',
+        gradeBand: 'middle',
+        posterior: {},
+      }]),
+    }
+    const responsesSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        { itemId: 'some-item', position: 1, choice: null, responseMs: null, respondedAt: null },
+      ]),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(sessionSelectChain)
+      .mockReturnValueOnce(responsesSelectChain)
+
+    const res = await GET()
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(body.active).not.toBeNull()
+    expect(body.active.sessionId).toBe('sess-1')
+    expect(body.active.gradeBand).toBe('middle')
+    expect(body.active.itemsAnswered).toBe(0)
+    expect(body.active.item).toBeDefined()
+    expect(body.active.item.option1).toBeDefined()
   })
 })
