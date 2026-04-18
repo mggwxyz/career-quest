@@ -1,110 +1,158 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { WouldYouRatherQuestion } from '@/store/slices/wouldYouRatherSlice'
-import { questions } from '@/app/_data/questions'
-import OptionCard from './_components/OptionCard'
+import Link from 'next/link'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
-import Link from 'next/link'
+import OptionCard from './_components/OptionCard'
+import GradeQuestion from './_components/GradeQuestion'
+import IntroCard from './_components/IntroCard'
+import ConfidenceMeter from './_components/ConfidenceMeter'
+import PeekModal from './_components/PeekModal'
+import InconsistencyModal from './_components/InconsistencyModal'
+import { GradeBand, Item, Posterior, AssessmentResult } from '@/lib/assessment'
 
-const allQuestions = questions.decks.flatMap(deck => deck.questions)
+export default function PreferencesPage() {
+  const {
+    phase, sessionId, gradeBand, currentItem, itemsAnswered, posteriorSnapshot,
+    result, inconsistencyDismissed,
+    setPhase, setGradeBand, startSession, receiveNext, receiveStop,
+    dismissInconsistency, reset,
+  } = useAppStore(useShallow(s => ({
+    phase: s.phase, sessionId: s.sessionId, gradeBand: s.gradeBand,
+    currentItem: s.currentItem, itemsAnswered: s.itemsAnswered,
+    posteriorSnapshot: s.posteriorSnapshot, result: s.result,
+    inconsistencyDismissed: s.inconsistencyDismissed,
+    setPhase: s.setPhase, setGradeBand: s.setGradeBand,
+    startSession: s.startSession, receiveNext: s.receiveNext,
+    receiveStop: s.receiveStop, dismissInconsistency: s.dismissInconsistency,
+    reset: s.reset,
+  })))
 
-export default function WouldYouRather() {
-  const { currentQuestionIndex, setAnswer, skipQuestion, nextQuestion, previousQuestion, resetGame, hydrateFromDB, answers, skippedQuestions } = useAppStore(
-    useShallow(s => ({
-      currentQuestionIndex: s.currentQuestionIndex,
-      setAnswer: s.setAnswer,
-      skipQuestion: s.skipQuestion,
-      nextQuestion: s.nextQuestion,
-      previousQuestion: s.previousQuestion,
-      resetGame: s.resetGame,
-      hydrateFromDB: s.hydrateFromDB,
-      answers: s.answers,
-      skippedQuestions: s.skippedQuestions,
-    })),
-  )
-  const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [selectedOption, setSelectedOption] = useState<1 | 2 | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
+  const [peekOpen, setPeekOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const shownAtRef = useRef<number>(0)
 
-  const loadSavedProgress = useCallback(async () => {
-    try {
-      const response = await fetch('/api/user/progress')
-      const data = await response.json()
-      if (response.ok && data.progress?.answers) {
-        hydrateFromDB(data.progress.answers, data.progress.skippedQuestions || [])
+  // Resume on first mount
+  useEffect(() => {
+    if (phase !== 'grade') return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/assessment/session')
+        const data = await res.json()
+        if (cancelled) return
+        if (data.active) {
+          if (data.active.stopped) {
+            const rRes = await fetch('/api/assessment/result')
+            const rData = await rRes.json()
+            if (rData.result) receiveStop(rData.result as AssessmentResult)
+          }
+          else if (data.active.item) {
+            startSession(data.active.sessionId, data.active.item as Item)
+            useAppStore.setState({ itemsAnswered: data.active.itemsAnswered })
+            shownAtRef.current = Date.now()
+          }
+        }
       }
+      catch (err) {
+        console.error('[preferences] resume fetch failed:', err)
+      }
+    })()
+    return () => {
+      cancelled = true
     }
-    catch (error) {
-      console.error('[preferences/page] loadSavedProgress failed:', error)
-    }
-    finally {
-      setIsHydrated(true)
-    }
-  }, [hydrateFromDB])
+  }, [phase, receiveStop, startSession])
 
-  const saveProgressToDB = useCallback(async () => {
+  const beginNewSession = useCallback(async (band: GradeBand | null) => {
+    setPhase('loading')
     try {
-      await fetch('/api/user/progress', {
+      const res = await fetch('/api/assessment/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          answers,
-          skippedQuestions: Array.from(skippedQuestions),
-        }),
+        body: JSON.stringify({ gradeBand: band ?? undefined }),
       })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start session')
+      startSession(data.sessionId, data.item as Item)
+      shownAtRef.current = Date.now()
     }
-    catch (error) {
-      console.error('[preferences/page] saveProgressToDB failed:', error)
+    catch (err) {
+      console.error('[preferences] start failed:', err)
+      setPhase('intro')
     }
-  }, [answers, skippedQuestions])
+  }, [setPhase, startSession])
 
-  useEffect(() => {
-    if (!isHydrated) loadSavedProgress()
-  }, [isHydrated, loadSavedProgress])
+  const submitChoice = useCallback(async (choice: 1 | 2 | null) => {
+    if (!sessionId || !currentItem || submitting) return
+    setSubmitting(true)
+    const responseMs = Date.now() - shownAtRef.current
+    try {
+      const res = await fetch('/api/assessment/response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, itemId: currentItem.id, choice, responseMs }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to submit')
+      if (data.kind === 'stop') {
+        receiveStop(data.result as AssessmentResult)
+      }
+      else {
+        receiveNext(data.item as Item, data.itemsAnswered, data.posteriorSnapshot as Posterior)
+        shownAtRef.current = Date.now()
+      }
+    }
+    catch (err) {
+      console.error('[preferences] submit failed:', err)
+    }
+    finally {
+      setSelectedOption(null)
+      setShowCheckmark(false)
+      setSubmitting(false)
+    }
+  }, [sessionId, currentItem, submitting, receiveNext, receiveStop])
 
-  useEffect(() => {
-    if (!isHydrated) return
-    if (Object.keys(answers).length === 0 && skippedQuestions.size === 0) return
-
-    const timeout = setTimeout(() => {
-      saveProgressToDB()
-    }, 2000)
-
-    return () => clearTimeout(timeout)
-  }, [answers, skippedQuestions, isHydrated, saveProgressToDB])
-
-  const currentQuestion: WouldYouRatherQuestion = allQuestions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100
-
-  const handleOptionSelect = (option: number) => {
-    if (selectedOption !== null) return
+  const handleOptionSelect = (option: 1 | 2) => {
+    if (selectedOption !== null || submitting) return
     setSelectedOption(option)
     setShowCheckmark(true)
-    setAnswer(currentQuestion.id.toString(), option)
-
-    setTimeout(() => {
-      setShowCheckmark(false)
-      setSelectedOption(null)
-      nextQuestion()
-    }, 500)
+    setTimeout(() => submitChoice(option), 500)
   }
 
-  const handleSkipQuestion = () => {
-    if (selectedOption !== null) return
-    skipQuestion(currentQuestion.id.toString())
-    nextQuestion()
+  const handleSkip = () => {
+    if (selectedOption !== null || submitting) return
+    submitChoice(null)
   }
 
-  // Completion screen
-  if (currentQuestionIndex >= allQuestions.length) {
+  const handleRetake = () => {
+    reset()
+    setPhase('grade')
+  }
+
+  if (phase === 'grade') {
+    return <GradeQuestion onContinue={band => setGradeBand(band)} />
+  }
+  if (phase === 'intro') {
+    return <IntroCard onStart={() => beginNewSession(gradeBand)} />
+  }
+  if (phase === 'loading') {
+    return <div className="text-center pt-24 text-muted-foreground">Starting…</div>
+  }
+  if (phase === 'complete' && result) {
+    const showInconsistency = result.meta.inconsistencyFlag && !inconsistencyDismissed
     return (
       <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
         <div className="text-center pt-20">
           <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
-          <p className="text-lg text-muted-foreground mb-10">We&apos;ve recorded your preferences.</p>
+          <p className="text-lg text-muted-foreground mb-10">
+            Your Holland code:
+            {' '}
+            <strong className="text-foreground">{result.hollandCode}</strong>
+          </p>
           <div className="flex flex-col gap-3 items-center">
             <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
               View Your Results
@@ -112,116 +160,66 @@ export default function WouldYouRather() {
             <Link href="/careers" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
               Explore Career Matches
             </Link>
-            <button onClick={() => resetGame()} className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-2">
+            <button type="button" onClick={handleRetake} className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-2">
               Start Over
             </button>
           </div>
         </div>
+        {showInconsistency && <InconsistencyModal onDismiss={dismissInconsistency} onRetake={handleRetake} />}
       </div>
     )
   }
+  if (phase !== 'question' || !currentItem) return null
 
   return (
     <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex-1 h-1 rounded-full bg-primary/10 overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(124,58,237,0.5)]"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          />
-        </div>
-        <span className="text-xs text-text-dim whitespace-nowrap">
-          {currentQuestionIndex + 1}
-          {' '}
-          of
-          {' '}
-          {allQuestions.length}
-        </span>
-      </div>
+      <ConfidenceMeter itemsAnswered={itemsAnswered} />
 
-      {/* Question title */}
       <div className="text-center mb-8 mt-6">
         <h1 className="font-serif text-2xl sm:text-3xl text-foreground">Would you rather...</h1>
       </div>
 
-      {/* Cards */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentQuestion.id}
+          key={currentItem.id}
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
           <div className="relative max-w-3xl mx-auto">
-            {/* "or" badge — desktop only */}
             <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <div className="w-10 h-10 rounded-full bg-background/90 border border-border flex items-center justify-center font-serif text-sm italic text-muted-foreground shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                 or
               </div>
             </div>
-
-            {/* Mobile: stacked */}
             <div className="block sm:hidden space-y-4">
-              <OptionCard
-                option={currentQuestion.option1}
-                isSelected={selectedOption === 1}
-                showCheckmark={showCheckmark}
-                onClick={() => handleOptionSelect(1)}
-              />
+              <OptionCard option={currentItem.option1} isSelected={selectedOption === 1} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(1)} />
               <div className="flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-background/90 border border-border flex items-center justify-center font-serif text-sm italic text-muted-foreground">
-                  or
-                </div>
+                <div className="w-10 h-10 rounded-full bg-background/90 border border-border flex items-center justify-center font-serif text-sm italic text-muted-foreground">or</div>
               </div>
-              <OptionCard
-                option={currentQuestion.option2}
-                isSelected={selectedOption === 2}
-                showCheckmark={showCheckmark}
-                onClick={() => handleOptionSelect(2)}
-              />
+              <OptionCard option={currentItem.option2} isSelected={selectedOption === 2} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(2)} />
             </div>
-
-            {/* Desktop: side by side */}
             <div className="hidden sm:grid grid-cols-2 gap-6">
-              <OptionCard
-                option={currentQuestion.option1}
-                isSelected={selectedOption === 1}
-                showCheckmark={showCheckmark}
-                onClick={() => handleOptionSelect(1)}
-              />
-              <OptionCard
-                option={currentQuestion.option2}
-                isSelected={selectedOption === 2}
-                showCheckmark={showCheckmark}
-                onClick={() => handleOptionSelect(2)}
-              />
+              <OptionCard option={currentItem.option1} isSelected={selectedOption === 1} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(1)} />
+              <OptionCard option={currentItem.option2} isSelected={selectedOption === 2} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(2)} />
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* Nav buttons */}
-      <div className="flex justify-center gap-3 mt-6">
-        {currentQuestionIndex > 0 && (
-          <button
-            onClick={previousQuestion}
-            className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all"
-          >
-            ← Back
+      <div className="flex justify-center gap-3 mt-6 flex-wrap">
+        {itemsAnswered >= 8 && (
+          <button type="button" onClick={() => setPeekOpen(true)} className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all">
+            Peek at profile
           </button>
         )}
-        <button
-          onClick={handleSkipQuestion}
-          disabled={selectedOption !== null}
-          className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all disabled:opacity-30"
-        >
+        <button type="button" onClick={handleSkip} disabled={selectedOption !== null || submitting} className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all disabled:opacity-30">
           Skip →
         </button>
       </div>
+
+      {peekOpen && <PeekModal posterior={posteriorSnapshot} onClose={() => setPeekOpen(false)} />}
     </div>
   )
 }
