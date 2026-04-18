@@ -38,17 +38,18 @@ The application is a career exploration tool built around psychological assessme
 
 2. **Discovery Flow**:
    - `/discover/interests` - Interest selection
-   - `/discover/preferences` - Would-you-rather assessment interface
+   - `/discover/preferences` - Adaptive Bayesian RIASEC + work-values + work-context assessment (12–20 items, skip-supported, resume-on-reload)
    - `/discover/profile` - Results profile
    - `/careers` - AI-powered career recommendations
 
 3. **State Management** (`src/store/`):
    - Zustand store with persistent slices for interests and assessment responses
-   - Separated concerns: `interestsSlice.ts` and `wouldYouRatherSlice.ts`
+   - Separated concerns: `interestsSlice.ts` and `assessmentSlice.ts`
 
 #### Database Schema
-- **quiz_answers** table: Per-user assessment responses, keyed by `user_id` (text)
-- **career_recommendations** table: AI-generated career suggestions per user, keyed by `user_id` (text)
+- **assessment_sessions** table: One row per user session; holds current posterior, stopped flag, completed result (jsonb), engine_version, created/completed timestamps.
+- **assessment_responses** table: One row per answered (or skipped) item; logs the session_id, item_id, choice (1/2/null), shown_at / answered_at.
+- **career_recommendations** table: AI-generated career suggestions keyed by (run_id FK, user_id), with a `rank` smallint and nullable `job_growth` / `salary_range`.
 - No RLS — ownership is enforced in application code via `getSession()` filters on `user.id`
 - User identity is managed by Neon Auth (`neon_auth.users_sync` view); we do NOT FK to it
 
@@ -82,7 +83,9 @@ The application is a career exploration tool built around psychological assessme
 - `src/app/api/careers/[onetId]/route.ts` - Single-career detail endpoint
 - `src/app/api/careers/chat/route.ts` - AI chat functionality
 - `src/app/api/user/route.ts` - Current user profile (from session)
-- `src/app/api/user/progress/route.ts` - Quiz answer read/write
+- `src/app/api/assessment/session/route.ts` - POST creates a new session + returns first item; GET returns active session state (item, itemsAnswered) or stopped result.
+- `src/app/api/assessment/response/route.ts` - POST records an answer (or skip) and returns the next item or a stop signal.
+- `src/app/api/assessment/result/route.ts` - GET returns the latest completed session's AssessmentResult or `{ result: null }`.
 
 ## Development Notes
 
@@ -95,7 +98,7 @@ The application uses `dotenv-flow` for environment management. Required: `DATABA
 - TypeScript strict mode enabled
 
 ### Assessment Logic
-The "would you rather" format presents psychological choices that map to career interest codes. The `getDeckResults()` selector on the Zustand store (`src/store/slices/wouldYouRatherSlice.ts`) processes user responses into RIASEC/work-value/environment tallies for AI career matching.
+The adaptive engine (in `src/lib/assessment/`) maintains a Bayesian posterior over RIASEC/work-values/work-context scales. After each response, `advance()` updates the posterior and picks the next item. Stopping rules: confidence threshold reached, max 20 items, or inconsistency flag. Final results include Holland code, ranked scales with confidence bands, top work values, and work-context leans.
 
 ### AI Integration
 Career recommendations are generated using OpenAI models through the Vercel AI SDK, taking user assessment results as input for personalized career suggestions.
