@@ -1,4 +1,5 @@
-import { Item, RIASEC_SCALES, RiasecScale, ResponseChoice } from './types'
+import { Item, RIASEC_SCALES, RiasecScale, ResponseChoice, AssessmentResult, GradeBand } from './types'
+import { advance, chooseFirstItem, finalize, startSession } from './engine'
 
 export type SyntheticUser = {
   riasec: Record<RiasecScale, number>
@@ -48,4 +49,31 @@ export function allHollandCodes(): string[] {
     if (a !== b && b !== c && a !== c) codes.push(a + b + c)
   }
   return codes
+}
+
+export function runSimulatedSession(args: {
+  user: SyntheticUser
+  bank: Item[]
+  gradeBand?: GradeBand
+  seed: number
+  firstItemId?: string
+}): { result: AssessmentResult, itemsShown: string[] } {
+  let session = startSession({
+    bank: args.bank, gradeBand: args.gradeBand, firstItemId: args.firstItemId,
+  })
+  let nextItem: Item | null = chooseFirstItem(args.bank, session)
+  const itemsShown: string[] = []
+  let i = 0
+
+  while (nextItem) {
+    itemsShown.push(nextItem.id)
+    const choice = simulateChoice(args.user, nextItem, args.seed + i)
+    const out = advance({ session, bank: args.bank, shownItem: nextItem, choice, responseMs: 1000 })
+    session = out.session
+    if (out.kind === 'stop') break
+    nextItem = out.nextItem
+    i += 1
+  }
+
+  return { result: finalize(session), itemsShown }
 }

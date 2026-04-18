@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { makeSyntheticUser, simulateChoice, allHollandCodes } from '../simulation'
+import { makeSyntheticUser, simulateChoice, allHollandCodes, runSimulatedSession } from '../simulation'
 import { Item, Option } from '../types'
+import { items } from '@/app/_data/items'
 
 function opt(id: string, riasec: Partial<Record<'R' | 'I' | 'A' | 'S' | 'E' | 'C', number>>): Option {
   return {
@@ -49,5 +50,15 @@ describe('allHollandCodes', () => {
       expect(new Set(code.split(''))).toHaveProperty('size', 3)
       for (const c of code) expect('RIASEC').toContain(c)
     }
+  })
+})
+
+describe('runSimulatedSession', () => {
+  it('completes a session against the real bank and returns an AssessmentResult', () => {
+    const user = makeSyntheticUser({ topCode: 'SAE', seed: 7 })
+    const out = runSimulatedSession({ user, bank: items, gradeBand: 'late-hs', seed: 7 })
+    expect(out.result.hollandCode).toMatch(/^[RIASEC]{3}$/)
+    expect(out.result.meta.itemsAnswered).toBeGreaterThanOrEqual(12)
+    expect(out.result.meta.itemsAnswered).toBeLessThanOrEqual(20)
   })
 })
