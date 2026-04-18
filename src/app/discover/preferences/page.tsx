@@ -35,6 +35,13 @@ export default function PreferencesPage() {
   const [peekOpen, setPeekOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const shownAtRef = useRef<number>(0)
+  const pendingSubmitRef = useRef<number | null>(null)
+
+  useEffect(() => () => {
+    if (pendingSubmitRef.current !== null) {
+      window.clearTimeout(pendingSubmitRef.current)
+    }
+  }, [])
 
   // Resume on first mount
   useEffect(() => {
@@ -120,7 +127,7 @@ export default function PreferencesPage() {
     if (selectedOption !== null || submitting) return
     setSelectedOption(option)
     setShowCheckmark(true)
-    setTimeout(() => submitChoice(option), 500)
+    pendingSubmitRef.current = window.setTimeout(() => submitChoice(option), 500)
   }
 
   const handleSkip = () => {
