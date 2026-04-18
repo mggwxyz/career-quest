@@ -93,6 +93,13 @@ Respond as a JSON array.
       throw new Error('No response from OpenAI')
     }
 
+    // NOTE: these two inserts are NOT wrapped in a transaction. The Neon HTTP
+    // driver (`@neondatabase/serverless`) supports only a batch-style transaction
+    // API, which does not let us read `run.id` from the first insert before
+    // issuing the second. A failed second insert therefore leaves an orphan
+    // `recommendation_runs` row; `careers/page.tsx` handles that by matching
+    // the latest run that has recommendations. When we move to a node-postgres
+    // or pooled driver this can become a proper `db.transaction(...)`.
     const [run] = await db.insert(recommendationRuns).values({
       userId: user.id,
       sessionId: latest.id,
