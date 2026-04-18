@@ -3,8 +3,8 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
-import { finalize, GradeBand, ResponseChoice } from '@/lib/assessment'
-import { rebuildSessionFromLog } from '@/lib/assessment/serverSession'
+import { finalize, ResponseChoice } from '@/lib/assessment'
+import { isGradeBand, rebuildSessionFromLog } from '@/lib/assessment/serverSession'
 
 type Body = { sessionId?: string, itemId?: string, choice?: number | null, responseMs?: number }
 
@@ -57,12 +57,14 @@ export async function POST(request: Request) {
     const allRows = await db.select().from(assessmentResponses)
       .where(eq(assessmentResponses.sessionId, body.sessionId))
       .orderBy(assessmentResponses.position)
-    const answered = allRows.filter(r => r.choice !== null && r.choice !== undefined)
+    const answered = allRows.filter(
+      (r): r is typeof r & { choice: 1 | 2 } => r.choice === 1 || r.choice === 2,
+    )
 
     const { session: engineSession, lastAdvance } = rebuildSessionFromLog({
-      gradeBand: (sessionRow.gradeBand ?? undefined) as GradeBand | undefined,
+      gradeBand: isGradeBand(sessionRow.gradeBand) ? sessionRow.gradeBand : undefined,
       responses: answered.map(r => ({
-        itemId: r.itemId, choice: r.choice as ResponseChoice, responseMs: r.responseMs,
+        itemId: r.itemId, choice: r.choice, responseMs: r.responseMs,
       })),
     })
 
@@ -72,9 +74,11 @@ export async function POST(request: Request) {
         '[api/assessment/response] engine rebuild produced no advance for session %s (answered=%d)',
         body.sessionId, answered.length,
       )
-      return NextResponse.json({ error: 'Engine rebuild failed' }, { status: 500 })
+      return NextResponse.json({ error: 'Engine desync: response log references unknown items' }, { status: 500 })
     }
 
+    // Posterior is derived — if a write is lost, the next rebuild-from-log will reproduce it.
+    // The response-log is the source of truth; this update is just a cached snapshot for /session GET.
     await db.update(assessmentSessions)
       .set({ posterior: engineSession.posterior })
       .where(eq(assessmentSessions.id, body.sessionId))
