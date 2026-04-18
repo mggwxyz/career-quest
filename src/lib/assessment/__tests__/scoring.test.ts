@@ -1,7 +1,8 @@
 // src/lib/assessment/__tests__/scoring.test.ts
 import { describe, it, expect } from 'vitest'
-import { hollandCode, rankRiasec, confidenceBand, contextLean } from '../scoring'
+import { hollandCode, rankRiasec, confidenceBand, contextLean, buildResult } from '../scoring'
 import { initialPosterior } from '../posterior'
+import { ENGINE_VERSION } from '../types'
 
 function withMeans(means: Partial<Record<'R' | 'I' | 'A' | 'S' | 'E' | 'C', number>>) {
   const p = initialPosterior()
@@ -66,5 +67,41 @@ describe('contextLean', () => {
     expect(contextLean('structureVariety', { mean: 1, variance: 0.2 }).lean).toBe('variety')
     expect(contextLean('indoorOutdoor', { mean: 1, variance: 0.2 }).lean).toBe('outdoor')
     expect(contextLean('soloTeam', { mean: 1, variance: 0.2 }).lean).toBe('team')
+  })
+})
+
+describe('buildResult', () => {
+  it('assembles a complete AssessmentResult with hollandCode + ranks + confidences', () => {
+    const p = withMeans({ S: 2, A: 1.5, E: 1, R: 0, I: 0, C: 0 })
+    p.riasec.S.variance = 0.1
+    p.riasec.A.variance = 0.2
+    p.riasec.E.variance = 0.3
+    p.workValues.REL.mean = 1.5
+    p.workValues.REL.variance = 0.2
+    p.workValues.ACH.mean = 1
+    p.workValues.ACH.variance = 0.4
+
+    const result = buildResult({
+      posterior: p, itemsAnswered: 14, itemsSkipped: 0,
+      inconsistencyFlag: false, gradeBand: 'late-hs',
+    })
+
+    expect(result.hollandCode).toBe('SAE')
+    expect(result.riasec.S).toMatchObject({ rank: 1, confidence: 'high' })
+    expect(result.riasec.A).toMatchObject({ rank: 2, confidence: 'high' })
+    expect(result.riasec.E).toMatchObject({ rank: 3, confidence: 'medium' })
+    expect(result.workValues.top[0]).toBe('REL')
+    expect(result.workValues.suppressed).toBeUndefined()
+    expect(result.meta.engineVersion).toBe(ENGINE_VERSION)
+    expect(result.meta.itemsAnswered).toBe(14)
+  })
+
+  it('sets workValues.suppressed when grade band is "middle"', () => {
+    const p = initialPosterior({ gradeBand: 'middle' })
+    const result = buildResult({
+      posterior: p, itemsAnswered: 14, itemsSkipped: 0,
+      inconsistencyFlag: false, gradeBand: 'middle',
+    })
+    expect(result.workValues.suppressed).toBe(true)
   })
 })
