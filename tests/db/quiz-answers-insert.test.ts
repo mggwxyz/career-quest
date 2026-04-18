@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { db } from '@/db'
-import { quizAnswers } from '@/db/schema'
-import { eq } from 'drizzle-orm'
 
 describe.skipIf(!process.env.DATABASE_URL)('quiz_answers insert without auth.uid()', () => {
   it('inserts a row with a plain text user_id', async () => {
+    const [{ db }, { quizAnswers }, { eq }] = await Promise.all([
+      import('@/db'),
+      import('@/db/schema'),
+      import('drizzle-orm'),
+    ])
+
     const userId = `test-${crypto.randomUUID()}`
     try {
       await db.insert(quizAnswers).values({ userId, questionId: 'q-test', selectedOption: 1 })

@@ -2,9 +2,11 @@ import { experimental_generateImage as generateImage } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { questions } from '../src/app/_data/questions'
 import { WORK_VALUE_IMAGES, ENV_IMAGES } from '../src/app/_data/profileImages'
+import { execFile } from 'node:child_process'
 import fs from 'fs/promises'
 import path from 'path'
 import pThrottle from 'p-throttle'
+import { promisify } from 'node:util'
 
 import dotenvFlow from 'dotenv-flow'
 dotenvFlow.config()
@@ -19,6 +21,25 @@ const throttle = pThrottle({
   limit: 4,
   interval: 60 * 1000,
 })
+
+const execFileAsync = promisify(execFile)
+const WEBP_QUALITY = '82'
+
+async function writeImage(imagePath: string, bytes: Uint8Array) {
+  if (!imagePath.endsWith('.webp')) {
+    await fs.writeFile(imagePath, bytes)
+    return
+  }
+
+  const tmpPngPath = `${imagePath}.tmp.png`
+  await fs.writeFile(tmpPngPath, bytes)
+  try {
+    await execFileAsync('cwebp', ['-quiet', '-q', WEBP_QUALITY, tmpPngPath, '-o', imagePath])
+  }
+  finally {
+    await fs.rm(tmpPngPath, { force: true })
+  }
+}
 
 /**
  * Throttled generator — produces a single image using the shared cartoon/vector
@@ -36,7 +57,7 @@ const throttledGenerateAndSaveImage = throttle(
 
       await fs.mkdir(outputDir, { recursive: true })
       const imagePath = path.join(outputDir, filename)
-      await fs.writeFile(imagePath, image.uint8Array)
+      await writeImage(imagePath, image.uint8Array)
       console.log(`Generated image: ${path.relative(process.cwd(), imagePath)}`)
     }
     catch (error) {
@@ -49,8 +70,8 @@ async function generateWouldYouRatherImages() {
   const outputDir = path.join(process.cwd(), 'public/would-you-rather/images')
   const tasks = questions.decks.flatMap(deck =>
     deck.questions.flatMap(question => [
-      throttledGenerateAndSaveImage(question.option1.prompt, `${question.option1.id}.png`, outputDir),
-      throttledGenerateAndSaveImage(question.option2.prompt, `${question.option2.id}.png`, outputDir),
+      throttledGenerateAndSaveImage(question.option1.prompt, `${question.option1.id}.webp`, outputDir),
+      throttledGenerateAndSaveImage(question.option2.prompt, `${question.option2.id}.webp`, outputDir),
     ]),
   )
   await Promise.all(tasks)

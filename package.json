@@ -2,12 +2,19 @@
   "name": "career-quest",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "NODE_NO_WARNINGS=1 eslint .",
     "lint:fix": "NODE_NO_WARNINGS=1 pnpm eslint --fix",
+    "typecheck": "tsc --noEmit",
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "assets:webp": "tsx scripts/convertPngToWebp.ts public",
+    "assets:webp:force": "tsx scripts/convertPngToWebp.ts public --force",
     "dk:push": "drizzle-kit push",
     "dk:generate": "drizzle-kit generate",
     "test": "vitest run",
