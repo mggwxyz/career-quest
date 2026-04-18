@@ -11,6 +11,7 @@
     "dk:push": "drizzle-kit push",
     "dk:generate": "drizzle-kit generate",
     "dk:migrate": "drizzle-kit migrate",
+    "seed:onet": "tsx scripts/seed-onet.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
