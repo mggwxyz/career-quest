@@ -97,7 +97,7 @@ export function rebuildSessionFromLog(args: {
       session, bank: items, shownItem: item,
       choice: r.choice, responseMs: r.responseMs ?? undefined,
     })
-    session = lastAdvance.kind === 'next' ? lastAdvance.session : lastAdvance.session
+    session = lastAdvance.session
   }
   return { session, lastAdvance }
 }

@@ -29,15 +29,31 @@ describe('POST /api/assessment/session', () => {
   it('creates a session and returns the first item', async () => {
     ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
 
-    // Mock abandon-existing to no-op
-    const setChain = { set: vi.fn().mockReturnThis(), where: vi.fn().mockResolvedValue(undefined) }
+    // Track call order so we can assert that existing active sessions are
+    // abandoned (update) BEFORE the new session is created (insert).
+    const calls: string[] = []
+
+    // Mock abandon-existing: update(...).set(...).where(...) resolves void.
+    const setChain = {
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn(() => {
+        calls.push('update')
+        return Promise.resolve()
+      }),
+    }
     ;(db.update as ReturnType<typeof vi.fn>).mockReturnValue(setChain)
 
-    const returningChain = {
+    // Mock inserts: first call returns the session row; subsequent call
+    // (response insert) resolves void. Both use the same chain shape so a
+    // single mockReturnValue works.
+    const insertChain = {
       values: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([{ id: 'sess-1' }]),
+      returning: vi.fn(() => {
+        calls.push('insert')
+        return Promise.resolve([{ id: 'sess-1' }])
+      }),
     }
-    ;(db.insert as ReturnType<typeof vi.fn>).mockReturnValue(returningChain)
+    ;(db.insert as ReturnType<typeof vi.fn>).mockReturnValue(insertChain)
 
     const req = new Request('http://x/api/assessment/session', {
       method: 'POST',
@@ -50,6 +66,19 @@ describe('POST /api/assessment/session', () => {
     expect(body.item).toBeDefined()
     expect(body.item.option1).toBeDefined()
     expect(body.itemsAnswered).toBe(0)
+
+    // chooseFirstItem prefers an opposite-contrast pair; verify the contract
+    // rather than simply that *some* item came back.
+    expect(body.item.dimensionContrast).toBe('opposite')
+
+    // Contract: existing active sessions must be abandoned before a new one
+    // is inserted. If insert ran first we'd violate the one-active-per-user
+    // unique index on assessment_sessions.
+    const firstUpdate = calls.indexOf('update')
+    const firstInsert = calls.indexOf('insert')
+    expect(firstUpdate).toBeGreaterThanOrEqual(0)
+    expect(firstInsert).toBeGreaterThanOrEqual(0)
+    expect(firstUpdate).toBeLessThan(firstInsert)
   })
 
   it('rejects unknown gradeBand values', async () => {
