@@ -1,5 +1,5 @@
 import { eligibleItems, unseenItems } from './itemBank'
-import { rankRiasec } from './scoring'
+import { confidenceBand, rankRiasec } from './scoring'
 import { GradeBand, Item, Posterior, RIASEC_SCALES } from './types'
 
 const CONTEST_THRESHOLD = 0.3
@@ -50,4 +50,56 @@ export function pickNextItem(
     }
   }
   return best
+}
+
+export const FLOOR_ITEMS = 12
+export const CAP_ITEMS = 20
+
+const TOP3_SEPARATION_SD = 1.0
+
+export function shouldStop(args: {
+  posterior: Posterior
+  itemsAnswered: number
+  gradeBand: GradeBand | undefined
+}): boolean {
+  const { posterior: p, itemsAnswered, gradeBand } = args
+  if (itemsAnswered >= CAP_ITEMS) return true
+  if (itemsAnswered < FLOOR_ITEMS) return false
+
+  const ranked = rankRiasec(p)
+  const top3 = ranked.slice(0, 3)
+  const fourth = ranked[3]
+  const top3MeanFloor = Math.min(...top3.map(s => p.riasec[s].mean))
+  const pooledSd = Math.sqrt(
+    (p.riasec[top3[2]].variance + p.riasec[fourth].variance) / 2,
+  )
+  if (top3MeanFloor - p.riasec[fourth].mean <= TOP3_SEPARATION_SD * pooledSd) return false
+
+  for (const s of top3) {
+    if (confidenceBand(p.riasec[s].variance) === 'low') return false
+  }
+
+  if (gradeBand !== 'middle') {
+    const anyMediumOrBetter = (['ACH', 'IND', 'REC', 'REL', 'SUP', 'WC'] as const)
+      .some(s => confidenceBand(p.workValues[s].variance) !== 'low')
+    if (!anyMediumOrBetter) return false
+  }
+
+  return true
+}
+
+export function pickWithCoveragePhase(
+  bank: Item[], p: Posterior, seenIds: Set<string>,
+  gradeBand: GradeBand | undefined, touchedScales: Set<string>,
+): Item | null {
+  const allTouched = (['R', 'I', 'A', 'S', 'E', 'C'] as const).every(s => touchedScales.has(s))
+  if (allTouched) return pickNextItem(bank, p, seenIds, gradeBand)
+
+  const untouched = (['R', 'I', 'A', 'S', 'E', 'C'] as const).filter(s => !touchedScales.has(s))
+  const restricted = bank.filter(it =>
+    untouched.some(s =>
+      it.option1.loadings.riasec[s] >= 2 || it.option2.loadings.riasec[s] >= 2),
+  )
+  const fromRestricted = pickNextItem(restricted, p, seenIds, gradeBand)
+  return fromRestricted ?? pickNextItem(bank, p, seenIds, gradeBand)
 }
