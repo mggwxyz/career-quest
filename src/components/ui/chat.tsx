@@ -36,7 +36,7 @@ interface ChatPropsBase {
   ) => void
   setMessages?: (messages: unknown[]) => void
   transcribeAudio?: (blob: Blob) => Promise<string>
-  assistantAvatar?: { src: string, name: string }
+  assistantName?: string
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -64,7 +64,7 @@ export function Chat({
   onRateResponse,
   setMessages,
   transcribeAudio,
-  assistantAvatar,
+  assistantName,
 }: ChatProps) {
   const lastMessage = messages.at(-1)
   const isEmpty = messages.length === 0
@@ -161,11 +161,11 @@ export function Chat({
 
   const messageOptions = useCallback(
     (message: Message) => {
-      const avatarProps = message.role === 'assistant' && assistantAvatar
-        ? { avatarSrc: assistantAvatar.src, senderName: assistantAvatar.name }
-        : {}
+      const labelProps = message.role === 'assistant'
+        ? (assistantName ? { senderName: assistantName } : {})
+        : { senderName: 'You' }
       return {
-        ...avatarProps,
+        ...labelProps,
         actions: onRateResponse
           ? (
             <>
@@ -201,7 +201,7 @@ export function Chat({
           ),
       }
     },
-    [onRateResponse, assistantAvatar],
+    [onRateResponse, assistantName],
   )
 
   return (

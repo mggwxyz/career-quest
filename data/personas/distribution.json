@@ -1,24 +1,24 @@
 {
   "gender": {
-    "female": 64,
-    "male": 64,
-    "nonbinary": 6
+    "female": 111,
+    "male": 121,
+    "nonbinary": 8
   },
   "ethnicity": {
-    "white": 30,
-    "black": 29,
-    "hispanic": 30,
-    "asian": 31,
-    "middle_eastern": 5,
-    "pacific_islander": 4,
-    "indigenous": 4,
-    "multiracial": 1
+    "white": 58,
+    "black": 58,
+    "hispanic": 50,
+    "asian": 47,
+    "middle_eastern": 10,
+    "pacific_islander": 6,
+    "indigenous": 5,
+    "multiracial": 6
   },
   "ageBand": {
-    "20s": 34,
-    "30s": 47,
-    "40s": 32,
-    "50s_plus": 21
+    "20s": 63,
+    "30s": 87,
+    "40s": 52,
+    "50s_plus": 38
   },
-  "total": 134
+  "total": 240
 }

@@ -10,10 +10,10 @@ import { ThemeToggle } from './theme-toggle'
 import { Menu } from 'lucide-react'
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/discover/interests', label: 'Discover' },
-  { href: '/careers', label: 'My Matches' },
-  { href: '/careers/explore', label: 'Explore' },
+  { href: '/get-started/interests', label: 'Get Started' },
+  { href: '/careers', label: 'Explore' },
+  { href: '/profile', label: 'Profile' },
+  { href: '/careers/matches', label: 'Matches' },
 ]
 
 export const NavigationBar = () => {

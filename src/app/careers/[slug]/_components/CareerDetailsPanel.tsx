@@ -33,7 +33,7 @@ export function CareerDetailsPanel({ occupation, detail, whyItMatches }: Props) 
       <h2 className="font-serif text-xl text-foreground mb-1">{occupation.title}</h2>
       <div className="text-xs text-muted-foreground mb-5 flex flex-wrap gap-2">
         <span>{`Job Zone ${occupation.jobZone} · ${JOB_ZONE_NAMES[occupation.jobZone]}`}</span>
-        {occupation.brightOutlook && <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400">Bright Outlook</span>}
+        {occupation.brightOutlook && <span className="px-2 py-0.5 rounded-full bg-green-400 text-black font-medium">Bright Outlook</span>}
         <span>{occupation.riasecAll.join(' · ')}</span>
       </div>
 

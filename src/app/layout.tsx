@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DM_Sans, Instrument_Serif } from 'next/font/google'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
 import { MotionProvider } from '@/providers/motion-provider'
@@ -52,6 +53,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${dmSans.variable} ${instrumentSerif.variable} antialiased`}
+        suppressHydrationWarning
       >
         <a
           href="#main-content"
@@ -65,47 +67,49 @@ export default function RootLayout({
           enableSystem
           themes={['light', 'dark']}
         >
-          <AuthProvider>
-            <MotionProvider>
-              <NavigationBar />
-              <main id="main-content" className="pt-20">{children}</main>
-              <footer className="mt-16 border-t border-border/50 px-6 py-6 text-center text-xs text-muted-foreground">
-                <p className="mb-3">
-                  <a
-                    href="https://services.onetcenter.org/"
-                    title="This site incorporates information from O*NET Web Services. Click to learn more."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="https://www.onetcenter.org/image/link/onet-in-it.svg"
-                      alt="O*NET in-it"
-                      width={130}
-                      height={60}
-                      style={{ border: 'none' }}
-                      className="inline-block"
-                    />
-                  </a>
-                </p>
-                <p>
-                  This site incorporates information from
-                  {' '}
-                  <a
-                    href="https://services.onetcenter.org/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-foreground"
-                  >
-                    O*NET Web Services
-                  </a>
-                  {' '}
-                  by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET® is a trademark of USDOL/ETA.
-                </p>
-              </footer>
-              <Toaster />
-            </MotionProvider>
-          </AuthProvider>
+          <NuqsAdapter>
+            <AuthProvider>
+              <MotionProvider>
+                <NavigationBar />
+                <main id="main-content" className="min-h-screen pt-20">{children}</main>
+                <footer className="mt-16 border-t border-border/50 px-6 py-6 text-center text-xs text-muted-foreground">
+                  <p className="mb-3">
+                    <a
+                      href="https://services.onetcenter.org/"
+                      title="This site incorporates information from O*NET Web Services. Click to learn more."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="https://www.onetcenter.org/image/link/onet-in-it.svg"
+                        alt="O*NET in-it"
+                        width={130}
+                        height={60}
+                        style={{ border: 'none' }}
+                        className="inline-block"
+                      />
+                    </a>
+                  </p>
+                  <p>
+                    This site incorporates information from
+                    {' '}
+                    <a
+                      href="https://services.onetcenter.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-foreground"
+                    >
+                      O*NET Web Services
+                    </a>
+                    {' '}
+                    by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET® is a trademark of USDOL/ETA.
+                  </p>
+                </footer>
+                <Toaster />
+              </MotionProvider>
+            </AuthProvider>
+          </NuqsAdapter>
         </ThemeProvider>
       </body>
     </html>

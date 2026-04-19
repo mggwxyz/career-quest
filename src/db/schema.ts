@@ -134,6 +134,9 @@ export const onetOccupations = pgTable('onet_occupations', {
   riasecAll: text('riasec_all').array()
     .notNull()
     .default([]),
+  salaryAnnualMedian: integer('salary_annual_median'),
+  salaryHourlyMedian: integer('salary_hourly_median'),
+  outlookCategory: text('outlook_category'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
     .notNull(),
 }, table => [

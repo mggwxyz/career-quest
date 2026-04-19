@@ -44,7 +44,7 @@ export function AnimatedHero() {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <Link
-          href="/discover/interests"
+          href="/get-started/interests"
           className="inline-flex items-center gap-2 px-9 py-3.5 bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold rounded-full shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] hover:-translate-y-0.5 transition-all no-underline"
         >
           Get Started

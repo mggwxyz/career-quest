@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import Image from 'next/image'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { motion } from 'framer-motion'
 import { Ban, ChevronRight, Code2, Loader2, Terminal } from 'lucide-react'
@@ -137,7 +136,6 @@ export interface ChatMessageProps extends Message {
   showTimeStamp?: boolean
   animation?: Animation
   actions?: React.ReactNode
-  avatarSrc?: string
   senderName?: string
 }
 
@@ -151,7 +149,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   experimental_attachments,
   toolInvocations,
   parts,
-  avatarSrc,
   senderName,
 }) => {
   const files = useMemo(() => {
@@ -172,22 +169,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   })
 
   const wrapAssistant = (children: React.ReactNode) => {
-    if (!avatarSrc) return <>{children}</>
+    if (!senderName) return <>{children}</>
     return (
-      <div className="flex gap-2.5 items-start">
-        <Image
-          src={avatarSrc}
-          alt={senderName ?? 'Assistant'}
-          width={36}
-          height={36}
-          className="rounded-full object-cover shrink-0 mt-0.5 border border-border"
-        />
-        <div className="flex flex-col flex-1 min-w-0 gap-1">
-          {senderName
-            ? <span className="text-xs text-muted-foreground px-1">{senderName}</span>
-            : null}
-          {children}
-        </div>
+      <div className="flex flex-col gap-1 items-start">
+        <span className="text-xs text-muted-foreground px-1">{senderName}</span>
+        {children}
       </div>
     )
   }
@@ -197,6 +183,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       <div
         className={cn('flex flex-col', isUser ? 'items-end' : 'items-start')}
       >
+        {senderName
+          ? <span className="text-xs text-muted-foreground px-1 mb-1">{senderName}</span>
+          : null}
         {files
           ? (
             <div className="mb-1 flex flex-wrap gap-2">

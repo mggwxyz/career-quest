@@ -6,6 +6,7 @@ import { onetFetch } from '@/lib/onet/client'
 import {
   MnmCareerV2SummarySchema,
   MnmEducationV2Schema,
+  MnmJobOutlookV2Schema,
   OccupationsListSchema,
   OnlineInterestsSummaryV2Schema,
 } from '@/lib/onet/schemas'
@@ -37,14 +38,16 @@ async function listAllOccupationCodes(): Promise<string[]> {
 }
 
 async function fetchMirrorSource(code: string): Promise<MirrorSource> {
-  const [summaryRaw, educationRaw, interestsRaw] = await Promise.all([
+  const [summaryRaw, educationRaw, interestsRaw, jobOutlookRaw] = await Promise.all([
     onetFetch<unknown>(`/mnm/careers/${code}`, { revalidateSeconds: 0 }),
     onetFetch<unknown>(`/mnm/careers/${code}/education`, { revalidateSeconds: 0 }),
     onetFetch<unknown>(`/online/occupations/${code}/summary/interests`, { revalidateSeconds: 0 }),
+    onetFetch<unknown>(`/mnm/careers/${code}/job_outlook`, { revalidateSeconds: 0 }),
   ])
   const summary = MnmCareerV2SummarySchema.parse(summaryRaw)
   const education = MnmEducationV2Schema.parse(educationRaw)
   const interests = OnlineInterestsSummaryV2Schema.parse(interestsRaw)
+  const jobOutlook = MnmJobOutlookV2Schema.parse(jobOutlookRaw)
   return {
     code: summary.code,
     title: summary.title,
@@ -52,6 +55,9 @@ async function fetchMirrorSource(code: string): Promise<MirrorSource> {
     brightOutlook: Boolean(summary.tags?.bright_outlook),
     jobZone: education.job_zone.code,
     interestCode: interests.interest_code,
+    salaryAnnualMedian: jobOutlook.salary.annual_median ?? null,
+    salaryHourlyMedian: jobOutlook.salary.hourly_median ?? null,
+    outlookCategory: jobOutlook.outlook.category,
   }
 }
 
@@ -73,6 +79,9 @@ async function seedOne(code: string, taken: Set<string>) {
             brightOutlook: row.brightOutlook,
             riasecPrimary: row.riasecPrimary,
             riasecAll: row.riasecAll,
+            salaryAnnualMedian: row.salaryAnnualMedian,
+            salaryHourlyMedian: row.salaryHourlyMedian,
+            outlookCategory: row.outlookCategory,
             updatedAt: drizzleSql`now()`,
           },
         })

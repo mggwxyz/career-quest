@@ -6,7 +6,7 @@ test.describe('Would-you-rather keyboard navigation', () => {
   })
 
   test('tab focuses an option card and Enter advances the quiz', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
+    await page.goto('/get-started/would-you-rather')
 
     // Wait for the first question to render
     await expect(page.getByRole('heading', { name: /would you rather/i })).toBeVisible()
@@ -34,7 +34,7 @@ test.describe('Would-you-rather keyboard navigation', () => {
   })
 
   test('Space key also selects a focused option card', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
+    await page.goto('/get-started/would-you-rather')
 
     await expect(page.getByText('1 of 30')).toBeVisible()
 
@@ -46,7 +46,7 @@ test.describe('Would-you-rather keyboard navigation', () => {
   })
 
   test('Tab traversal reaches an option card from the start of the page', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
+    await page.goto('/get-started/would-you-rather')
     await expect(page.getByText('1 of 30')).toBeVisible()
 
     // Start from the top of the document

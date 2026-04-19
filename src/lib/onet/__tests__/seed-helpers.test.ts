@@ -8,6 +8,9 @@ const baseSource: MirrorSource = {
   brightOutlook: true,
   jobZone: 4,
   interestCode: 'SIR',
+  salaryAnnualMedian: 81220,
+  salaryHourlyMedian: null,
+  outlookCategory: 'Bright',
 }
 
 describe('deriveMirrorRow', () => {
@@ -21,6 +24,9 @@ describe('deriveMirrorRow', () => {
     expect(row.brightOutlook).toBe(true)
     expect(row.riasecPrimary).toBe('S')
     expect(row.riasecAll).toEqual(['S', 'I', 'R'])
+    expect(row.salaryAnnualMedian).toBe(81220)
+    expect(row.salaryHourlyMedian).toBeNull()
+    expect(row.outlookCategory).toBe('Bright')
   })
 
   it('handles slug collisions', () => {

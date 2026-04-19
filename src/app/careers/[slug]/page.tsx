@@ -7,7 +7,6 @@ import { resolveSlug, getOccupationByCode, getCareerDetail } from '@/lib/onet/oc
 import { toCareerContext } from '@/lib/onet/projectors'
 import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
-import { PersonaHero } from './_components/PersonaHero'
 import { getPersona } from '@/lib/personas'
 import { containerClassName } from '../../_styles/classes'
 
@@ -79,7 +78,6 @@ export default async function CareerDetailPage({
 
   return (
     <div className={containerClassName}>
-      {persona && <PersonaHero persona={persona} careerTitle={occupation.title} />}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <CareerDetailsPanel

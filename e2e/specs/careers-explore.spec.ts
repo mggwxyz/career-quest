@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/test-base'
 
-test.describe('/careers/explore', () => {
+test.describe('/careers (explore)', () => {
   test.beforeEach(async ({ dbUtils }) => {
     await dbUtils.truncateAppTables()
     // Upsert so the seed is authoritative regardless of any pre-existing mirror rows
@@ -22,14 +22,14 @@ test.describe('/careers/explore', () => {
   })
 
   test('renders the default grid', async ({ authenticatedPage: page }) => {
-    await page.goto('/careers/explore')
+    await page.goto('/careers')
     await expect(page.getByRole('heading', { name: 'Explore careers' })).toBeVisible()
     await expect(page.getByText('Registered Nurses')).toBeVisible()
     await expect(page.getByText('Software Developers')).toBeVisible()
   })
 
   test('filters by keyword search', async ({ authenticatedPage: page }) => {
-    await page.goto('/careers/explore')
+    await page.goto('/careers')
     await page.getByPlaceholder(/Search/).fill('nurse')
     await page.getByPlaceholder(/Search/).press('Enter')
     await expect(page).toHaveURL(/q=nurse/)
@@ -38,14 +38,14 @@ test.describe('/careers/explore', () => {
   })
 
   test('filters by bright outlook chip', async ({ authenticatedPage: page }) => {
-    await page.goto('/careers/explore')
+    await page.goto('/careers')
     await page.getByRole('button', { name: /Bright outlook/i }).click()
     await expect(page).toHaveURL(/bright=1/)
     await expect(page.getByText('Waiters and Waitresses')).not.toBeVisible()
   })
 
   test('links to the detail page by slug', async ({ authenticatedPage: page }) => {
-    await page.goto('/careers/explore')
+    await page.goto('/careers')
     await page.getByText('Registered Nurses').click()
     await expect(page).toHaveURL('/careers/registered-nurses')
   })

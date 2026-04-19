@@ -28,7 +28,7 @@ const initial: Pick<
   | 'phase' | 'sessionId' | 'gradeBand' | 'currentItem' | 'lastShownItem'
   | 'itemsAnswered' | 'posteriorSnapshot' | 'result' | 'inconsistencyDismissed'
 > = {
-  phase: 'grade',
+  phase: 'intro',
   sessionId: null,
   gradeBand: null,
   currentItem: null,

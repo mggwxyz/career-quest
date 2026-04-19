@@ -5,18 +5,15 @@ test.describe('Adaptive Assessment Flow', () => {
     await dbUtils.truncateAppTables()
   })
 
-  test('shows grade question, then intro, then first item', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-    await expect(page.getByText(/What grade are you in/i)).toBeVisible()
-    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+  test('shows intro, then first item', async ({ authenticatedPage: page }) => {
+    await page.goto('/get-started/would-you-rather')
     await expect(page.getByText(/Ready\?/i)).toBeVisible()
     await page.getByRole('button', { name: /Let's go/i }).click()
     await expect(page.getByText(/Would you rather/i)).toBeVisible()
   })
 
   test('clicking an option advances to the next item', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.goto('/get-started/would-you-rather')
     await page.getByRole('button', { name: /Let's go/i }).click()
 
     const firstCard = page.locator('button:has(figure)').nth(2) // desktop grid first card
@@ -28,8 +25,7 @@ test.describe('Adaptive Assessment Flow', () => {
   })
 
   test('skip advances without recording an answer', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.goto('/get-started/would-you-rather')
     await page.getByRole('button', { name: /Let's go/i }).click()
 
     const firstCard = page.locator('button:has(figure)').nth(2)
@@ -39,8 +35,7 @@ test.describe('Adaptive Assessment Flow', () => {
   })
 
   test('peek button appears after 8 answers', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.goto('/get-started/would-you-rather')
     await page.getByRole('button', { name: /Let's go/i }).click()
 
     for (let i = 0; i < 8; i++) {
@@ -53,16 +48,13 @@ test.describe('Adaptive Assessment Flow', () => {
   })
 
   test('session persists across reload', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/preferences')
-    await page.getByRole('button', { name: /Prefer not to say/i }).click()
+    await page.goto('/get-started/would-you-rather')
     await page.getByRole('button', { name: /Let's go/i }).click()
     await page.locator('button:has(figure)').nth(2)
       .click()
     await page.waitForTimeout(1000)
 
     await page.reload()
-    // After reload: no grade question — we resumed mid-session
-    await expect(page.getByText(/What grade are you in/i)).not.toBeVisible()
     await expect(page.getByText(/Would you rather/i)).toBeVisible({ timeout: 5000 })
   })
 })

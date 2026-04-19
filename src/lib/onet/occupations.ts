@@ -23,6 +23,9 @@ export interface OccupationRow {
   brightOutlook: boolean
   riasecPrimary: string | null
   riasecAll: string[]
+  salaryAnnualMedian: number | null
+  salaryHourlyMedian: number | null
+  outlookCategory: string | null
 }
 
 export async function resolveSlug(slug: string): Promise<OccupationRow | null> {

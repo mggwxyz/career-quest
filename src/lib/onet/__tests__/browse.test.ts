@@ -6,10 +6,10 @@ import { searchOccupations } from '../browse'
 
 describe('searchOccupations', () => {
   const seed = [
-    { code: '29-1141.00', slug: 'registered-nurses', title: 'Registered Nurses', description: '', jobZone: 4, brightOutlook: true, riasecPrimary: 'S', riasecAll: ['S', 'I', 'R'] },
-    { code: '15-1252.00', slug: 'software-developers', title: 'Software Developers', description: '', jobZone: 4, brightOutlook: true, riasecPrimary: 'I', riasecAll: ['I', 'C'] },
-    { code: '35-3031.00', slug: 'waiters-and-waitresses', title: 'Waiters and Waitresses', description: '', jobZone: 2, brightOutlook: false, riasecPrimary: 'E', riasecAll: ['E', 'C'] },
-    { code: '29-1171.00', slug: 'nurse-practitioners', title: 'Nurse Practitioners', description: '', jobZone: 5, brightOutlook: true, riasecPrimary: 'I', riasecAll: ['I', 'S'] },
+    { code: '29-1141.00', slug: 'registered-nurses', title: 'Registered Nurses', description: '', jobZone: 4, brightOutlook: true, riasecPrimary: 'S', riasecAll: ['S', 'I', 'R'], salaryAnnualMedian: 81220, salaryHourlyMedian: null, outlookCategory: 'Bright' },
+    { code: '15-1252.00', slug: 'software-developers', title: 'Software Developers', description: '', jobZone: 4, brightOutlook: true, riasecPrimary: 'I', riasecAll: ['I', 'C'], salaryAnnualMedian: 127260, salaryHourlyMedian: null, outlookCategory: 'Bright' },
+    { code: '35-3031.00', slug: 'waiters-and-waitresses', title: 'Waiters and Waitresses', description: '', jobZone: 2, brightOutlook: false, riasecPrimary: 'E', riasecAll: ['E', 'C'], salaryAnnualMedian: null, salaryHourlyMedian: 14, outlookCategory: 'Average' },
+    { code: '29-1171.00', slug: 'nurse-practitioners', title: 'Nurse Practitioners', description: '', jobZone: 5, brightOutlook: true, riasecPrimary: 'I', riasecAll: ['I', 'S'], salaryAnnualMedian: 128490, salaryHourlyMedian: null, outlookCategory: 'Bright' },
   ]
 
   beforeEach(async () => {

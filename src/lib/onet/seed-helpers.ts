@@ -9,6 +9,9 @@ export interface MirrorRow {
   brightOutlook: boolean
   riasecPrimary: string | null
   riasecAll: string[]
+  salaryAnnualMedian: number | null
+  salaryHourlyMedian: number | null
+  outlookCategory: string | null
 }
 
 export interface MirrorSource {
@@ -19,6 +22,9 @@ export interface MirrorSource {
   jobZone: number
   /** O*NET Holland code, e.g. "SIR" or "CEI". 1–3 letters from R/I/A/S/E/C. */
   interestCode: string
+  salaryAnnualMedian: number | null
+  salaryHourlyMedian: number | null
+  outlookCategory: string | null
 }
 
 const VALID_RIASEC = new Set(['R', 'I', 'A', 'S', 'E', 'C'])
@@ -39,5 +45,8 @@ export function deriveMirrorRow(source: MirrorSource, takenSlugs: Set<string>): 
     brightOutlook: source.brightOutlook,
     riasecPrimary: interestCodes[0] ?? null,
     riasecAll: interestCodes,
+    salaryAnnualMedian: source.salaryAnnualMedian,
+    salaryHourlyMedian: source.salaryHourlyMedian,
+    outlookCategory: source.outlookCategory,
   }
 }

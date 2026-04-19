@@ -44,91 +44,99 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
 
   const onStartOver = () => setMessages(openingMessages)
 
-  const assistantAvatar = persona
-    ? { src: `/careers/personas/${persona.onetId}.webp`, name: persona.name }
-    : undefined
-
-  const headerLabel = persona
-    ? (
-      <>
-        Talk with
-        {' '}
-        <span>{persona.name}</span>
-        <span className="text-muted-foreground font-normal">{`, ${careerContext.title}`}</span>
-      </>
-    )
-    : (
-      <>
-        Talk with a
-        {' '}
-        <span>{careerContext.title}</span>
-      </>
-    )
-
-  const headerSubtitle = persona
-    ? `${persona.yearsInField} years in the field — based in ${persona.location}.`
-    : 'Speaking from experience — ask about the day-to-day, getting started, what surprises people, or anything else.'
+  const portraitSrc = persona ? `/careers/personas/${persona.onetId}.webp` : null
 
   return (
-    <div className="bg-surface/50 border border-border rounded-2xl h-[600px] flex flex-col overflow-hidden">
-      <div className="p-4 border-b border-border flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            {assistantAvatar
+    <div className="flex flex-col gap-2">
+      <div className="bg-surface/50 border border-border rounded-2xl h-[600px] flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-border flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            {portraitSrc && persona
               ? (
                 <Image
-                  src={assistantAvatar.src}
-                  alt={assistantAvatar.name}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover border border-border"
+                  src={portraitSrc}
+                  alt={persona.name}
+                  width={72}
+                  height={72}
+                  className="w-[72px] h-[72px] rounded-xl object-cover border border-border shrink-0"
+                  priority
                 />
               )
               : (
-                <span aria-hidden className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
+                <span aria-hidden className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-primary to-secondary shrink-0" />
               )}
-            {headerLabel}
-          </h2>
-          <p className="text-xs text-muted-foreground mt-1">{headerSubtitle}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onStartOver}
-          className="text-xs text-muted-foreground hover:text-primary-soft underline disabled:opacity-40"
-          disabled={messages.length <= openingMessages.length || status === 'streaming'}
-        >
-          Start over
-        </button>
-      </div>
-
-      {error && (
-        <div className="p-4 border-b border-border" role="alert">
-          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5">
-            <p className="text-sm font-semibold text-destructive mb-1">Chat Error</p>
-            <p className="text-xs text-muted-foreground mb-2">Failed to send message. Please try again.</p>
-            <button
-              type="button"
-              onClick={() => reload()}
-              disabled={status === 'streaming'}
-              className="text-xs text-primary-soft hover:underline disabled:opacity-50"
-            >
-              Retry Last Message
-            </button>
+            <div className="min-w-0">
+              {persona
+                ? (
+                  <>
+                    <h2 className="font-serif text-xl text-foreground leading-tight">{persona.name}</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {careerContext.title}
+                      {' • '}
+                      {persona.yearsInField}
+                      {' years'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{persona.location}</p>
+                  </>
+                )
+                : (
+                  <>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Talk with a
+                      {' '}
+                      {careerContext.title}
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Speaking from experience — ask about the day-to-day, getting started, what surprises people, or anything else.
+                    </p>
+                  </>
+                )}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={onStartOver}
+            className="text-xs text-muted-foreground hover:text-primary-soft underline disabled:opacity-40 shrink-0"
+            disabled={messages.length <= openingMessages.length || status === 'streaming'}
+          >
+            Start over
+          </button>
         </div>
-      )}
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Chat
-          messages={messages}
-          handleSubmit={handleSubmit}
-          input={input}
-          handleInputChange={handleInputChange}
-          isGenerating={status === 'streaming'}
-          assistantAvatar={assistantAvatar}
-          className="flex-1 p-4"
-        />
+        {error && (
+          <div className="p-4 border-b border-border" role="alert">
+            <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5">
+              <p className="text-sm font-semibold text-destructive mb-1">Chat Error</p>
+              <p className="text-xs text-muted-foreground mb-2">Failed to send message. Please try again.</p>
+              <button
+                type="button"
+                onClick={() => reload()}
+                disabled={status === 'streaming'}
+                className="text-xs text-primary-soft hover:underline disabled:opacity-50"
+              >
+                Retry Last Message
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Chat
+            messages={messages}
+            handleSubmit={handleSubmit}
+            input={input}
+            handleInputChange={handleInputChange}
+            isGenerating={status === 'streaming'}
+            assistantName={persona?.name}
+            className="flex-1 p-4"
+          />
+        </div>
       </div>
+      {persona && (
+        <p className="text-xs text-muted-foreground/80 italic text-center">
+          Fictional character. Real career facts.
+        </p>
+      )}
     </div>
   )
 }

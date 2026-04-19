@@ -1,0 +1,79 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Check } from 'lucide-react'
+import { Fragment } from 'react'
+
+const STEPS = [
+  { href: '/get-started/interests', label: 'What Interests You?' },
+  { href: '/get-started/would-you-rather', label: 'Would You Rather?' },
+  { href: '/profile', label: 'Your Results' },
+] as const
+
+function getCurrentIndex(pathname: string): number {
+  if (pathname.startsWith('/get-started/interests')) return 0
+  if (pathname.startsWith('/get-started/would-you-rather')) return 1
+  if (pathname.startsWith('/profile') || pathname.startsWith('/careers/matches')) return 2
+  return -1
+}
+
+export function FlowStepper() {
+  const pathname = usePathname()
+  const currentIndex = getCurrentIndex(pathname)
+  if (currentIndex === -1) return null
+
+  return (
+    <nav aria-label="Progress" className="mx-auto mb-10 max-w-2xl px-4">
+      <ol className="flex items-start">
+        {STEPS.map((step, i) => {
+          const isComplete = i < currentIndex
+          const isActive = i === currentIndex
+          const isClickable = isComplete || isActive
+
+          const circleBase = 'flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-semibold transition-colors'
+          const circleClass = isActive
+            ? 'border-primary bg-primary/15 text-foreground shadow-[var(--shadow-glow-sm)]'
+            : isComplete
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-border bg-surface/50 text-muted-foreground'
+
+          const labelClass = isActive
+            ? 'text-foreground font-medium'
+            : isComplete
+              ? 'text-primary-soft'
+              : 'text-muted-foreground/70'
+
+          const node = (
+            <div className="relative flex flex-col items-center">
+              <div className={`${circleBase} ${circleClass}`} aria-current={isActive ? 'step' : undefined}>
+                {isComplete ? <Check size={10} strokeWidth={3} /> : i + 1}
+              </div>
+              <span className={`absolute top-full mt-1 text-[10px] leading-tight text-center whitespace-nowrap ${labelClass}`}>
+                {step.label}
+              </span>
+            </div>
+          )
+
+          return (
+            <Fragment key={step.href}>
+              <li className="flex justify-center">
+                {isClickable
+                  ? <Link href={step.href} className="no-underline">{node}</Link>
+                  : <div className="opacity-80">{node}</div>}
+              </li>
+              {i < STEPS.length - 1 && (
+                <li
+                  aria-hidden="true"
+                  className={`flex-1 mt-2.5 h-px ${
+                    i < currentIndex ? 'bg-primary/60' : 'bg-border'
+                  }`}
+                />
+              )}
+            </Fragment>
+          )
+        })}
+      </ol>
+    </nav>
+  )
+}

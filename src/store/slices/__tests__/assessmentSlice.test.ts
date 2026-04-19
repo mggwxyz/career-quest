@@ -8,9 +8,9 @@ function makeStore() {
 }
 
 describe('assessmentSlice', () => {
-  it('starts in grade phase', () => {
+  it('starts in intro phase', () => {
     const s = makeStore().getState()
-    expect(s.phase).toBe('grade')
+    expect(s.phase).toBe('intro')
     expect(s.sessionId).toBeNull()
     expect(s.currentItem).toBeNull()
   })
@@ -65,7 +65,7 @@ describe('assessmentSlice', () => {
     store.getState().startSession('s', items[0])
     store.getState().reset()
     const s = store.getState()
-    expect(s.phase).toBe('grade')
+    expect(s.phase).toBe('intro')
     expect(s.sessionId).toBeNull()
     expect(s.gradeBand).toBeNull()
     expect(s.currentItem).toBeNull()
