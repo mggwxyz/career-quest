@@ -63,14 +63,15 @@ export function buildPersonaTextPrompt(args: {
   ].filter(Boolean).join('\n')
 }
 
+// Note: name is intentionally NOT in the image prompt — portraits must
+// contain no text/captions/labels (user requirement). Demographics drive
+// the visual; the name lives only in the persona text.
 export function buildImagePrompt(args: {
-  name: string
   age: number
   gender: string
   ethnicityCue: string
   careerTitle: string
 }): string {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { name, age, gender, ethnicityCue, careerTitle } = args
+  const { age, gender, ethnicityCue, careerTitle } = args
   return `${IMAGE_STYLE_PREFIX} A ${age}-year-old ${ethnicityCue} ${gender} who works as a ${careerTitle}. Show wardrobe and one small prop appropriate to the job. Friendly neutral expression. No text, no captions, no labels anywhere.`
 }
