@@ -3,8 +3,13 @@ import 'dotenv-flow/config'
 import { db } from '@/db'
 import { onetOccupations } from '@/db/schema'
 import { onetFetch } from '@/lib/onet/client'
-import { MnmCareerSchema, OccupationsListSchema } from '@/lib/onet/schemas'
-import { deriveMirrorRow } from '@/lib/onet/seed-helpers'
+import {
+  MnmCareerV2SummarySchema,
+  MnmEducationV2Schema,
+  OccupationsListSchema,
+  OnlineInterestsSummaryV2Schema,
+} from '@/lib/onet/schemas'
+import { deriveMirrorRow, type MirrorSource } from '@/lib/onet/seed-helpers'
 import { sql as drizzleSql } from 'drizzle-orm'
 
 const MIN_DELAY_MS = 3000 // ~20 rpm
@@ -19,7 +24,7 @@ async function listAllOccupationCodes(): Promise<string[]> {
   const pageSize = 200
   while (true) {
     const data = await onetFetch<unknown>(
-      `/ws/online/occupations/?start=${start}&end=${start + pageSize - 1}`,
+      `/online/occupations?start=${start}&end=${start + pageSize - 1}`,
       { revalidateSeconds: 0 },
     )
     const parsed = OccupationsListSchema.parse(data)
@@ -31,13 +36,31 @@ async function listAllOccupationCodes(): Promise<string[]> {
   return codes
 }
 
+async function fetchMirrorSource(code: string): Promise<MirrorSource> {
+  const [summaryRaw, educationRaw, interestsRaw] = await Promise.all([
+    onetFetch<unknown>(`/mnm/careers/${code}`, { revalidateSeconds: 0 }),
+    onetFetch<unknown>(`/mnm/careers/${code}/education`, { revalidateSeconds: 0 }),
+    onetFetch<unknown>(`/online/occupations/${code}/summary/interests`, { revalidateSeconds: 0 }),
+  ])
+  const summary = MnmCareerV2SummarySchema.parse(summaryRaw)
+  const education = MnmEducationV2Schema.parse(educationRaw)
+  const interests = OnlineInterestsSummaryV2Schema.parse(interestsRaw)
+  return {
+    code: summary.code,
+    title: summary.title,
+    description: summary.what_they_do ?? null,
+    brightOutlook: Boolean(summary.tags?.bright_outlook),
+    jobZone: education.job_zone.code,
+    interestCode: interests.interest_code,
+  }
+}
+
 async function seedOne(code: string, taken: Set<string>) {
   let retries = 0
   while (retries < 3) {
     try {
-      const raw = await onetFetch<unknown>(`/ws/mnm/careers/${code}/`, { revalidateSeconds: 0 })
-      const career = MnmCareerSchema.parse(raw)
-      const row = deriveMirrorRow(career, taken)
+      const source = await fetchMirrorSource(code)
+      const row = deriveMirrorRow(source, taken)
       taken.add(row.slug)
       await db.insert(onetOccupations).values(row)
         .onConflictDoUpdate({

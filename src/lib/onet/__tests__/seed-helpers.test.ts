@@ -1,12 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import mnmFixture from '../__fixtures__/mnm-career.json'
-import { MnmCareerSchema } from '../schemas'
-import { deriveMirrorRow } from '../seed-helpers'
+import { deriveMirrorRow, type MirrorSource } from '../seed-helpers'
+
+const baseSource: MirrorSource = {
+  code: '29-1141.00',
+  title: 'Registered Nurses',
+  description: 'Assess patient health problems and needs, develop and implement nursing care plans, and maintain medical records.',
+  brightOutlook: true,
+  jobZone: 4,
+  interestCode: 'SIR',
+}
 
 describe('deriveMirrorRow', () => {
-  it('derives mirror fields from an MNM career payload', () => {
-    const parsed = MnmCareerSchema.parse(mnmFixture)
-    const row = deriveMirrorRow(parsed, new Set())
+  it('derives mirror fields from a v2 MirrorSource', () => {
+    const row = deriveMirrorRow(baseSource, new Set())
     expect(row.code).toBe('29-1141.00')
     expect(row.slug).toBe('registered-nurses')
     expect(row.title).toBe('Registered Nurses')
@@ -18,9 +24,13 @@ describe('deriveMirrorRow', () => {
   })
 
   it('handles slug collisions', () => {
-    const parsed = MnmCareerSchema.parse(mnmFixture)
     const taken = new Set(['registered-nurses'])
-    const row = deriveMirrorRow(parsed, taken)
+    const row = deriveMirrorRow(baseSource, taken)
     expect(row.slug).toBe('registered-nurses-2')
+  })
+
+  it('filters non-RIASEC characters from interest_code', () => {
+    const row = deriveMirrorRow({ ...baseSource, interestCode: 'cei-x' }, new Set())
+    expect(row.riasecAll).toEqual(['C', 'E', 'I'])
   })
 })

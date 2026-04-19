@@ -90,7 +90,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
             onClick={() => toggleInterest(interest)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
               interests.includes(interest)
-                ? 'border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(57,255,20,0.18)]'
+                ? 'border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(78,219,167,0.18)]'
                 : 'border-border bg-surface/60 text-muted-foreground hover:border-border-hover hover:text-primary-soft hover:bg-primary/5'
             }`}
           >
@@ -132,7 +132,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
             <button
               key={interest}
               onClick={() => removeInterest(interest)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(57,255,20,0.18)] animate-in fade-in"
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(78,219,167,0.18)] animate-in fade-in"
             >
               {interest}
               {' ✕'}

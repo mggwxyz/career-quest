@@ -1,4 +1,4 @@
-import type { MnmCareer } from './schemas'
+import type { CareerDetail } from './schemas'
 import type { CareerContext } from '@/lib/chat/build-system-prompt'
 
 export const JOB_ZONE_NAMES: Record<number, string> = {
@@ -17,29 +17,31 @@ export const JOB_ZONE_DESCRIPTIONS: Record<number, string> = {
   5: 'Extensive skill, knowledge, and experience — advanced degrees are usually required.',
 }
 
-export function toCareerContext(career: MnmCareer): CareerContext {
-  const formatSalary = (n: number | null | undefined) =>
-    typeof n === 'number' ? `$${n.toLocaleString('en-US')}` : 'varies'
+export function toCareerContext(detail: CareerDetail): CareerContext {
+  const annual = detail.salaryAnnualMedian
+  const hourly = detail.salaryHourlyMedian
+  const salaryMedian = typeof annual === 'number'
+    ? `$${annual.toLocaleString('en-US')}`
+    : typeof hourly === 'number'
+      ? `$${hourly.toLocaleString('en-US')}/hr`
+      : 'varies'
 
   return {
-    title: career.title,
-    onetCode: career.code,
-    shortDescription: career.what_they_do,
-    tasks: career.on_the_job.task.slice(0, 5),
-    skills: career.skills.element.slice(0, 10).map(e => e.name),
-    knowledge: career.knowledge.element.slice(0, 5).map(e => e.name),
-    workActivities: [], // MNM payload does not include structured work activities; left empty.
-    technology: career.technology.category
-      .flatMap(c => c.example)
-      .slice(0, 8)
-      .map(e => e.name),
+    title: detail.title,
+    onetCode: detail.code,
+    shortDescription: detail.description ?? '',
+    tasks: detail.tasks.slice(0, 5),
+    skills: detail.skills.slice(0, 10),
+    knowledge: detail.knowledge.slice(0, 5),
+    workActivities: [], // v2 MNM payload does not include structured work activities; left empty.
+    technology: detail.technology.slice(0, 8),
     jobZone: {
-      number: career.education.job_zone,
-      name: JOB_ZONE_NAMES[career.education.job_zone],
-      description: JOB_ZONE_DESCRIPTIONS[career.education.job_zone],
+      number: detail.jobZone,
+      name: JOB_ZONE_NAMES[detail.jobZone] ?? '',
+      description: JOB_ZONE_DESCRIPTIONS[detail.jobZone] ?? '',
     },
-    riasecTop: career.interests.element.slice(0, 3).map(e => e.name),
-    salaryMedian: formatSalary(career.job_outlook.salary.annual_median),
-    outlook: career.job_outlook.outlook.description,
+    riasecTop: detail.riasecNames.slice(0, 3),
+    salaryMedian,
+    outlook: detail.outlookDescription ?? '',
   }
 }

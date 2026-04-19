@@ -1,5 +1,4 @@
 import { slugifyTitle, resolveSlugCollisions } from './slugify'
-import type { MnmCareer } from './schemas'
 
 export interface MirrorRow {
   code: string
@@ -12,28 +11,32 @@ export interface MirrorRow {
   riasecAll: string[]
 }
 
-const INTEREST_CODES: Record<string, string> = {
-  Realistic: 'R',
-  Investigative: 'I',
-  Artistic: 'A',
-  Social: 'S',
-  Enterprising: 'E',
-  Conventional: 'C',
+export interface MirrorSource {
+  code: string
+  title: string
+  description: string | null
+  brightOutlook: boolean
+  jobZone: number
+  /** O*NET Holland code, e.g. "SIR" or "CEI". 1–3 letters from R/I/A/S/E/C. */
+  interestCode: string
 }
 
-export function deriveMirrorRow(career: MnmCareer, takenSlugs: Set<string>): MirrorRow {
-  const baseSlug = slugifyTitle(career.title)
+const VALID_RIASEC = new Set(['R', 'I', 'A', 'S', 'E', 'C'])
+
+export function deriveMirrorRow(source: MirrorSource, takenSlugs: Set<string>): MirrorRow {
+  const baseSlug = slugifyTitle(source.title)
   const slug = resolveSlugCollisions(baseSlug, takenSlugs)
-  const interestCodes = career.interests.element
-    .map(el => INTEREST_CODES[el.name])
-    .filter((c): c is string => !!c)
+  const interestCodes = source.interestCode
+    .toUpperCase()
+    .split('')
+    .filter(c => VALID_RIASEC.has(c))
   return {
-    code: career.code,
+    code: source.code,
     slug,
-    title: career.title,
-    description: career.what_they_do,
-    jobZone: career.education.job_zone,
-    brightOutlook: Boolean(career.job_outlook.bright_outlook),
+    title: source.title,
+    description: source.description,
+    jobZone: source.jobZone,
+    brightOutlook: source.brightOutlook,
     riasecPrimary: interestCodes[0] ?? null,
     riasecAll: interestCodes,
   }

@@ -15,15 +15,15 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
   return (
     <motion.button
       type="button"
-      className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-300 ${
+      className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-150 ${
         isSelected
-          ? 'border-primary/70 shadow-[0_0_50px_rgba(57,255,20,0.28),0_0_100px_rgba(57,255,20,0.12)]'
-          : 'border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_0_40px_rgba(57,255,20,0.16)] focus-visible:border-primary/70 focus-visible:shadow-[0_0_40px_rgba(57,255,20,0.22)]'
+          ? 'border-primary/70 shadow-[0_0_50px_rgba(78,219,167,0.28),0_0_100px_rgba(78,219,167,0.12)]'
+          : 'border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_0_40px_rgba(78,219,167,0.16)] focus-visible:border-primary/70 focus-visible:shadow-[0_0_40px_rgba(78,219,167,0.22)]'
       }`}
       onClick={onClick}
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.12 }}
     >
       <figure className="relative w-full">
         <Image
@@ -36,10 +36,10 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
         />
         {showCheckmark && isSelected && (
           <motion.div
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-[0_0_20px_rgba(57,255,20,0.55)] z-10"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-[0_0_20px_rgba(78,219,167,0.55)] z-10"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 15 }}
+            transition={{ duration: 0.18, type: 'spring', stiffness: 400, damping: 18 }}
           >
             ✓
           </motion.div>
