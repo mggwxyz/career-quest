@@ -161,7 +161,7 @@ export default function PreferencesPage() {
             <strong className="text-foreground">{result.hollandCode}</strong>
           </p>
           <div className="flex flex-col gap-3 items-center">
-            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] no-underline">
+            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline">
               View Your Results
             </Link>
             <Link href="/careers" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">

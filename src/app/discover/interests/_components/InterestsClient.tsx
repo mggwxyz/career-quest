@@ -83,7 +83,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
             onClick={() => toggleInterest(interest)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
               interests.includes(interest)
-                ? 'border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)]'
+                ? 'border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(57,255,20,0.18)]'
                 : 'border-border bg-surface/60 text-muted-foreground hover:border-border-hover hover:text-primary-soft hover:bg-primary/5'
             }`}
           >
@@ -112,7 +112,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
         />
         <button
           onClick={handleAddCustomInterest}
-          className="px-5 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white text-sm font-semibold shadow-[0_2px_8px_rgba(124,58,237,0.2)]"
+          className="px-5 py-2.5 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow-sm)]"
         >
           Add
         </button>
@@ -125,7 +125,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
             <button
               key={interest}
               onClick={() => removeInterest(interest)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(124,58,237,0.15)] animate-in fade-in"
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-primary/60 bg-primary/15 text-foreground shadow-[0_0_16px_rgba(57,255,20,0.18)] animate-in fade-in"
             >
               {interest}
               {' ✕'}
@@ -139,7 +139,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
         <button
           onClick={handleContinue}
           disabled={isPending}
-          className="px-10 py-3.5 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.2)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35)] hover:-translate-y-0.5 transition-all disabled:opacity-50"
+          className="px-10 py-3.5 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] hover:-translate-y-0.5 transition-all disabled:opacity-50"
         >
           {isPending ? 'Saving...' : 'Continue →'}
         </button>
