@@ -1,24 +1,24 @@
 {
   "gender": {
     "female": 128,
-    "male": 139,
+    "male": 141,
     "nonbinary": 12
   },
   "ethnicity": {
-    "white": 71,
+    "white": 72,
     "black": 63,
     "hispanic": 63,
     "asian": 53,
     "middle_eastern": 10,
     "pacific_islander": 6,
     "indigenous": 6,
-    "multiracial": 7
+    "multiracial": 8
   },
   "ageBand": {
-    "20s": 75,
+    "20s": 76,
     "30s": 97,
-    "40s": 61,
+    "40s": 62,
     "50s_plus": 46
   },
-  "total": 279
+  "total": 281
 }

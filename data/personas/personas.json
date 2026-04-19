@@ -5299,5 +5299,43 @@
     "generatedAt": "2026-04-19T20:02:19.948Z",
     "textModel": "gpt-5",
     "imageModel": "gpt-image-1"
+  },
+  "17-2199.05": {
+    "onetId": "17-2199.05",
+    "name": "Mateo Park-Ramirez",
+    "age": 25,
+    "gender": "male",
+    "pronouns": "he/him",
+    "ethnicityCue": "multiracial",
+    "ageBand": "20s",
+    "yearsInField": 7,
+    "location": "Pittsburgh, Pennsylvania",
+    "educationPath": "A.A.S. in Mechatronics Technology from Pennsylvania College of Technology, followed by a B.S. in Mechanical Engineering with a Robotics minor at Carnegie Mellon University.",
+    "pathToCurrentPosition": "At 18, he started as a maintenance automation apprentice at a glass plant in Jeannette, wiring sensors and learning Allen‑Bradley PLCs while completing his A.A.S. He co‑oped with a CMU spinout designing collaborative-robot end effectors, which led to a full‑time mechatronics engineer role at a Pittsburgh systems integrator upgrading legacy production lines for regional manufacturers. That progression adds up to seven years of hands-on plant-floor automation and robotics work by age 25.",
+    "dayInTheLife": "Mornings go to modeling and 3D‑printing gripper prototypes in SolidWorks, then mounting them on a UR10 and bringing them up in ROS 2 with MoveIt while tuning PID on the vacuum system and logging cycle-time data. After lunch he writes ladder logic in Studio 5000 for handoffs to existing ControlLogix cells, traces EtherCAT drops with a scope, and runs a safety validation with a light curtain and e‑stop matrix before handing the cell to QA.",
+    "hobby": "He spends weekends riding a self-built e‑bike with a Bafang mid‑drive and a 52V DIY battery pack along the Three Rivers Heritage Trail, tracking rides on Strava.",
+    "imagePrompt": "Flat-color vector illustration in a friendly modern storybook style. Thick uniform black outlines, warm cream/beige background (#f5ebdd). Muted earth-tone palette with selective blue and mustard-yellow accents. Simple geometric shapes, single centered focal subject, expressive but minimal faces. No text, no labels, no signage, no written words anywhere. Flat 2D look, no gradients, no shading beyond simple flat color. Square 1:1 composition. Portrait from chest up, centered. Subject: A 25-year-old multiracial male who works as a Mechatronics Engineers. Show wardrobe and one small prop appropriate to the job. Friendly neutral expression. No text, no captions, no labels anywhere.",
+    "generatedAt": "2026-04-19T20:03:14.699Z",
+    "textModel": "gpt-5",
+    "imageModel": "gpt-image-1"
+  },
+  "17-2199.06": {
+    "onetId": "17-2199.06",
+    "name": "Brian Keller",
+    "age": 45,
+    "gender": "male",
+    "pronouns": "he/him",
+    "ethnicityCue": "white",
+    "ageBand": "40s",
+    "yearsInField": 21,
+    "location": "Boston, MA",
+    "educationPath": "B.S. in Electrical Engineering from Purdue University (2003) and M.S. in Electrical Engineering with a MEMS focus from the University of Michigan (2005); Six Sigma Green Belt.",
+    "pathToCurrentPosition": "Right out of Michigan in 2005, he joined Analog Devices’ MEMS inertial sensors group in Wilmington, MA as a characterization engineer, then moved into wafer process development on DRIE, wafer bonding, and thin-film encapsulation. After leading yield-improvement projects across two IMU product lines, he was promoted to Principal Microsystems Engineer overseeing new accelerometer/gyro architectures and foundry transfer.",
+    "dayInTheLife": "He starts by checking overnight SPC and yield dashboards for the DRIE and PECVD steps, flagging lots for metrology before the morning stand-up with process and test. Midday is split between COMSOL simulations of a new comb-drive resonator, mask layout tweaks in L-Edit for a seal-ring change, and reviewing SEM cross-sections with a failure analyst to track a stiction issue. Afternoons he’s on the floor during wafer-level vacuum encapsulation trials, updating the DOE and scripting LabVIEW routines for probe-card calibration.",
+    "hobby": "Spends weekends rebuilding a 1999 Spec Miata—alignment, brake bias, and data logging—then runs track days at Palmer Motorsports Park.",
+    "imagePrompt": "Flat-color vector illustration in a friendly modern storybook style. Thick uniform black outlines, warm cream/beige background (#f5ebdd). Muted earth-tone palette with selective blue and mustard-yellow accents. Simple geometric shapes, single centered focal subject, expressive but minimal faces. No text, no labels, no signage, no written words anywhere. Flat 2D look, no gradients, no shading beyond simple flat color. Square 1:1 composition. Portrait from chest up, centered. Subject: A 45-year-old white male who works as a Microsystems Engineers. Show wardrobe and one small prop appropriate to the job. Friendly neutral expression. No text, no captions, no labels anywhere.",
+    "generatedAt": "2026-04-19T20:03:59.670Z",
+    "textModel": "gpt-5",
+    "imageModel": "gpt-image-1"
   }
 }
