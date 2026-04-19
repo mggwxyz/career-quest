@@ -29,6 +29,13 @@
       "when": 1776551756306,
       "tag": "0003_pink_thunderbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776539328927,
+      "tag": "0004_onet_occupations",
+      "breakpoints": true
     }
   ]
 }

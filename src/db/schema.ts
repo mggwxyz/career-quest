@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
-  boolean, index, integer, jsonb, pgTable, smallint, text,
+  boolean, char, index, integer, jsonb, pgTable, smallint, text,
   timestamp, unique, uniqueIndex, uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -12,6 +12,7 @@ export const careerRecommendations = pgTable('career_recommendations', {
   userId: text('user_id').notNull(),
   rank: smallint().notNull(),
   onetId: text('onet_id').notNull(),
+  slug: text('slug'),
   title: text().notNull(),
   description: text().notNull(),
   whyItMatches: text('why_it_matches').notNull(),
@@ -118,4 +119,27 @@ export const careerUserActions = pgTable('career_user_actions', {
 }, t => [
   index('career_user_actions_user_onet_idx').on(t.userId, t.onetId),
   index('career_user_actions_user_action_idx').on(t.userId, t.action, t.createdAt),
+])
+
+export const onetOccupations = pgTable('onet_occupations', {
+  code: text().primaryKey(),
+  slug: text().notNull()
+    .unique(),
+  title: text().notNull(),
+  description: text(),
+  jobZone: integer('job_zone').notNull(),
+  brightOutlook: boolean('bright_outlook').notNull()
+    .default(false),
+  riasecPrimary: char('riasec_primary', { length: 1 }),
+  riasecAll: text('riasec_all').array()
+    .notNull()
+    .default([]),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, table => [
+  index('onet_occupations_job_zone_idx').on(table.jobZone),
+  index('onet_occupations_bright_idx').on(table.brightOutlook)
+    .where(sql`${table.brightOutlook}`),
+  index('onet_occupations_riasec_idx').using('gin', table.riasecAll),
+  index('onet_occupations_title_trgm').using('gin', sql`${table.title} gin_trgm_ops`),
 ])

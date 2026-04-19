@@ -52,6 +52,11 @@ export default defineConfig({
       NEON_AUTH_BASE_URL: process.env.NEON_AUTH_BASE_URL!,
       NEON_AUTH_COOKIE_SECRET: process.env.NEON_AUTH_COOKIE_SECRET!,
       OPENAI_API_KEY: 'sk-fake-e2e-not-used',
+      // Module-load guard in src/lib/onet/client.ts requires this. The detail
+      // page wraps getCareerDetail() in .catch(err => null), so a failing real
+      // fetch falls back to the local mirror — which is exactly what these
+      // tests assert on. A fake value is fine for E2E.
+      ONET_API_KEY: process.env.ONET_API_KEY ?? 'fake-e2e:fake-e2e',
       TEST_MSW: 'true',
     },
   },

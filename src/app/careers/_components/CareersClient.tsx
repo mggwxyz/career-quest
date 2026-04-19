@@ -127,7 +127,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                     transition={{ duration: 0.3, delay: index * 0.08 }}
                   >
                     <Link
-                      href={`/careers/${career.onetId}`}
+                      href={`/careers/${career.slug ?? career.onetId}`}
                       className="block p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
                     >
                       <div className="flex items-start justify-between mb-3">

@@ -1,6 +1,19 @@
 import type { NeonQueryFunction } from '@neondatabase/serverless'
 import { test, expect } from '../fixtures/test-base'
-import { mockCareers } from '../fixtures/career-recommendations'
+
+const SAMPLE_CODE = '29-1141.00' // Registered Nurses — matches MOCK_CHAT_RESPONSE persona
+const SAMPLE_SLUG = 'registered-nurses'
+const SAMPLE_TITLE = 'Registered Nurses'
+
+type SeedCareer = {
+  onetId: string
+  slug: string
+  title: string
+  description: string
+  whyItMatches: string
+  jobGrowth: string
+  salaryRange: string
+}
 
 /**
  * Seed a single career_recommendations row for the given user, creating the
@@ -10,7 +23,7 @@ import { mockCareers } from '../fixtures/career-recommendations'
 async function seedCareerRecommendation(
   sql: NeonQueryFunction<false, false>,
   userId: string,
-  career: typeof mockCareers.careers[number],
+  career: SeedCareer,
 ) {
   const sessionRows = await sql`
     INSERT INTO assessment_sessions (user_id, engine_version, posterior, completed_at)
@@ -27,65 +40,71 @@ async function seedCareerRecommendation(
   const runId = runRows[0].id
 
   await sql`
-    INSERT INTO career_recommendations (run_id, user_id, rank, onet_id, title, description, why_it_matches, job_growth, salary_range)
-    VALUES (${runId}, ${userId}, 1, ${career.onetId}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
+    INSERT INTO career_recommendations (run_id, user_id, rank, onet_id, slug, title, description, why_it_matches, job_growth, salary_range)
+    VALUES (${runId}, ${userId}, 1, ${career.onetId}, ${career.slug}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
   `
 }
 
-test.describe('Career Chat', () => {
+const sampleCareer: SeedCareer = {
+  onetId: SAMPLE_CODE,
+  slug: SAMPLE_SLUG,
+  title: SAMPLE_TITLE,
+  description: 'Assess patient health.',
+  whyItMatches: 'You care about helping people.',
+  jobGrowth: 'Fast',
+  salaryRange: '$80k',
+}
+
+test.describe('Career Chat (role-play)', () => {
   test.beforeEach(async ({ dbUtils }) => {
     await dbUtils.truncateAppTables()
+    // Seed the onet_occupations mirror row so slug routing works
+    await dbUtils.sql`
+      INSERT INTO onet_occupations (code, slug, title, description, job_zone, bright_outlook, riasec_primary, riasec_all)
+      VALUES (${SAMPLE_CODE}, ${SAMPLE_SLUG}, ${SAMPLE_TITLE}, 'Assess patient health problems and needs.', 4, true, 'S', ARRAY['S','I','R'])
+      ON CONFLICT (code) DO NOTHING
+    `
   })
 
-  test('should display the chat interface on career detail page', async ({
+  test('displays the role-play chat interface on career detail page', async ({
     authenticatedPage: page,
     dbUtils,
     mockChatStream,
   }) => {
     await mockChatStream(page)
     const userId = await dbUtils.getTestUserId()
-    const career = mockCareers.careers[0]
+    await seedCareerRecommendation(dbUtils.sql, userId, sampleCareer)
 
-    await seedCareerRecommendation(dbUtils.sql, userId, career)
+    await page.goto(`/careers/${SAMPLE_SLUG}`)
 
-    await page.goto(`/careers/${career.onetId}`)
-
-    // Verify chat header renders
-    await expect(page.getByText(`Chat about ${career.title}`)).toBeVisible()
-
-    // Verify initial assistant message renders
-    await expect(page.getByText(/I'm here to help you learn about/)).toBeVisible()
+    // Verify role-play chat header renders
+    await expect(page.getByText(/Talk with a/)).toBeVisible()
+    await expect(page.getByText('Registered Nurses', { exact: true }).first()).toBeVisible()
   })
 
-  test('should send a message and receive a mocked streaming response', async ({
+  test('sends a message and receives first-person mocked stream', async ({
     authenticatedPage: page,
     dbUtils,
     mockChatStream,
   }) => {
     await mockChatStream(page)
     const userId = await dbUtils.getTestUserId()
-    const career = mockCareers.careers[0]
+    await seedCareerRecommendation(dbUtils.sql, userId, sampleCareer)
 
-    await seedCareerRecommendation(dbUtils.sql, userId, career)
+    await page.goto(`/careers/${SAMPLE_SLUG}`)
 
-    await page.goto(`/careers/${career.onetId}`)
-
-    // Wait for the chat to be ready
-    await expect(page.getByText(/I'm here to help you learn about/)).toBeVisible()
+    // Wait for the chat UI to be ready
+    await expect(page.getByText(/Talk with a/)).toBeVisible()
 
     // Type a message and send
     const chatInput = page.locator('textarea, input[type="text"]').last()
-    await chatInput.fill('What does a typical day look like?')
+    await chatInput.fill('What does a typical shift look like?')
     await chatInput.press('Enter')
 
     // Verify the user message appears
-    await expect(page.getByText('What does a typical day look like?')).toBeVisible()
+    await expect(page.getByText('What does a typical shift look like?')).toBeVisible()
 
-    // Verify the mocked assistant response streams in
-    // Check for a distinctive fragment from MOCK_CHAT_RESPONSE
-    await expect(page.getByText(/Day-to-Day Responsibilities/)).toBeVisible({ timeout: 10000 })
-
-    // Verify markdown renders (the response contains bold text and lists)
-    await expect(page.getByText(/Software Developers/)).toBeVisible()
+    // Verify the mocked first-person practitioner response streams in
+    await expect(page.getByText(/I've been a Registered Nurse for 8 years/)).toBeVisible({ timeout: 10000 })
   })
 })

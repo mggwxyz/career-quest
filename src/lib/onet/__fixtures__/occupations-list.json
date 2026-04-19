@@ -1,0 +1,9 @@
+{
+  "total": 2,
+  "start": 1,
+  "end": 2,
+  "occupation": [
+    { "code": "29-1141.00", "title": "Registered Nurses" },
+    { "code": "15-1252.00", "title": "Software Developers" }
+  ]
+}

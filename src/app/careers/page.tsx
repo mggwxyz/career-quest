@@ -34,6 +34,7 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       title: row.title,
       description: row.description,
       onetId: row.onetId,
+      slug: row.slug,
       whyItMatches: row.whyItMatches,
       jobGrowth: row.jobGrowth ?? '',
       salaryRange: row.salaryRange ?? '',
