@@ -3,6 +3,7 @@ import { streamText } from 'ai'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
 import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
+import type { Persona } from '@/lib/personas/types'
 
 export const maxDuration = 30
 
@@ -48,6 +49,11 @@ const PersonaSchema = z.object({
   textModel: z.string(),
   imageModel: z.string(),
 })
+
+// Compile-time guard: PersonaSchema's inferred shape must satisfy Persona.
+// If Persona gains/changes a field, this assignment will fail to type-check.
+const _personaSchemaMatchesType: Persona = {} as z.infer<typeof PersonaSchema>
+void _personaSchemaMatchesType
 
 const BodySchema = z.object({
   messages: z.array(z.object({

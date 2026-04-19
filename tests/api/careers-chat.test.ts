@@ -9,6 +9,10 @@ vi.mock('ai', () => ({
   streamText: () => ({ toDataStreamResponse: () => new Response('ok') }),
 }))
 
+vi.mock('@/lib/chat/build-system-prompt', () => ({
+  buildCareerRolePlaySystemPrompt: vi.fn().mockReturnValue('system-prompt'),
+}))
+
 describe('POST /api/careers/chat', () => {
   it('returns 400 on invalid body', async () => {
     const req = new Request('http://test/api/careers/chat', {
@@ -44,30 +48,38 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('accepts an optional persona field in the body', async () => {
+    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
+    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
+    const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
       body: JSON.stringify({
         messages: [{ role: 'user', content: 'hi' }],
-        careerContext: validCtx(),
+        careerContext: ctx,
         recommendationContext: null,
         persona: validPersona,
       }),
     })
     const res = await POST(req)
     expect(res.status).toBe(200)
+    expect(buildCareerRolePlaySystemPrompt).toHaveBeenCalledWith(ctx, null, validPersona)
   })
 
   it('still accepts a body without persona (backward compat)', async () => {
+    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
+    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
+    const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
       body: JSON.stringify({
         messages: [{ role: 'user', content: 'hi' }],
-        careerContext: validCtx(),
+        careerContext: ctx,
         recommendationContext: null,
       }),
     })
     const res = await POST(req)
     expect(res.status).toBe(200)
+    expect(buildCareerRolePlaySystemPrompt).toHaveBeenCalledWith(ctx, null, null)
   })
 })
 
