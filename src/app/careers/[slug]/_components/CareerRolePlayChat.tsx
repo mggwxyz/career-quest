@@ -1,7 +1,6 @@
 'use client'
 
-import { useChat } from '@ai-sdk/react'
-import type { Message } from '@ai-sdk/ui-utils'
+import { useChat, type Message } from '@ai-sdk/react'
 import Image from 'next/image'
 import { Chat } from '@/components/ui/chat'
 import type { CareerContext } from '@/lib/chat/build-system-prompt'
