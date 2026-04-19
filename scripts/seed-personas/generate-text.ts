@@ -54,6 +54,7 @@ export async function generatePersonaText(args: {
     system: 'You are a careful character-design assistant. Invent realistic, specific, non-formulaic working professionals. Do not use the forbidden tropes the user lists.',
     prompt,
     schema: PersonaTextSchema,
+    temperature: 1,
   })
 
   return result.object

@@ -1,6 +1,24 @@
 {
-  "gender":    { "female": 0, "male": 0, "nonbinary": 0 },
-  "ethnicity": { "white": 0, "black": 0, "hispanic": 0, "asian": 0, "middle_eastern": 0, "pacific_islander": 0, "indigenous": 0, "multiracial": 0 },
-  "ageBand":   { "20s": 0, "30s": 0, "40s": 0, "50s_plus": 0 },
-  "total":     0
+  "gender": {
+    "female": 0,
+    "male": 1,
+    "nonbinary": 0
+  },
+  "ethnicity": {
+    "white": 1,
+    "black": 0,
+    "hispanic": 0,
+    "asian": 0,
+    "middle_eastern": 0,
+    "pacific_islander": 0,
+    "indigenous": 0,
+    "multiracial": 0
+  },
+  "ageBand": {
+    "20s": 0,
+    "30s": 1,
+    "40s": 0,
+    "50s_plus": 0
+  },
+  "total": 1
 }

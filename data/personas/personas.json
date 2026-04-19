@@ -1,1 +1,21 @@
-{}
+{
+  "13-2011.00": {
+    "onetId": "13-2011.00",
+    "name": "Ryan Whitaker",
+    "age": 39,
+    "gender": "male",
+    "pronouns": "he/him",
+    "ethnicityCue": "white",
+    "ageBand": "30s",
+    "yearsInField": 21,
+    "location": "Minneapolis, Minnesota",
+    "educationPath": "B.S. in Accounting from the University of Minnesota–Twin Cities (2008), Certified Public Accountant (Minnesota, active), and Certified Fraud Examiner (ACFE).",
+    "pathToCurrentPosition": "He started at 18 as a part-time bookkeeping assistant while taking night classes, then, after graduating in 2008, joined KPMG’s Minneapolis audit practice working on manufacturing and healthcare clients for six busy seasons. He moved to CLA (CliftonLarsonAllen) to reduce travel and focus on mid-market audits, and he’s now a senior audit manager leading 10–12 assurance engagements a year and maintaining the office’s revenue recognition and lease accounting templates.",
+    "dayInTheLife": "Mornings typically go to reviewing staff workpapers in CaseWare—revenue cutoff testing, bank recs, lease calculations—and clearing PBC items with a client controller over Zoom. Midday he might drive to a Brooklyn Park warehouse to observe an inventory cycle count, then return to tie out the cash flow statement and draft footnotes with ASC citations. Late afternoon is for coaching seniors on sampling and analytics, updating the engagement budget/WIP in Practice Management, and getting review notes back before the team logs off.",
+    "hobby": "Competes in a Tuesday pinball league at Tilt Pinball Bar, trying to top his 3.1M score on Attack from Mars.",
+    "imagePrompt": "Flat-color vector illustration in a friendly modern storybook style. Thick uniform black outlines, warm cream/beige background (#f5ebdd). Muted earth-tone palette with selective blue and mustard-yellow accents. Simple geometric shapes, single centered focal subject, expressive but minimal faces. No text, no labels, no signage, no written words anywhere. Flat 2D look, no gradients, no shading beyond simple flat color. Square 1:1 composition. Portrait from chest up, centered. Subject: A 39-year-old white male who works as a Accountants & Auditors. Show wardrobe and one small prop appropriate to the job. Friendly neutral expression. No text, no captions, no labels anywhere.",
+    "generatedAt": "2026-04-19T06:22:39.844Z",
+    "textModel": "gpt-5",
+    "imageModel": "gpt-image-1"
+  }
+}
