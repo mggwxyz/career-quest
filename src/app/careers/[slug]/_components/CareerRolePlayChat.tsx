@@ -3,13 +3,15 @@
 import { useChat } from '@ai-sdk/react'
 import { Chat } from '@/components/ui/chat'
 import type { CareerContext } from '@/lib/chat/build-system-prompt'
+import type { Persona } from '@/lib/personas/types'
 
 interface Props {
   careerContext: CareerContext
   recommendationContext: { whyItMatches: string } | null
+  persona: Persona | null
 }
 
-export function CareerRolePlayChat({ careerContext, recommendationContext }: Props) {
+export function CareerRolePlayChat({ careerContext, recommendationContext, persona }: Props) {
   const {
     messages,
     input,
@@ -21,11 +23,32 @@ export function CareerRolePlayChat({ careerContext, recommendationContext }: Pro
     setMessages,
   } = useChat({
     api: '/api/careers/chat',
-    body: { careerContext, recommendationContext },
+    body: { careerContext, recommendationContext, persona },
     initialMessages: [],
   })
 
   const onStartOver = () => setMessages([])
+
+  const headerLabel = persona
+    ? (
+      <>
+        Talk with
+        {' '}
+        <span>{persona.name}</span>
+        <span className="text-muted-foreground font-normal">{`, ${careerContext.title}`}</span>
+      </>
+    )
+    : (
+      <>
+        Talk with a
+        {' '}
+        <span>{careerContext.title}</span>
+      </>
+    )
+
+  const headerSubtitle = persona
+    ? `${persona.yearsInField} years in the field — based in ${persona.location}.`
+    : 'Speaking from experience — ask about the day-to-day, getting started, what surprises people, or anything else.'
 
   return (
     <div className="bg-surface/50 border border-border rounded-2xl h-[600px] flex flex-col overflow-hidden">
@@ -33,13 +56,9 @@ export function CareerRolePlayChat({ careerContext, recommendationContext }: Pro
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <span aria-hidden className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
-            Talk with a
-            {' '}
-            <span>{careerContext.title}</span>
+            {headerLabel}
           </h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Speaking from experience — ask about the day-to-day, getting started, what surprises people, or anything else.
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">{headerSubtitle}</p>
         </div>
         <button
           type="button"
