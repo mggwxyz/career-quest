@@ -2,6 +2,7 @@ export function slugifyTitle(title: string): string {
   return title
     .toLowerCase()
     .replace(/[\u2018\u2019']/g, '')
+    .replace(/&/g, ' and ')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }

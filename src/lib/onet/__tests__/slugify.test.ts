@@ -6,9 +6,13 @@ describe('slugifyTitle', () => {
     expect(slugifyTitle('Registered Nurses')).toBe('registered-nurses')
   })
   it('strips punctuation and special chars', () => {
-    expect(slugifyTitle('Marketing Managers & Analysts')).toBe('marketing-managers-analysts')
     expect(slugifyTitle('First-Line Supervisors')).toBe('first-line-supervisors')
     expect(slugifyTitle('Physicians\'')).toBe('physicians')
+  })
+  it('expands ampersands to "and"', () => {
+    expect(slugifyTitle('Marketing Managers & Analysts')).toBe('marketing-managers-and-analysts')
+    expect(slugifyTitle('Accountants & Auditors')).toBe('accountants-and-auditors')
+    expect(slugifyTitle('Bookkeeping, Accounting, & Auditing Clerks')).toBe('bookkeeping-accounting-and-auditing-clerks')
   })
   it('collapses whitespace', () => {
     expect(slugifyTitle('Farm  and   Ranch Managers')).toBe('farm-and-ranch-managers')
