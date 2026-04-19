@@ -42,7 +42,54 @@ describe('POST /api/careers/chat', () => {
     const res = await POST(req)
     expect(res.status).toBe(200)
   })
+
+  it('accepts an optional persona field in the body', async () => {
+    const req = new Request('http://test/api/careers/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'hi' }],
+        careerContext: validCtx(),
+        recommendationContext: null,
+        persona: validPersona,
+      }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+  })
+
+  it('still accepts a body without persona (backward compat)', async () => {
+    const req = new Request('http://test/api/careers/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'hi' }],
+        careerContext: validCtx(),
+        recommendationContext: null,
+      }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+  })
 })
+
+const validPersona = {
+  onetId: '29-1141.00',
+  name: 'Maria Alvarez',
+  age: 34,
+  gender: 'female',
+  pronouns: 'she/her',
+  ethnicityCue: 'hispanic',
+  ageBand: '30s',
+  yearsInField: 12,
+  location: 'Denver, CO',
+  educationPath: 'edu',
+  pathToCurrentPosition: 'path',
+  dayInTheLife: 'day',
+  hobby: 'hobby',
+  imagePrompt: 'prompt',
+  generatedAt: '2026-04-19T00:00:00.000Z',
+  textModel: 'gpt-5',
+  imageModel: 'gpt-image-1',
+}
 
 function validCtx() {
   return {

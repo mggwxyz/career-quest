@@ -26,6 +26,29 @@ const CareerContextSchema = z.object({
   outlook: z.string(),
 })
 
+const PersonaSchema = z.object({
+  onetId: z.string(),
+  name: z.string(),
+  age: z.number(),
+  gender: z.enum(['female', 'male', 'nonbinary']),
+  pronouns: z.string(),
+  ethnicityCue: z.enum([
+    'white', 'black', 'hispanic', 'asian',
+    'middle_eastern', 'pacific_islander', 'indigenous', 'multiracial',
+  ]),
+  ageBand: z.enum(['20s', '30s', '40s', '50s_plus']),
+  yearsInField: z.number(),
+  location: z.string(),
+  educationPath: z.string(),
+  pathToCurrentPosition: z.string(),
+  dayInTheLife: z.string(),
+  hobby: z.string(),
+  imagePrompt: z.string(),
+  generatedAt: z.string(),
+  textModel: z.string(),
+  imageModel: z.string(),
+})
+
 const BodySchema = z.object({
   messages: z.array(z.object({
     role: z.enum(['user', 'assistant', 'system']),
@@ -33,6 +56,7 @@ const BodySchema = z.object({
   })),
   careerContext: CareerContextSchema,
   recommendationContext: z.object({ whyItMatches: z.string() }).nullable(),
+  persona: PersonaSchema.nullable().optional(),
 })
 
 export async function POST(req: Request) {
@@ -53,7 +77,11 @@ export async function POST(req: Request) {
     })
   }
 
-  const system = buildCareerRolePlaySystemPrompt(body.careerContext, body.recommendationContext)
+  const system = buildCareerRolePlaySystemPrompt(
+    body.careerContext,
+    body.recommendationContext,
+    body.persona ?? null,
+  )
 
   const result = streamText({
     model: openai('gpt-4o'),
