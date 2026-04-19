@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { sql } from 'drizzle-orm'
 import { db } from '../../src/db'
-import { careerRecommendations } from '../../src/db/schema'
+import { careerRecommendations, onetOccupations } from '../../src/db/schema'
 
 function readFallback(): string[] {
   const path = resolve(process.cwd(), 'data/personas/phase1-fallback.json')
@@ -41,13 +41,18 @@ export async function rankPhase1(
 /** Phase-2: every code in the fallback list plus any DB-appearing code,
  *  minus anything already in the manifest. */
 export async function rankAll(existingOnetIds: Set<string>): Promise<string[]> {
-  const rows = await db
+  const recRows = await db
     .selectDistinct({ onetId: careerRecommendations.onetId })
     .from(careerRecommendations)
 
+  const mirrorRows = await db
+    .select({ onetId: onetOccupations.code })
+    .from(onetOccupations)
+    .orderBy(onetOccupations.code)
+
   const out: string[] = []
   const seen = new Set<string>()
-  for (const id of [...rows.map(r => r.onetId), ...readFallback()]) {
+  for (const id of [...recRows.map(r => r.onetId), ...readFallback(), ...mirrorRows.map(r => r.onetId)]) {
     if (seen.has(id) || existingOnetIds.has(id)) continue
     out.push(id)
     seen.add(id)
