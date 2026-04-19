@@ -11,6 +11,8 @@ export interface SearchFilters {
   // zone: one or more of 1..5
   zone?: number[]
   bright?: boolean
+  /** Restrict results to the set of O*NET codes that have a seeded persona. */
+  onetIds?: string[]
   // page: 1-based
   page?: number
 }
@@ -35,6 +37,13 @@ export async function searchOccupations(filters: SearchFilters): Promise<SearchR
   }
   if (filters.bright) {
     conditions.push(eq(onetOccupations.brightOutlook, true))
+  }
+  if (filters.onetIds) {
+    if (filters.onetIds.length === 0) {
+      // Empty allowlist: short-circuit to zero results without a SQL IN ().
+      return { rows: [], total: 0, page: Math.max(1, filters.page ?? 1), pageSize: PAGE_SIZE }
+    }
+    conditions.push(inArray(onetOccupations.code, filters.onetIds))
   }
   if (filters.riasec && filters.riasec.length > 0) {
     // riasec_all && ARRAY['S','I']::text[] -> true if any overlap

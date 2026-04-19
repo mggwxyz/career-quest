@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/get-session'
 import { searchOccupations } from '@/lib/onet/browse'
+import { listPersonaOnetIds } from '@/lib/personas'
 import { containerClassName } from '../../_styles/classes'
 import { ExploreFilters } from './_components/ExploreFilters'
 
@@ -10,6 +11,7 @@ interface SearchParams {
   riasec?: string
   zone?: string
   bright?: string
+  chat?: string
   page?: string
 }
 
@@ -22,16 +24,21 @@ export default async function ExplorePage({
   if (!session?.user) redirect('/auth/login?redirect=/careers/explore')
 
   const params = await searchParams
+  const chatReady = params.chat === '1'
   const filters = {
     q: params.q,
     riasec: params.riasec?.split(',').filter(Boolean) ?? [],
     zone: params.zone?.split(',').map(n => parseInt(n, 10))
       .filter(n => n >= 1 && n <= 5) ?? [],
     bright: params.bright === '1',
+    chatReady,
     page: parseInt(params.page ?? '1', 10),
   }
 
-  const { rows, total, page, pageSize } = await searchOccupations(filters)
+  const { rows, total, page, pageSize } = await searchOccupations({
+    ...filters,
+    onetIds: chatReady ? listPersonaOnetIds() : undefined,
+  })
   const hasMore = page * pageSize < total
 
   return (
@@ -46,6 +53,7 @@ export default async function ExplorePage({
         riasec={filters.riasec}
         zone={filters.zone}
         bright={filters.bright}
+        chatReady={filters.chatReady}
       />
 
       <div className="flex items-center justify-between mt-6 mb-4">
@@ -54,7 +62,7 @@ export default async function ExplorePage({
           {' '}
           careers match
         </p>
-        {(filters.q || filters.riasec.length || filters.zone.length || filters.bright) && (
+        {(filters.q || filters.riasec.length || filters.zone.length || filters.bright || filters.chatReady) && (
           <Link href="/careers/explore" className="text-sm text-primary-soft hover:underline">
             Clear filters
           </Link>

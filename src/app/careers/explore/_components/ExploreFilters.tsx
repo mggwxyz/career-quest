@@ -7,6 +7,7 @@ interface Props {
   riasec: string[]
   zone: number[]
   bright: boolean
+  chatReady: boolean
 }
 
 const RIASEC_OPTIONS = [
@@ -25,7 +26,7 @@ const EDUCATION_OPTIONS: Array<{ label: string, zones: number[] }> = [
   { label: 'Advanced', zones: [5] },
 ]
 
-export function ExploreFilters({ q, riasec, zone, bright }: Props) {
+export function ExploreFilters({ q, riasec, zone, bright, chatReady }: Props) {
   const router = useRouter()
   const currentParams = useSearchParams()
 
@@ -57,6 +58,7 @@ export function ExploreFilters({ q, riasec, zone, bright }: Props) {
   }
 
   const toggleBright = () => updateParams({ bright: bright ? null : '1' })
+  const toggleChatReady = () => updateParams({ chat: chatReady ? null : '1' })
 
   return (
     <div className="space-y-3">
@@ -120,6 +122,13 @@ export function ExploreFilters({ q, riasec, zone, bright }: Props) {
           className={`text-xs px-3 py-1 rounded-full border transition-colors ${bright ? 'bg-green-500 text-white border-green-500' : 'border-border text-muted-foreground hover:border-border-hover'}`}
         >
           ✦ Bright outlook
+        </button>
+        <button
+          type="button"
+          onClick={toggleChatReady}
+          className={`text-xs px-3 py-1 rounded-full border transition-colors ${chatReady ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:border-border-hover'}`}
+        >
+          💬 Chat about career
         </button>
       </div>
     </div>

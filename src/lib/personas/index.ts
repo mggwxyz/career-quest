@@ -7,3 +7,7 @@ export function getPersona(onetId: string): Persona | null {
   const m = manifest as PersonaManifest
   return m[onetId] ?? null
 }
+
+export function listPersonaOnetIds(): string[] {
+  return Object.keys(manifest as PersonaManifest)
+}
