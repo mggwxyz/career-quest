@@ -36,6 +36,7 @@ interface ChatPropsBase {
   ) => void
   setMessages?: (messages: unknown[]) => void
   transcribeAudio?: (blob: Blob) => Promise<string>
+  assistantAvatar?: { src: string, name: string }
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -63,6 +64,7 @@ export function Chat({
   onRateResponse,
   setMessages,
   transcribeAudio,
+  assistantAvatar,
 }: ChatProps) {
   const lastMessage = messages.at(-1)
   const isEmpty = messages.length === 0
@@ -158,42 +160,48 @@ export function Chat({
   }, [stop, setMessages, messagesRef])
 
   const messageOptions = useCallback(
-    (message: Message) => ({
-      actions: onRateResponse
-        ? (
-          <>
-            <div className="border-r pr-1">
-              <CopyButton
-                content={message.content}
-                copyMessage="Copied response to clipboard!"
-              />
-            </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6"
-              onClick={() => onRateResponse(message.id, 'thumbs-up')}
-            >
-              <ThumbsUp className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6"
-              onClick={() => onRateResponse(message.id, 'thumbs-down')}
-            >
-              <ThumbsDown className="h-4 w-4" />
-            </Button>
-          </>
-        )
-        : (
-          <CopyButton
-            content={message.content}
-            copyMessage="Copied response to clipboard!"
-          />
-        ),
-    }),
-    [onRateResponse],
+    (message: Message) => {
+      const avatarProps = message.role === 'assistant' && assistantAvatar
+        ? { avatarSrc: assistantAvatar.src, senderName: assistantAvatar.name }
+        : {}
+      return {
+        ...avatarProps,
+        actions: onRateResponse
+          ? (
+            <>
+              <div className="border-r pr-1">
+                <CopyButton
+                  content={message.content}
+                  copyMessage="Copied response to clipboard!"
+                />
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={() => onRateResponse(message.id, 'thumbs-up')}
+              >
+                <ThumbsUp className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={() => onRateResponse(message.id, 'thumbs-down')}
+              >
+                <ThumbsDown className="h-4 w-4" />
+              </Button>
+            </>
+          )
+          : (
+            <CopyButton
+              content={message.content}
+              copyMessage="Copied response to clipboard!"
+            />
+          ),
+      }
+    },
+    [onRateResponse, assistantAvatar],
   )
 
   return (

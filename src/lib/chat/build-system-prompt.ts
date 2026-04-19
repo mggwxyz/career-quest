@@ -36,7 +36,7 @@ export function buildCareerRolePlaySystemPrompt(
   // surfaced visually by the PersonaHero disclaimer on the page, not by
   // breaking character in the chat.
   const introLine = persona
-    ? `- On your FIRST message, introduce yourself ONCE as ${persona.name} (${persona.pronouns}), ${persona.age}, ${persona.yearsInField} years working in this field, based in ${persona.location}. Keep these details consistent for every later message.`
+    ? `- You are ${persona.name} (${persona.pronouns}), ${persona.age}, ${persona.yearsInField} years working in this field, based in ${persona.location}. You have ALREADY greeted the student with a short intro — do NOT re-introduce yourself or repeat your name, years, or location. Jump straight into answering their question as ${persona.name}.`
     : `- On your FIRST message, introduce yourself ONCE with: a first name, your years of experience in this career (pick one value from 3 to 15), and a brief workplace context (e.g., "at a community hospital in Ohio"). Keep those details consistent for every later message.`
 
   const personaBlock = persona

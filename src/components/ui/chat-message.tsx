@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { motion } from 'framer-motion'
 import { Ban, ChevronRight, Code2, Loader2, Terminal } from 'lucide-react'
@@ -136,6 +137,8 @@ export interface ChatMessageProps extends Message {
   showTimeStamp?: boolean
   animation?: Animation
   actions?: React.ReactNode
+  avatarSrc?: string
+  senderName?: string
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -148,6 +151,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   experimental_attachments,
   toolInvocations,
   parts,
+  avatarSrc,
+  senderName,
 }) => {
   const files = useMemo(() => {
     return experimental_attachments?.map((attachment) => {
@@ -165,6 +170,27 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     hour: '2-digit',
     minute: '2-digit',
   })
+
+  const wrapAssistant = (children: React.ReactNode) => {
+    if (!avatarSrc) return <>{children}</>
+    return (
+      <div className="flex gap-2.5 items-start">
+        <Image
+          src={avatarSrc}
+          alt={senderName ?? 'Assistant'}
+          width={36}
+          height={36}
+          className="rounded-full object-cover shrink-0 mt-0.5 border border-border"
+        />
+        <div className="flex flex-col flex-1 min-w-0 gap-1">
+          {senderName
+            ? <span className="text-xs text-muted-foreground px-1">{senderName}</span>
+            : null}
+          {children}
+        </div>
+      </div>
+    )
+  }
 
   if (isUser) {
     return (
@@ -203,7 +229,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   }
 
   if (parts && parts.length > 0) {
-    return parts.map((part, index) => {
+    return wrapAssistant(parts.map((part, index) => {
       if (part.type === 'text') {
         return (
           <div
@@ -252,14 +278,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         )
       }
       return null
-    })
+    }))
   }
 
   if (toolInvocations && toolInvocations.length > 0) {
-    return <ToolCall toolInvocations={toolInvocations} />
+    return wrapAssistant(<ToolCall toolInvocations={toolInvocations} />)
   }
 
-  return (
+  return wrapAssistant(
     <div className={cn('flex flex-col', isUser ? 'items-end' : 'items-start')}>
       <div className={cn(chatBubbleVariants({ isUser, animation }))}>
         <MarkdownRenderer>{content}</MarkdownRenderer>
@@ -285,7 +311,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           </time>
         )
         : null}
-    </div>
+    </div>,
   )
 }
 

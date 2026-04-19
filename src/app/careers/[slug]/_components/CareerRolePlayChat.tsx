@@ -1,6 +1,8 @@
 'use client'
 
 import { useChat } from '@ai-sdk/react'
+import type { Message } from '@ai-sdk/ui-utils'
+import Image from 'next/image'
 import { Chat } from '@/components/ui/chat'
 import type { CareerContext } from '@/lib/chat/build-system-prompt'
 import type { Persona } from '@/lib/personas/types'
@@ -11,7 +13,20 @@ interface Props {
   persona: Persona | null
 }
 
+function buildOpeningMessage(persona: Persona, careerTitle: string): Message {
+  const content = `Hey — I'm ${persona.name}. I've been a ${careerTitle} for ${persona.yearsInField} years, based in ${persona.location}. Happy to share whatever would be helpful — the day-to-day, how I got here, the hard parts, anything else. What are you curious about?`
+  return {
+    id: 'persona-greeting',
+    role: 'assistant',
+    content,
+  }
+}
+
 export function CareerRolePlayChat({ careerContext, recommendationContext, persona }: Props) {
+  const openingMessages: Message[] = persona
+    ? [buildOpeningMessage(persona, careerContext.title)]
+    : []
+
   const {
     messages,
     input,
@@ -24,10 +39,14 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
   } = useChat({
     api: '/api/careers/chat',
     body: { careerContext, recommendationContext, persona },
-    initialMessages: [],
+    initialMessages: openingMessages,
   })
 
-  const onStartOver = () => setMessages([])
+  const onStartOver = () => setMessages(openingMessages)
+
+  const assistantAvatar = persona
+    ? { src: `/careers/personas/${persona.onetId}.webp`, name: persona.name }
+    : undefined
 
   const headerLabel = persona
     ? (
@@ -55,7 +74,19 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
       <div className="p-4 border-b border-border flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span aria-hidden className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
+            {assistantAvatar
+              ? (
+                <Image
+                  src={assistantAvatar.src}
+                  alt={assistantAvatar.name}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full object-cover border border-border"
+                />
+              )
+              : (
+                <span aria-hidden className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
+              )}
             {headerLabel}
           </h2>
           <p className="text-xs text-muted-foreground mt-1">{headerSubtitle}</p>
@@ -64,7 +95,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
           type="button"
           onClick={onStartOver}
           className="text-xs text-muted-foreground hover:text-primary-soft underline disabled:opacity-40"
-          disabled={messages.length === 0 || status === 'streaming'}
+          disabled={messages.length <= openingMessages.length || status === 'streaming'}
         >
           Start over
         </button>
@@ -94,6 +125,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
           input={input}
           handleInputChange={handleInputChange}
           isGenerating={status === 'streaming'}
+          assistantAvatar={assistantAvatar}
           className="flex-1 p-4"
         />
       </div>
