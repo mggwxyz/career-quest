@@ -2,9 +2,6 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { motion } from 'framer-motion'
-import { useAppStore } from '@/store/appStore'
-import { useShallow } from 'zustand/react/shallow'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
@@ -25,28 +22,11 @@ const loadingMessages = [
 ]
 
 export default function CareersClient({ initialCareers }: CareersClientProps) {
-  const { getDeckResults, interests, answers } = useAppStore(
-    useShallow(s => ({
-      getDeckResults: s.getDeckResults,
-      interests: s.interests,
-      answers: s.answers,
-    })),
-  )
   const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const hasExistingData = initialCareers.length > 0
-  const router = useRouter()
-
-  useEffect(() => {
-    const results = getDeckResults()
-    const hasResults = Object.values(results).some(deck => Object.keys(deck).length > 0)
-    if (!hasResults && Object.keys(answers).length === 0) {
-      toast.error('No assessment results found. Please complete the assessment first.')
-      router.push('/discover/interests')
-    }
-  }, [answers, getDeckResults, router])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -66,8 +46,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
       setError(null)
       const loadingToastId = toast.loading('Generating career recommendations...')
       try {
-        const results = getDeckResults()
-        const response = await generateCareerRecommendationsAction(results, interests)
+        const response = await generateCareerRecommendationsAction()
         if (response.success && response.careers) {
           setCareers(response.careers)
           toast.dismiss(loadingToastId)

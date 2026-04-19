@@ -2,11 +2,12 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
+import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
-import { careerRecommendations } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { assessmentSessions, careerRecommendations, recommendationRuns, userInterests } from '@/db/schema'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
+import { AssessmentResult, ENGINE_VERSION, formatResultForPrompt } from '@/lib/assessment'
 
 const openai = createOpenAI({
   compatibility: 'strict',
@@ -15,6 +16,7 @@ const openai = createOpenAI({
 
 const MAX_INTEREST_LENGTH = 64
 const MAX_INTERESTS = 30
+const MODEL_ID = 'gpt-4o'
 
 /**
  * Sanitize free-text interests before interpolating them into the OpenAI prompt.
@@ -45,10 +47,10 @@ function sanitizeInterestsForPrompt(rawInterests: string[]): string[] {
     .filter(interest => interest.length > 0)
 }
 
-export async function generateCareerRecommendationsAction(
-  results: Record<string, Record<string, number>>,
-  interests: string[],
-): Promise<{ success: boolean, careers?: CareerRecommendation[], error?: string }> {
+export async function generateCareerRecommendationsAction(): Promise<
+  { success: boolean, careers?: CareerRecommendation[], error?: string }
+> {
+  const startedAt = Date.now()
   try {
     const session = await getSession()
     if (!session?.user) {
@@ -56,29 +58,37 @@ export async function generateCareerRecommendationsAction(
     }
     const user = session.user
 
+    const [latest] = await db.select().from(assessmentSessions)
+      .where(and(
+        eq(assessmentSessions.userId, user.id),
+        isNotNull(assessmentSessions.completedAt),
+      ))
+      .orderBy(desc(assessmentSessions.completedAt))
+      .limit(1)
+    if (!latest?.result) {
+      return { success: false, error: 'Complete the assessment before requesting careers' }
+    }
+
+    const interestRows = await db.select({ interest: userInterests.interest })
+      .from(userInterests)
+      .where(eq(userInterests.userId, user.id))
+      .orderBy(userInterests.createdAt)
+    const cleanInterests = sanitizeInterestsForPrompt(interestRows.map(r => r.interest))
+    const profile = formatResultForPrompt(latest.result as AssessmentResult)
     const prompt = `
-      Based on the following assessment results and selected interests, suggest 10 career paths that would be a good match.
-      For each career, provide a brief explanation of why it matches their profile.
-      Format the response as a JSON array of objects, where each object has the following properties:
-      - title: string (the title of the career)
-      - description: string (a brief description of the career)
-      - onetId: string (the Onet ID of the career)
-      - whyItMatches: string (a brief explanation of why it matches their profile)
-      - jobGrowth: string (the job growth of the career)
-      - salaryRange: string (the salary range of the career)
+${profile}
 
-      Selected Interests:
-      ${sanitizeInterestsForPrompt(interests).join(', ')}
+Selected Interests:
+${cleanInterests.join(', ')}
 
-      Assessment Results:
-      ${JSON.stringify(results, null, 2)}
-    `
+Suggest 10 career paths that match the profile above. For each, return:
+- title, description, onetId, whyItMatches, jobGrowth, salaryRange.
+Respond as a JSON array.
+    `.trim()
 
     const result = await generateObject({
-      model: openai.chat('gpt-4o'),
-      system: `You are a career counselor helping to match people with suitable careers based on their interests, values, and preferences.
-      Consider both their explicitly selected interests and their assessment results when making recommendations.
-      Prioritize careers that align with their selected interests while also matching their RIASEC profile, work values, and environment preferences.`,
+      model: openai.chat(MODEL_ID),
+      system: `You are a career counselor. Use the Holland code, confidence bands, work values, and work context to recommend careers that fit. Hedge explicitly when any scale is low confidence.`,
       prompt,
       schema: CareersResponseSchema,
     })
@@ -87,19 +97,35 @@ export async function generateCareerRecommendationsAction(
       throw new Error('No response from OpenAI')
     }
 
-    // Delete old recommendations and insert new ones
-    await db.delete(careerRecommendations)
-      .where(eq(careerRecommendations.userId, user.id))
+    // NOTE: these two inserts are NOT wrapped in a transaction. The Neon HTTP
+    // driver (`@neondatabase/serverless`) supports only a batch-style transaction
+    // API, which does not let us read `run.id` from the first insert before
+    // issuing the second. A failed second insert therefore leaves an orphan
+    // `recommendation_runs` row; `careers/page.tsx` handles that by matching
+    // the latest run that has recommendations. When we move to a node-postgres
+    // or pooled driver this can become a proper `db.transaction(...)`.
+    const [run] = await db.insert(recommendationRuns).values({
+      userId: user.id,
+      sessionId: latest.id,
+      interestsSnapshot: cleanInterests,
+      prompt,
+      model: MODEL_ID,
+      engineVersion: ENGINE_VERSION,
+      durationMs: Date.now() - startedAt,
+    })
+      .returning({ id: recommendationRuns.id })
 
     await db.insert(careerRecommendations).values(
-      result.object.careers.map(career => ({
+      result.object.careers.map((c, i) => ({
+        runId: run.id,
         userId: user.id,
-        onetId: career.onetId,
-        title: career.title,
-        description: career.description,
-        whyItMatches: career.whyItMatches,
-        jobGrowth: career.jobGrowth,
-        salaryRange: career.salaryRange,
+        rank: i + 1,
+        onetId: c.onetId,
+        title: c.title,
+        description: c.description,
+        whyItMatches: c.whyItMatches,
+        jobGrowth: c.jobGrowth,
+        salaryRange: c.salaryRange,
       })),
     )
 
@@ -107,6 +133,13 @@ export async function generateCareerRecommendationsAction(
   }
   catch (error) {
     console.error('Error generating career recommendations:', error)
+    // Note: we intentionally do NOT write a "failed run" row here.
+    // `recommendation_runs.session_id` is NOT NULL and FKs to
+    // `assessment_sessions.id`; any sentinel / placeholder UUID would fail
+    // the FK constraint, and if the failure happened before we located a
+    // session there is no valid id to attach. Telemetry for failed prompt
+    // assembly lives in logs until a nullable-session or separate
+    // failure-log table exists.
     return { success: false, error: 'Failed to generate career recommendations' }
   }
 }

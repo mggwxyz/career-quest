@@ -22,7 +22,6 @@ export default async function globalTeardown() {
     // We can't delete the Neon Auth identity itself (neon_auth.users_sync is
     // managed and read-only), but we can clean up the app rows keyed off the
     // user id.
-    await sql`DELETE FROM quiz_answers WHERE user_id = ${testUser.userId}`
     await sql`DELETE FROM career_recommendations WHERE user_id = ${testUser.userId}`
     console.log(`[e2e] Cleaned up app data for ${testUser.email}`)
   }
