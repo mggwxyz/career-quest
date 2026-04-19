@@ -224,7 +224,7 @@ export default function PreferencesPage() {
       </AnimatePresence>
 
       <div className="flex justify-center gap-3 mt-6 flex-wrap">
-        {itemsAnswered >= 8 && (
+        {itemsAnswered >= 13 && (
           <button type="button" onClick={() => setPeekOpen(true)} className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all">
             Peek at profile
           </button>

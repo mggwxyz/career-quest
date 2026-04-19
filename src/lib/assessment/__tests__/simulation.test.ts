@@ -58,8 +58,8 @@ describe('runSimulatedSession', () => {
     const user = makeSyntheticUser({ topCode: 'SAE', seed: 7 })
     const out = runSimulatedSession({ user, bank: items, gradeBand: 'late-hs', seed: 7 })
     expect(out.result.hollandCode).toMatch(/^[RIASEC]{3}$/)
-    expect(out.result.meta.itemsAnswered).toBeGreaterThanOrEqual(12)
-    expect(out.result.meta.itemsAnswered).toBeLessThanOrEqual(20)
+    expect(out.result.meta.itemsAnswered).toBeGreaterThanOrEqual(20)
+    expect(out.result.meta.itemsAnswered).toBeLessThanOrEqual(30)
   })
 })
 

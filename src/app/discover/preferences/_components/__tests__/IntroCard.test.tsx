@@ -3,9 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import IntroCard from '../IntroCard'
 
 describe('IntroCard', () => {
-  it('shows the 12–20 choice copy', () => {
+  it('shows the 20–30 choice copy', () => {
     render(<IntroCard onStart={vi.fn()} />)
-    expect(screen.getByText(/12.*20/)).toBeInTheDocument()
+    expect(screen.getByText(/20.*30/)).toBeInTheDocument()
   })
 
   it('calls onStart when the button is clicked', () => {

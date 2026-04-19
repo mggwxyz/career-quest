@@ -5,7 +5,7 @@ export default function IntroCard({ onStart }: { onStart: () => void }) {
     <div className="text-center pt-20 px-4 max-w-md mx-auto">
       <h1 className="font-serif text-3xl text-foreground mb-4">Ready?</h1>
       <p className="text-base text-muted-foreground mb-3">
-        About 12–20 quick choices. There are no wrong answers. You can skip any question, and you can pause anytime.
+        About 20–30 quick choices. There are no wrong answers. You can skip any question, and you can pause anytime.
       </p>
       <button
         type="button"

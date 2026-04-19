@@ -61,8 +61,8 @@ export function pickNextItem(
   return best
 }
 
-export const FLOOR_ITEMS = 12
-export const CAP_ITEMS = 20
+export const FLOOR_ITEMS = 20
+export const CAP_ITEMS = 30
 
 const TOP3_SEPARATION_SD = 1.0
 

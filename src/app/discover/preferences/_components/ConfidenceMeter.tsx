@@ -1,14 +1,15 @@
 'use client'
 import { motion } from 'framer-motion'
+import { CAP_ITEMS } from '@/lib/assessment/engine'
 
 function stageFor(itemsAnswered: number): string {
-  if (itemsAnswered < 5) return 'Getting clearer'
-  if (itemsAnswered < 10) return 'Almost there'
+  if (itemsAnswered < 8) return 'Getting clearer'
+  if (itemsAnswered < 15) return 'Almost there'
   return 'Got it — just a few more'
 }
 
 export default function ConfidenceMeter({ itemsAnswered }: { itemsAnswered: number }) {
-  const pct = Math.min(100, (itemsAnswered / 20) * 100)
+  const pct = Math.min(100, (itemsAnswered / CAP_ITEMS) * 100)
   return (
     <div className="flex items-center gap-3 mb-2">
       <div className="flex-1 h-1 rounded-full bg-primary/10 overflow-hidden">
