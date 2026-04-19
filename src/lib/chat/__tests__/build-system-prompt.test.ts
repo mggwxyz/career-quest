@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildCareerRolePlaySystemPrompt, type CareerContext } from '../build-system-prompt'
+import type { Persona } from '@/lib/personas/types'
 
 const careerContext: CareerContext = {
   title: 'Registered Nurses',
@@ -47,5 +48,62 @@ describe('buildCareerRolePlaySystemPrompt', () => {
     const out = buildCareerRolePlaySystemPrompt(careerContext, null)
     expect(out).toMatch(/never.*AI/i)
     expect(out).toMatch(/never break character/i)
+  })
+})
+
+const persona: Persona = {
+  onetId: '29-1141.00',
+  name: 'Maria Alvarez',
+  age: 34,
+  gender: 'female',
+  pronouns: 'she/her',
+  ethnicityCue: 'hispanic',
+  ageBand: '30s',
+  yearsInField: 12,
+  location: 'Denver, CO',
+  educationPath: 'Associate of Nursing at Front Range CC.',
+  pathToCurrentPosition: 'Started in med-surg; moved to ER after 3 years.',
+  dayInTheLife: 'Triage, charting, family conversations.',
+  hobby: 'Trail running on weekends.',
+  imagePrompt: 'prompt',
+  generatedAt: '2026-04-19T00:00:00.000Z',
+  textModel: 'gpt-5',
+  imageModel: 'gpt-image-1',
+}
+
+describe('buildCareerRolePlaySystemPrompt with persona', () => {
+  it('uses the persona name, age, pronouns, and location verbatim', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, persona)
+    expect(out).toMatch(/Maria Alvarez/)
+    expect(out).toMatch(/34/)
+    expect(out).toMatch(/she\/her/)
+    expect(out).toMatch(/Denver, CO/)
+    expect(out).toMatch(/12 years/)
+  })
+
+  it('injects educationPath, pathToCurrentPosition, dayInTheLife, hobby', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, persona)
+    expect(out).toMatch(/Front Range CC/)
+    expect(out).toMatch(/med-surg/)
+    expect(out).toMatch(/Triage, charting/)
+    expect(out).toMatch(/Trail running/)
+  })
+
+  it('replaces the pick-a-name self-introduction instruction with persona-driven intro', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, persona)
+    expect(out).not.toMatch(/pick one value from 3 to 15/)
+    expect(out).toMatch(/introduce yourself/i)
+  })
+
+  it('keeps the never-mention-AI rule even when persona is present', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, persona)
+    expect(out).toMatch(/never.*AI/i)
+    expect(out).toMatch(/never break character/i)
+  })
+
+  it('persona=null preserves the original behavior (regression check)', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, null)
+    expect(out).toMatch(/first name/i)
+    expect(out).toMatch(/never.*AI/i)
   })
 })
