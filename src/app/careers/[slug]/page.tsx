@@ -7,6 +7,8 @@ import { resolveSlug, getOccupationByCode, getCareerDetail } from '@/lib/onet/oc
 import { toCareerContext } from '@/lib/onet/projectors'
 import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
+import { PersonaHero } from './_components/PersonaHero'
+import { getPersona } from '@/lib/personas'
 import { containerClassName } from '../../_styles/classes'
 
 const ONET_CODE_RE = /^\d{2}-\d{4}\.\d{2}$/
@@ -73,8 +75,11 @@ export default async function CareerDetailPage({
       outlook: '',
     }
 
+  const persona = getPersona(occupation.code)
+
   return (
     <div className={containerClassName}>
+      {persona && <PersonaHero persona={persona} careerTitle={occupation.title} />}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <CareerDetailsPanel
@@ -87,6 +92,7 @@ export default async function CareerDetailPage({
           <CareerRolePlayChat
             careerContext={careerContext}
             recommendationContext={whyItMatches ? { whyItMatches } : null}
+            persona={persona}
           />
         </div>
       </div>
