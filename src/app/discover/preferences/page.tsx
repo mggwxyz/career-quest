@@ -43,6 +43,14 @@ export default function PreferencesPage() {
     }
   }, [])
 
+  // Covers client-side nav back into an in-flight session, where the Zustand
+  // store retains phase='question' + currentItem but the ref re-initializes to 0.
+  useEffect(() => {
+    if (phase === 'question' && currentItem && shownAtRef.current === 0) {
+      shownAtRef.current = Date.now()
+    }
+  }, [phase, currentItem])
+
   // Resume on first mount
   useEffect(() => {
     if (phase !== 'grade') return
