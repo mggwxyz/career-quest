@@ -65,7 +65,7 @@
   --card-foreground: #e0dff0;
   --popover: #0f0f24;
   --popover-foreground: #e0dff0;
-  --primary: #39ff14;
+  --primary: #4EDBA7;
   --primary-foreground: #04130a;
   --secondary: #22c55e;
   --secondary-foreground: #04130a;
@@ -74,10 +74,10 @@
   --accent: #fbbf24;
   --accent-foreground: #1a0f00;
   --destructive: #ef4444;
-  --border: rgba(57, 255, 20, 0.2);
-  --input: rgba(57, 255, 20, 0.2);
-  --ring: #39ff14;
-  --chart-1: #39ff14;
+  --border: rgba(78, 219, 167, 0.2);
+  --input: rgba(78, 219, 167, 0.2);
+  --ring: #4EDBA7;
+  --chart-1: #4EDBA7;
   --chart-2: #22c55e;
   --chart-3: #06b6d4;
   --chart-4: #fbbf24;
@@ -85,32 +85,32 @@
   /* Celestial tokens */
   --surface: #0f0f24;
   --surface-glass: rgba(10, 10, 30, 0.6);
-  --primary-soft: #b7ff6a;
+  --primary-soft: #8ef0c8;
   --accent-warm: #fbbf24;
   --accent-cyan: #06b6d4;
   --text-dim: #8b85b8;
-  --border-hover: rgba(57, 255, 20, 0.48);
-  --glow: rgba(57, 255, 20, 0.35);
+  --border-hover: rgba(78, 219, 167, 0.48);
+  --glow: rgba(78, 219, 167, 0.35);
   /* Nebula background gradients */
-  --nebula-primary: rgba(57, 255, 20, 0.14);
+  --nebula-primary: rgba(78, 219, 167, 0.14);
   --nebula-secondary: rgba(34, 197, 94, 0.12);
-  --nebula-hero-primary: rgba(57, 255, 20, 0.22);
+  --nebula-hero-primary: rgba(78, 219, 167, 0.22);
   --nebula-hero-secondary: rgba(34, 197, 94, 0.18);
   --nebula-hero-tertiary: rgba(132, 204, 22, 0.14);
   /* Sidebar */
   --sidebar: #0f0f24;
   --sidebar-foreground: #e0dff0;
-  --sidebar-primary: #39ff14;
+  --sidebar-primary: #4EDBA7;
   --sidebar-primary-foreground: #04130a;
   --sidebar-accent: #1a1a2e;
   --sidebar-accent-foreground: #e0dff0;
-  --sidebar-border: rgba(57, 255, 20, 0.2);
-  --sidebar-ring: #39ff14;
+  --sidebar-border: rgba(78, 219, 167, 0.2);
+  --sidebar-ring: #4EDBA7;
   /* Shadow scale */
-  --shadow-glow-sm: 0 2px 12px rgba(57, 255, 20, 0.24);
-  --shadow-glow-md: 0 4px 20px rgba(57, 255, 20, 0.36);
-  --shadow-glow-lg: 0 0 40px rgba(57, 255, 20, 0.18);
-  --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(57, 255, 20, 0.07);
+  --shadow-glow-sm: 0 2px 12px rgba(78, 219, 167, 0.24);
+  --shadow-glow-md: 0 4px 20px rgba(78, 219, 167, 0.36);
+  --shadow-glow-lg: 0 0 40px rgba(78, 219, 167, 0.18);
+  --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(78, 219, 167, 0.07);
 }
 
 /* Light theme */

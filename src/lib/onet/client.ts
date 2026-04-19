@@ -1,15 +1,13 @@
-import 'server-only'
-
 if (!process.env.ONET_API_KEY) {
   throw new Error(
-    'ONET_API_KEY is not set. Register a free account at '
-    + 'https://services.onetcenter.org/ and put the credentials '
-    + '(format: "username:password") in .env.local as ONET_API_KEY.',
+    'ONET_API_KEY is not set. Register a developer account at '
+    + 'https://services.onetcenter.org/developer/signup and generate an '
+    + 'API key in My Account, then put it in .env.local as ONET_API_KEY.',
   )
 }
 
-const ONET_BASE_URL = 'https://services.onetcenter.org/v1.9'
-const ONET_AUTH = Buffer.from(process.env.ONET_API_KEY).toString('base64')
+const ONET_BASE_URL = 'https://api-v2.onetcenter.org'
+const ONET_API_KEY = process.env.ONET_API_KEY
 
 export interface OnetFetchOptions {
   revalidateSeconds?: number
@@ -25,8 +23,8 @@ export async function onetFetch<T>(
 
   const response = await fetch(url, {
     headers: {
-      Authorization: `Basic ${ONET_AUTH}`,
-      Accept: 'application/json',
+      'X-API-Key': ONET_API_KEY,
+      'Accept': 'application/json',
     },
     next: { revalidate: revalidateSeconds },
     signal,

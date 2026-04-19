@@ -1,9 +1,22 @@
 import { auth } from '@/lib/auth/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export const proxy = auth.middleware({ loginUrl: '/auth/login' })
+const inner = auth.middleware({ loginUrl: '/auth/login' })
+
+// Neon Auth's middleware proxies the incoming request's method to the upstream
+// `get-session` endpoint (GET-only), so POSTs — notably Next.js Server Actions,
+// which have a `Next-Action` header — are rejected upstream and the middleware
+// 307s to /auth/login. Server Actions already re-check auth via getSession(),
+// so let them through here.
+export async function proxy(request: NextRequest) {
+  if (request.headers.get('next-action')) {
+    return NextResponse.next()
+  }
+  return inner(request)
+}
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -135,7 +135,7 @@ export default function PreferencesPage() {
     if (selectedOption !== null || submitting) return
     setSelectedOption(option)
     setShowCheckmark(true)
-    pendingSubmitRef.current = window.setTimeout(() => submitChoice(option), 500)
+    pendingSubmitRef.current = window.setTimeout(() => submitChoice(option), 220)
   }
 
   const handleSkip = () => {
@@ -197,10 +197,10 @@ export default function PreferencesPage() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentItem.id}
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          exit={{ opacity: 0, x: -30 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
         >
           <div className="relative max-w-3xl mx-auto">
             <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">

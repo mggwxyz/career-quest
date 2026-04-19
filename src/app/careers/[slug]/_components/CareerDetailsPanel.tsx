@@ -1,25 +1,32 @@
 import Link from 'next/link'
 import { ExternalLink, TrendingUp, Target, GraduationCap, Wrench } from 'lucide-react'
-import type { MnmCareer } from '@/lib/onet/schemas'
+import type { CareerDetail } from '@/lib/onet/schemas'
 import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_NAMES, JOB_ZONE_DESCRIPTIONS } from '@/lib/onet/projectors'
 
 interface Props {
   occupation: OccupationRow
-  detail: MnmCareer | null
+  detail: CareerDetail | null
   whyItMatches: string | null
 }
 
+function formatSalary(detail: CareerDetail): string {
+  if (typeof detail.salaryAnnualMedian === 'number') {
+    return `$${detail.salaryAnnualMedian.toLocaleString('en-US')}`
+  }
+  if (typeof detail.salaryHourlyMedian === 'number') {
+    return `$${detail.salaryHourlyMedian.toLocaleString('en-US')}/hr`
+  }
+  return 'varies'
+}
+
 export function CareerDetailsPanel({ occupation, detail, whyItMatches }: Props) {
-  const tasks = detail?.on_the_job.task.slice(0, 5) ?? []
-  const skills = detail?.skills.element.slice(0, 10).map(e => e.name) ?? []
-  const knowledge = detail?.knowledge.element.slice(0, 5).map(e => e.name) ?? []
-  const tech = detail?.technology.category.flatMap(c => c.example).slice(0, 8)
-    .map(e => e.name) ?? []
-  const related = detail?.explore_more?.careers?.career.slice(0, 6) ?? []
-  const salary = detail?.job_outlook.salary.annual_median
-    ? `$${detail.job_outlook.salary.annual_median.toLocaleString('en-US')}`
-    : 'varies'
+  const tasks = detail?.tasks.slice(0, 5) ?? []
+  const skills = detail?.skills.slice(0, 10) ?? []
+  const knowledge = detail?.knowledge.slice(0, 5) ?? []
+  const tech = detail?.technology.slice(0, 8) ?? []
+  const related = detail?.relatedCareers.slice(0, 6) ?? []
+  const salary = detail ? formatSalary(detail) : 'varies'
 
   return (
     <div className="p-6 bg-surface/50 border border-border rounded-2xl">
@@ -98,7 +105,7 @@ export function CareerDetailsPanel({ occupation, detail, whyItMatches }: Props) 
             Median:
             {' '}
             <strong className="text-foreground">{salary}</strong>
-            {detail && ` · Outlook: ${detail.job_outlook.outlook.description}`}
+            {detail?.outlookDescription && ` · Outlook: ${detail.outlookDescription}`}
           </p>
         </div>
 
