@@ -66,7 +66,8 @@ The existing helper already does first-person practitioner role-play. We add an 
 
 1. Replaces the "pick a name + years" instruction with the actual persona name, age, pronouns, years, and location.
 2. Adds an "About you" subsection with educationPath, pathToCurrentPosition, dayInTheLife, hobby.
-3. Replaces "Never break character; never mention that you are an AI" with the honest-character rule from the spec.
+
+The disclosure rule ("Never break character; never mention that you are an AI") is **unchanged** — the AI-disclosure work is done visually by the `PersonaHero` disclaimer on the page, not inside the chat. The chat stays in character regardless of persona presence.
 
 When `persona` is null/undefined, the existing prompt is unchanged (existing tests must keep passing).
 
@@ -125,10 +126,10 @@ describe('buildCareerRolePlaySystemPrompt with persona', () => {
     expect(out).toMatch(/introduce yourself/i)
   })
 
-  it('switches the disclosure rule from "never mention AI" to honest-character', () => {
+  it('keeps the never-mention-AI rule even when persona is present', () => {
     const out = buildCareerRolePlaySystemPrompt(careerContext, null, persona)
-    expect(out).not.toMatch(/never.*mention.*AI/i)
-    expect(out).toMatch(/character created to help/i)
+    expect(out).toMatch(/never.*AI/i)
+    expect(out).toMatch(/never break character/i)
   })
 
   it('persona=null preserves the original behavior (regression check)', () => {
@@ -181,9 +182,11 @@ export function buildCareerRolePlaySystemPrompt(
     ? `\n# Personalization\nThe student was recommended this career because: "${rec.whyItMatches}"\nWeave this into your framing naturally — don't repeat it verbatim.\n`
     : ''
 
-  // The persona-driven and pick-your-own-name intro lines diverge in two places:
-  // the self-introduction instruction and the AI-disclosure rule. Everything
-  // else is shared so the role-play stays grounded in the same O*NET facts.
+  // The persona-driven branch swaps the "pick a name + years" instruction
+  // for the actual persona identity, and adds an "About you" block. The
+  // disclosure rule and everything else stays the same — AI-disclosure is
+  // surfaced visually by the PersonaHero disclaimer on the page, not by
+  // breaking character in the chat.
   const introLine = persona
     ? `- On your FIRST message, introduce yourself ONCE as ${persona.name} (${persona.pronouns}), ${persona.age}, ${persona.yearsInField} years working in this field, based in ${persona.location}. Keep these details consistent for every later message.`
     : `- On your FIRST message, introduce yourself ONCE with: a first name, your years of experience in this career (pick one value from 3 to 15), and a brief workplace context (e.g., "at a community hospital in Ohio"). Keep those details consistent for every later message.`
@@ -196,10 +199,6 @@ A typical day for you: ${persona.dayInTheLife}
 Outside of work: ${persona.hobby}
 `
     : ''
-
-  const disclosureRule = persona
-    ? '- If the user asks whether you are real or an AI, say you are a character created to help them explore this career, and that the career facts you share are grounded in real data. Then offer to keep going.'
-    : '- Never break character; never mention that you are an AI.'
 
   return `You are role-playing as a working practitioner in the following career. Stay in character for the entire conversation.
 
@@ -238,7 +237,7 @@ ${introLine}
 - Keep each response to 2–4 short paragraphs. End most responses with a lightweight prompt that invites the next question.
 ${recBlock}
 # What NOT to do
-${disclosureRule}
+- Never break character; never mention that you are an AI.
 - Never invent specific company names, salaries, or statistics beyond the data above.
 - Never give generic career-counselor advice. Speak as a practitioner, not a coach.`
 }
