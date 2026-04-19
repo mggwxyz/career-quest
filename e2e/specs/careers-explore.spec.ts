@@ -3,12 +3,21 @@ import { test, expect } from '../fixtures/test-base'
 test.describe('/careers/explore', () => {
   test.beforeEach(async ({ dbUtils }) => {
     await dbUtils.truncateAppTables()
+    // Upsert so the seed is authoritative regardless of any pre-existing mirror rows
+    // (e.g. from `pnpm seed:onet` run locally, which may have different titles).
     await dbUtils.sql`
       INSERT INTO onet_occupations (code, slug, title, description, job_zone, bright_outlook, riasec_primary, riasec_all) VALUES
         ('29-1141.00', 'registered-nurses', 'Registered Nurses', '', 4, true, 'S', ARRAY['S','I','R']),
         ('15-1252.00', 'software-developers', 'Software Developers', '', 4, true, 'I', ARRAY['I','C']),
         ('35-3031.00', 'waiters-and-waitresses', 'Waiters and Waitresses', '', 2, false, 'E', ARRAY['E','C'])
-      ON CONFLICT (code) DO NOTHING
+      ON CONFLICT (code) DO UPDATE SET
+        slug = EXCLUDED.slug,
+        title = EXCLUDED.title,
+        description = EXCLUDED.description,
+        job_zone = EXCLUDED.job_zone,
+        bright_outlook = EXCLUDED.bright_outlook,
+        riasec_primary = EXCLUDED.riasec_primary,
+        riasec_all = EXCLUDED.riasec_all
     `
   })
 
