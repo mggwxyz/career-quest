@@ -5,7 +5,7 @@ import { generateObject } from 'ai'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
-import { assessmentSessions, careerRecommendations, recommendationRuns } from '@/db/schema'
+import { assessmentSessions, careerRecommendations, recommendationRuns, userInterests } from '@/db/schema'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 import { AssessmentResult, ENGINE_VERSION, formatResultForPrompt } from '@/lib/assessment'
 
@@ -47,9 +47,9 @@ function sanitizeInterestsForPrompt(rawInterests: string[]): string[] {
     .filter(interest => interest.length > 0)
 }
 
-export async function generateCareerRecommendationsAction(
-  interests: string[],
-): Promise<{ success: boolean, careers?: CareerRecommendation[], error?: string }> {
+export async function generateCareerRecommendationsAction(): Promise<
+  { success: boolean, careers?: CareerRecommendation[], error?: string }
+> {
   const startedAt = Date.now()
   try {
     const session = await getSession()
@@ -69,7 +69,11 @@ export async function generateCareerRecommendationsAction(
       return { success: false, error: 'Complete the assessment before requesting careers' }
     }
 
-    const cleanInterests = sanitizeInterestsForPrompt(interests)
+    const interestRows = await db.select({ interest: userInterests.interest })
+      .from(userInterests)
+      .where(eq(userInterests.userId, user.id))
+      .orderBy(userInterests.createdAt)
+    const cleanInterests = sanitizeInterestsForPrompt(interestRows.map(r => r.interest))
     const profile = formatResultForPrompt(latest.result as AssessmentResult)
     const prompt = `
 ${profile}

@@ -54,15 +54,22 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
   }
 
   const handleContinue = () => {
-    startTransition(() => {
+    startTransition(async () => {
       try {
-        // Interests are already in the Zustand store (persisted to localStorage).
-        // Just navigate forward — no server round-trip needed.
+        const res = await fetch('/api/user/interests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interests }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.error || 'Failed to save interests')
+        }
         router.push('/discover/preferences')
       }
       catch (error) {
-        console.error('[InterestsClient] navigation failed:', error)
-        toast.error('Failed to continue. Please try again.')
+        console.error('[InterestsClient] save failed:', error)
+        toast.error('Failed to save interests. Please try again.')
       }
     })
   }
