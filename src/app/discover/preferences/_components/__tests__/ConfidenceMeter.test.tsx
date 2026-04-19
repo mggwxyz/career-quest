@@ -8,13 +8,13 @@ describe('ConfidenceMeter', () => {
     expect(screen.getByText(/Getting clearer/i)).toBeInTheDocument()
   })
 
-  it('shows "Almost there" after 5 answered', () => {
-    render(<ConfidenceMeter itemsAnswered={6} />)
+  it('shows "Almost there" after 8 answered', () => {
+    render(<ConfidenceMeter itemsAnswered={10} />)
     expect(screen.getByText(/Almost there/i)).toBeInTheDocument()
   })
 
-  it('shows "Got it" after 10 answered', () => {
-    render(<ConfidenceMeter itemsAnswered={12} />)
+  it('shows "Got it" after 15 answered', () => {
+    render(<ConfidenceMeter itemsAnswered={18} />)
     expect(screen.getByText(/Got it/i)).toBeInTheDocument()
   })
 })

@@ -38,7 +38,7 @@ The application is a career exploration tool built around psychological assessme
 
 2. **Discovery Flow**:
    - `/discover/interests` - Interest selection
-   - `/discover/preferences` - Adaptive Bayesian RIASEC + work-values + work-context assessment (12–20 items, skip-supported, resume-on-reload)
+   - `/discover/preferences` - Adaptive Bayesian RIASEC + work-values + work-context assessment (20–30 items, skip-supported, resume-on-reload)
    - `/discover/profile` - Results profile
    - `/careers` - AI-powered career recommendations
 

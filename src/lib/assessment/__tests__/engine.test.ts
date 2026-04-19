@@ -61,18 +61,18 @@ describe('pickNextItem', () => {
 })
 
 describe('shouldStop', () => {
-  it('refuses to stop before the floor of 12 items', () => {
+  it('refuses to stop before the floor of 20 items', () => {
     const p = initialPosterior()
     for (const s of ['R', 'I', 'A', 'S', 'E', 'C'] as const) p.riasec[s].variance = 0.05
     p.riasec.S.mean = 3
     p.riasec.A.mean = 2
     p.riasec.E.mean = 1
-    expect(shouldStop({ posterior: p, itemsAnswered: 11, gradeBand: 'late-hs' })).toBe(false)
+    expect(shouldStop({ posterior: p, itemsAnswered: 19, gradeBand: 'late-hs' })).toBe(false)
   })
 
-  it('stops at the cap of 20 even if conditions not met', () => {
+  it('stops at the cap of 30 even if conditions not met', () => {
     const p = initialPosterior()
-    expect(shouldStop({ posterior: p, itemsAnswered: 20, gradeBand: 'late-hs' })).toBe(true)
+    expect(shouldStop({ posterior: p, itemsAnswered: 30, gradeBand: 'late-hs' })).toBe(true)
   })
 
   it('stops when top-3 separated and confidence is medium-or-better', () => {
@@ -91,7 +91,7 @@ describe('shouldStop', () => {
     p.riasec.C.variance = 0.3
     p.workValues.REL.mean = 1
     p.workValues.REL.variance = 0.3
-    expect(shouldStop({ posterior: p, itemsAnswered: 14, gradeBand: 'late-hs' })).toBe(true)
+    expect(shouldStop({ posterior: p, itemsAnswered: 20, gradeBand: 'late-hs' })).toBe(true)
   })
 
   it('ignores work-value confidence when grade band is "middle"', () => {
@@ -108,7 +108,7 @@ describe('shouldStop', () => {
     p.riasec.I.variance = 0.3
     p.riasec.C.mean = -1
     p.riasec.C.variance = 0.3
-    expect(shouldStop({ posterior: p, itemsAnswered: 14, gradeBand: 'middle' })).toBe(true)
+    expect(shouldStop({ posterior: p, itemsAnswered: 20, gradeBand: 'middle' })).toBe(true)
   })
 })
 
