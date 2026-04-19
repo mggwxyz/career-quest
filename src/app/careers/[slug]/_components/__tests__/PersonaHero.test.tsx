@@ -37,6 +37,8 @@ describe('PersonaHero', () => {
   it('uses the onetId to build the portrait src', () => {
     render(<PersonaHero persona={persona} careerTitle="Registered Nurses" />)
     const img = screen.getByAltText(/Maria Alvarez/) as HTMLImageElement
-    expect(img.src).toMatch(/\/careers\/personas\/29-1141\.00\.webp/)
+    // next/image rewrites src through its optimizer (e.g. /_next/image?url=...&w=...).
+    // Decode and check the underlying path so the assertion stays robust.
+    expect(decodeURIComponent(img.src)).toContain('/careers/personas/29-1141.00.webp')
   })
 })
