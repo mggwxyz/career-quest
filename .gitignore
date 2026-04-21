@@ -47,6 +47,13 @@ next-env.d.ts
 .worktrees/
 .claude/worktrees/
 
+# claude code runtime state
+.claude/*.lock
+
+# bun (project uses pnpm exclusively)
+bun.lock
+bun.lockb
+
 # playwright
 /test-results/
 /playwright-report/
