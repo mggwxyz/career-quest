@@ -48,9 +48,29 @@ export async function GET() {
 
     if (answeredCount === 0) {
       const unanswered = active.responses.find(r => r.choice === null || r.choice === undefined)
-      const firstItem = unanswered
-        ? items.find(i => i.id === unanswered.itemId) ?? chooseFirstItem(items, startSession({ bank: items, gradeBand: active.gradeBand }))
-        : chooseFirstItem(items, startSession({ bank: items, gradeBand: active.gradeBand }))
+      if (unanswered) {
+        const storedItem = items.find(i => i.id === unanswered.itemId)
+        if (!storedItem) {
+          // Item bank changed since session was created — the stored itemId no
+          // longer exists, so we cannot resume without corrupting the audit
+          // trail. Abandon the session so the client starts fresh.
+          console.warn(
+            '[api/assessment/session] GET: stored itemId %s not in bank for session %s; abandoning',
+            unanswered.itemId, active.sessionId,
+          )
+          await abandonActiveSessionsForUser(session.user.id)
+          return NextResponse.json({ active: null })
+        }
+        return NextResponse.json({
+          active: {
+            sessionId: active.sessionId,
+            gradeBand: active.gradeBand ?? null,
+            itemsAnswered: 0,
+            item: storedItem,
+          },
+        })
+      }
+      const firstItem = chooseFirstItem(items, startSession({ bank: items, gradeBand: active.gradeBand }))
       return NextResponse.json({
         active: {
           sessionId: active.sessionId,
