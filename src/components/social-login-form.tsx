@@ -5,7 +5,9 @@ import { authClient } from '@/lib/auth/client'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export function SocialLoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+type Props = React.ComponentPropsWithoutRef<'div'> & { redirectTo?: string }
+
+export function SocialLoginForm({ className, redirectTo = '/', ...props }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -17,7 +19,7 @@ export function SocialLoginForm({ className, ...props }: React.ComponentPropsWit
     try {
       const { error } = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/',
+        callbackURL: redirectTo,
       })
       if (error) {
         const msg = error.message ?? 'An error occurred'

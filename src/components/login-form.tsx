@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 import { SocialLoginForm } from '@/components/social-login-form'
 import { PasswordLoginForm } from '@/components/password-login-form'
 
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+type Props = React.ComponentPropsWithoutRef<'div'> & { redirectTo?: string }
+
+export function LoginForm({ className, redirectTo = '/', ...props }: Props) {
   return (
     <div className={cn('flex flex-col gap-6 w-full max-w-sm', className)} {...props}>
       <div className="p-8 sm:p-10 bg-surface/60 border border-border rounded-2xl backdrop-blur-xl">
@@ -18,7 +20,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         </div>
 
         <div className="flex flex-col gap-5">
-          <PasswordLoginForm />
+          <PasswordLoginForm redirectTo={redirectTo} />
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
@@ -26,7 +28,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <SocialLoginForm />
+          <SocialLoginForm redirectTo={redirectTo} />
         </div>
       </div>
     </div>

@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export function PasswordLoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+type Props = React.ComponentPropsWithoutRef<'div'> & { redirectTo?: string }
+
+export function PasswordLoginForm({ className, redirectTo = '/', ...props }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -19,13 +21,13 @@ export function PasswordLoginForm({ className, ...props }: React.ComponentPropsW
     setError(null)
 
     try {
-      const { error } = await authClient.signIn.email({ email, password, callbackURL: '/' })
+      const { error } = await authClient.signIn.email({ email, password, callbackURL: redirectTo })
       if (error) {
         setError(error.message ?? 'Invalid email or password')
         setIsLoading(false)
         return
       }
-      router.push('/')
+      router.push(redirectTo)
     }
     catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred')
