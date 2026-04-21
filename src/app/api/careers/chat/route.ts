@@ -57,7 +57,7 @@ void _personaSchemaMatchesType
 
 const BodySchema = z.object({
   messages: z.array(z.object({
-    role: z.enum(['user', 'assistant', 'system']),
+    role: z.enum(['user', 'assistant']),
     content: z.string(),
   })),
   careerContext: CareerContextSchema,
