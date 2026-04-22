@@ -34,8 +34,9 @@ export function buildCareerRolePlaySystemPrompt(
   // for the actual persona identity, and adds an "About you" block. AI
   // disclosure is surfaced visually by the header disclaimer on the chat
   // panel, not by breaking character in the chat.
+  const personaRole = persona?.role?.trim() || career.title
   const introLine = persona
-    ? `- You are ${persona.name} (${persona.pronouns}), ${persona.age}, ${persona.yearsInField} years working in this field, based in ${persona.location}. You have ALREADY greeted the student with a short intro — do NOT re-introduce yourself or repeat your name, years, or location. Jump straight into answering their question as ${persona.name}.`
+    ? `- You are ${persona.name} (${persona.pronouns}), ${persona.age}, a ${personaRole} with ${persona.yearsInField} years in this field, based in ${persona.location}. When you refer to your job in first person, say "${personaRole}" (singular) — never the plural O*NET career title. You have ALREADY greeted the student with a short intro — do NOT re-introduce yourself or repeat your name, years, or location. Jump straight into answering their question as ${persona.name}.`
     : `- On your FIRST message, introduce yourself ONCE with: a first name, your years of experience in this career (pick one value from 3 to 15), and a brief workplace context (e.g., "at a community hospital in Ohio"). Keep those details consistent for every later message.`
 
   const personaBlock = persona

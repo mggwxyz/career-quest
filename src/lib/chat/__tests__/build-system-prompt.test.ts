@@ -106,4 +106,15 @@ describe('buildCareerRolePlaySystemPrompt with persona', () => {
     expect(out).toMatch(/first name/i)
     expect(out).toMatch(/never.*AI/i)
   })
+
+  it('uses persona.role in the intro line when present', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, { ...persona, role: 'Emergency Room Nurse' })
+    expect(out).toMatch(/a Emergency Room Nurse with 12 years/)
+    expect(out).toMatch(/"Emergency Room Nurse" \(singular\)/)
+  })
+
+  it('falls back to the career title when persona.role is missing', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, { ...persona, role: undefined })
+    expect(out).toMatch(new RegExp(`a ${careerContext.title} with 12 years`))
+  })
 })
