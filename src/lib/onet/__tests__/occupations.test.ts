@@ -5,11 +5,13 @@ import { eq } from 'drizzle-orm'
 import { resolveSlug, getOccupationByCode, getSlugsByOnetCodes } from '../occupations'
 
 describe('mirror lookups', () => {
+  // Synthetic code/slug that won't collide with real seed data or with
+  // fixtures from other test files running in parallel.
   const fixture = {
-    code: '29-1141.00',
-    slug: 'registered-nurses',
-    title: 'Registered Nurses',
-    description: 'Assess patient health problems and needs.',
+    code: '99-9001.00',
+    slug: 'mirror-lookups-fixture',
+    title: 'Mirror Lookups Fixture',
+    description: 'Synthetic test row.',
     jobZone: 4,
     brightOutlook: true,
     riasecPrimary: 'S' as const,
@@ -17,16 +19,16 @@ describe('mirror lookups', () => {
   }
 
   beforeEach(async () => {
+    await db.delete(onetOccupations).where(eq(onetOccupations.code, fixture.code))
     await db.insert(onetOccupations).values(fixture)
-      .onConflictDoNothing()
   })
   afterEach(async () => {
     await db.delete(onetOccupations).where(eq(onetOccupations.code, fixture.code))
   })
 
   it('resolveSlug returns the row shape by slug', async () => {
-    const row = await resolveSlug('registered-nurses')
-    expect(row?.code).toBe('29-1141.00')
+    const row = await resolveSlug(fixture.slug)
+    expect(row?.code).toBe(fixture.code)
     expect(row?.jobZone).toBe(4)
     expect(row?.riasecAll).toEqual(['S', 'I', 'R'])
   })
@@ -36,8 +38,8 @@ describe('mirror lookups', () => {
   })
 
   it('getOccupationByCode returns the row shape by code', async () => {
-    const row = await getOccupationByCode('29-1141.00')
-    expect(row?.slug).toBe('registered-nurses')
+    const row = await getOccupationByCode(fixture.code)
+    expect(row?.slug).toBe(fixture.slug)
   })
 
   it('getOccupationByCode returns null for unknown code', async () => {
@@ -45,8 +47,8 @@ describe('mirror lookups', () => {
   })
 
   it('getSlugsByOnetCodes returns a map of code to slug', async () => {
-    const m = await getSlugsByOnetCodes(['29-1141.00', '00-0000.00'])
-    expect(m.get('29-1141.00')).toBe('registered-nurses')
+    const m = await getSlugsByOnetCodes([fixture.code, '00-0000.00'])
+    expect(m.get(fixture.code)).toBe(fixture.slug)
     expect(m.has('00-0000.00')).toBe(false)
   })
 

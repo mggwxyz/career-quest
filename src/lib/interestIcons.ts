@@ -22,7 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-/** Preset interests from the get-started flow — label must match saved strings. */
+/** Preset interests from the discover flow — label must match saved strings. */
 export const COMMON_INTERESTS: { label: string, icon: LucideIcon }[] = [
   { label: 'Art & Design', icon: Palette },
   { label: 'Science', icon: FlaskConical },

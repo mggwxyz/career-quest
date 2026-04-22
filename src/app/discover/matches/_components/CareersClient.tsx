@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
-import { FlowStepper } from '@/components/flow-stepper'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -65,8 +64,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
-      <FlowStepper />
+    <div className="mx-auto max-w-4xl">
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>
         <p className="text-sm text-muted-foreground">Ranked by how well they fit your profile</p>
@@ -162,7 +160,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                 <button onClick={generateCareerRecommendations} disabled={isPending} className="px-7 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] transition-all text-sm">
                   {hasExistingData ? 'Regenerate' : 'Generate New'}
                 </button>
-                <Link href="/profile" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
+                <Link href="/discover/profile" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
                   View Results
                 </Link>
               </div>

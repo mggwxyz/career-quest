@@ -40,9 +40,26 @@ test.describe('Career detail page', () => {
   }) => {
     await mockChatStream(page)
     const userId = await dbUtils.getTestUserId()
+
+    // Seed the FK ancestors required by the current schema
+    // (assessment_sessions -> recommendation_runs -> career_recommendations).
+    const sessionRows = await dbUtils.sql`
+      INSERT INTO assessment_sessions (user_id, engine_version, posterior, completed_at)
+      VALUES (${userId}, 'e2e-test', '{}'::jsonb, NOW())
+      RETURNING id
+    ` as Array<{ id: string }>
+    const sessionId = sessionRows[0].id
+
+    const runRows = await dbUtils.sql`
+      INSERT INTO recommendation_runs (user_id, session_id, interests_snapshot, prompt, model, engine_version)
+      VALUES (${userId}, ${sessionId}, ARRAY[]::text[], 'e2e', 'e2e', 'e2e-test')
+      RETURNING id
+    ` as Array<{ id: string }>
+    const runId = runRows[0].id
+
     await dbUtils.sql`
-      INSERT INTO career_recommendations (user_id, onet_id, slug, title, description, why_it_matches, job_growth, salary_range)
-      VALUES (${userId}, ${SAMPLE_CODE}, ${SAMPLE_SLUG}, 'Registered Nurses', 'd', 'You care about helping people.', 'Fast', '$80k')
+      INSERT INTO career_recommendations (run_id, user_id, rank, onet_id, slug, title, description, why_it_matches, job_growth, salary_range)
+      VALUES (${runId}, ${userId}, 1, ${SAMPLE_CODE}, ${SAMPLE_SLUG}, 'Registered Nurses', 'd', 'You care about helping people.', 'Fast', '$80k')
     `
     await page.goto(`/careers/${SAMPLE_SLUG}`)
     await expect(page.getByText('Why it fits you')).toBeVisible()
