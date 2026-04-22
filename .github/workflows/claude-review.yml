@@ -21,10 +21,6 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEON_AUTH_BASE_URL: ${{ secrets.NEON_AUTH_BASE_URL }}
-      NEON_AUTH_COOKIE_SECRET: ${{ secrets.NEON_AUTH_COOKIE_SECRET }}
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
