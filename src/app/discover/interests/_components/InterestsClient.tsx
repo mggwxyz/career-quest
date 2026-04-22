@@ -6,7 +6,6 @@ import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import { toast } from 'sonner'
 import { COMMON_INTERESTS, COMMON_INTEREST_LABELS } from '@/lib/interestIcons'
-import { FlowStepper } from '@/components/flow-stepper'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface InterestsClientProps {
@@ -60,7 +59,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
           const data = await res.json().catch(() => ({}))
           throw new Error(data.error || 'Failed to save interests')
         }
-        router.push('/get-started/would-you-rather')
+        router.push('/discover/would-you-rather')
       }
       catch (error) {
         console.error('[InterestsClient] save failed:', error)
@@ -72,8 +71,7 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
   const customInterests = interests.filter(i => !COMMON_INTEREST_LABELS.has(i))
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
-      <FlowStepper />
+    <div>
       {/* Page header */}
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">What Interests You?</h1>

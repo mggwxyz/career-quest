@@ -8,7 +8,7 @@ import { userInterests } from '@/db/schema'
 export default async function InterestsPage() {
   const auth = await getSession()
   if (!auth?.user) {
-    redirect('/auth/login?redirect=/get-started/interests')
+    redirect('/auth/login?redirect=/discover/interests')
   }
   const rows = await db.select({ interest: userInterests.interest })
     .from(userInterests)

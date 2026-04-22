@@ -77,9 +77,13 @@ test.describe('Career Chat (role-play)', () => {
 
     await page.goto(`/careers/${SAMPLE_SLUG}`)
 
-    // Verify role-play chat header renders
-    await expect(page.getByText(/Talk with a/)).toBeVisible()
-    await expect(page.getByText('Registered Nurses', { exact: true }).first()).toBeVisible()
+    // Verify the role-play chat interface renders. When a persona is seeded for
+    // this O*NET code, the header shows the persona's greeting; if not, it
+    // falls back to "Talk with a {career}". Both cases expose the chat
+    // textbox and the fictional-character caption.
+    await expect(page.getByRole('textbox', { name: /prompt/i })).toBeVisible()
+    await expect(page.getByText(/Fictional character\. Real career facts\./i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Registered Nurses', exact: true })).toBeVisible()
   })
 
   test('sends a message and receives first-person mocked stream', async ({
@@ -94,10 +98,10 @@ test.describe('Career Chat (role-play)', () => {
     await page.goto(`/careers/${SAMPLE_SLUG}`)
 
     // Wait for the chat UI to be ready
-    await expect(page.getByText(/Talk with a/)).toBeVisible()
+    const chatInput = page.getByRole('textbox', { name: /prompt/i })
+    await expect(chatInput).toBeVisible()
 
     // Type a message and send
-    const chatInput = page.locator('textarea, input[type="text"]').last()
     await chatInput.fill('What does a typical shift look like?')
     await chatInput.press('Enter')
 

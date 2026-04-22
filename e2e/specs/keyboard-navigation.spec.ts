@@ -6,11 +6,13 @@ test.describe('Would-you-rather keyboard navigation', () => {
   })
 
   test('tab focuses an option card and Enter advances the quiz', async ({ authenticatedPage: page }) => {
-    await page.goto('/get-started/would-you-rather')
+    await page.goto('/discover/would-you-rather')
+    await page.getByRole('button', { name: /Let's go/i }).click()
 
     // Wait for the first question to render
     await expect(page.getByRole('heading', { name: /would you rather/i })).toBeVisible()
-    await expect(page.getByText('1 of 30')).toBeVisible()
+    const meter = page.getByRole('progressbar')
+    await expect(meter).toHaveAttribute('aria-valuenow', '0')
 
     // The desktop option-card buttons live inside a grid and contain a figure.
     // Focus the first desktop card directly (the existing suite uses nth(2) for this).
@@ -29,25 +31,28 @@ test.describe('Would-you-rather keyboard navigation', () => {
     // Press Enter to select
     await page.keyboard.press('Enter')
 
-    // After the 500ms handleOptionSelect timeout the quiz advances to question 2.
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
+    // After the 220ms handleOptionSelect timeout the quiz advances to question 2.
+    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 })
   })
 
   test('Space key also selects a focused option card', async ({ authenticatedPage: page }) => {
-    await page.goto('/get-started/would-you-rather')
+    await page.goto('/discover/would-you-rather')
+    await page.getByRole('button', { name: /Let's go/i }).click()
 
-    await expect(page.getByText('1 of 30')).toBeVisible()
+    const meter = page.getByRole('progressbar')
+    await expect(meter).toHaveAttribute('aria-valuenow', '0')
 
     const firstDesktopCard = page.locator('button:has(figure)').nth(2)
     await firstDesktopCard.focus()
     await page.keyboard.press('Space')
 
-    await expect(page.getByText('2 of 30')).toBeVisible({ timeout: 2000 })
+    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 })
   })
 
   test('Tab traversal reaches an option card from the start of the page', async ({ authenticatedPage: page }) => {
-    await page.goto('/get-started/would-you-rather')
-    await expect(page.getByText('1 of 30')).toBeVisible()
+    await page.goto('/discover/would-you-rather')
+    await page.getByRole('button', { name: /Let's go/i }).click()
+    await expect(page.getByRole('progressbar')).toBeVisible()
 
     // Start from the top of the document
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())

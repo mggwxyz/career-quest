@@ -6,15 +6,17 @@ import { Check } from 'lucide-react'
 import { Fragment } from 'react'
 
 const STEPS = [
-  { href: '/get-started/interests', label: 'What Interests You?' },
-  { href: '/get-started/would-you-rather', label: 'Would You Rather?' },
-  { href: '/profile', label: 'Your Results' },
+  { href: '/discover/interests', label: 'What Interests You?' },
+  { href: '/discover/would-you-rather', label: 'Would You Rather?' },
+  { href: '/discover/profile', label: 'Your Results' },
+  { href: '/discover/matches', label: 'Your Matches' },
 ] as const
 
 function getCurrentIndex(pathname: string): number {
-  if (pathname.startsWith('/get-started/interests')) return 0
-  if (pathname.startsWith('/get-started/would-you-rather')) return 1
-  if (pathname.startsWith('/profile') || pathname.startsWith('/careers/matches')) return 2
+  if (pathname.startsWith('/discover/interests')) return 0
+  if (pathname.startsWith('/discover/would-you-rather')) return 1
+  if (pathname.startsWith('/discover/profile')) return 2
+  if (pathname.startsWith('/discover/matches')) return 3
   return -1
 }
 

@@ -10,9 +10,9 @@ import { ThemeToggle } from './theme-toggle'
 import { Menu } from 'lucide-react'
 
 const navLinks = [
-  { href: '/get-started/interests', label: 'Get Started' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/careers/matches', label: 'Matches' },
+  { href: '/discover/interests', label: 'Get Started' },
+  { href: '/discover/profile', label: 'Profile' },
+  { href: '/discover/matches', label: 'Matches' },
   { href: '/careers', label: 'Explore' },
 ]
 

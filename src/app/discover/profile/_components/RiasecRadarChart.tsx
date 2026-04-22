@@ -4,7 +4,7 @@ import { getPresetInterestIcon } from '@/lib/interestIcons'
 
 interface Props {
   riasec: AssessmentResult['riasec']
-  /** Topics chosen on get-started/interests (saved via /api/user/interests). */
+  /** Topics chosen on discover/interests (saved via /api/user/interests). */
   profileInterests?: string[]
 }
 
@@ -206,7 +206,7 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
           )
         })}
       </ul>
-      {/* Topics from get-started/interests — not RIASEC scores; heading matches Your Work Style */}
+      {/* Topics from discover/interests — not RIASEC scores; heading matches Your Work Style */}
       {profileInterests.length > 0 && (
         <section className="mt-4 pt-4 border-t border-border">
           <h2
