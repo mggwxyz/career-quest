@@ -68,6 +68,9 @@ export default async function ExplorePage({
       <div className="text-center mb-8 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Explore careers</h1>
         <p className="text-sm text-muted-foreground">Search and filter the full O*NET catalog</p>
+        <p className="text-xs text-muted-foreground/80 mt-2 max-w-lg mx-auto">
+          Ordered with bright outlook and higher typical pay first, then A–Z by title
+        </p>
       </div>
 
       <ExploreFilters />
@@ -104,17 +107,17 @@ export default async function ExplorePage({
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
-                      {row.title}
+                      {row.shortTitle ?? row.title}
                     </h3>
                     {row.brightOutlook && (
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-green-500/40 bg-green-500/10 text-green-300">
+                      <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
                         ✦ Bright
                       </span>
                     )}
                   </div>
-                  {row.description && (
+                  {(row.shortDescription ?? row.description) && (
                     <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                      {row.description}
+                      {row.shortDescription ?? row.description}
                     </p>
                   )}
                   {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (

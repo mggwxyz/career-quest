@@ -4,10 +4,17 @@ import type { CareerDetail } from '@/lib/onet/schemas'
 import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_NAMES, JOB_ZONE_DESCRIPTIONS } from '@/lib/onet/projectors'
 
+interface RelatedCareer {
+  code: string
+  title: string
+  slug: string | null
+}
+
 interface Props {
   occupation: OccupationRow
   detail: CareerDetail | null
   whyItMatches: string | null
+  relatedCareers: RelatedCareer[]
 }
 
 function formatSalary(detail: CareerDetail): string {
@@ -20,12 +27,12 @@ function formatSalary(detail: CareerDetail): string {
   return 'varies'
 }
 
-export function CareerDetailsPanel({ occupation, detail, whyItMatches }: Props) {
+export function CareerDetailsPanel({ occupation, detail, whyItMatches, relatedCareers }: Props) {
   const tasks = detail?.tasks.slice(0, 5) ?? []
   const skills = detail?.skills.slice(0, 10) ?? []
   const knowledge = detail?.knowledge.slice(0, 5) ?? []
   const tech = detail?.technology.slice(0, 8) ?? []
-  const related = detail?.relatedCareers.slice(0, 6) ?? []
+  const related = relatedCareers.slice(0, 6)
   const salary = detail ? formatSalary(detail) : 'varies'
 
   return (
@@ -114,7 +121,7 @@ export function CareerDetailsPanel({ occupation, detail, whyItMatches }: Props) 
             <h3 className="text-sm font-semibold text-foreground mb-1.5">Related careers</h3>
             <div className="flex flex-wrap gap-2">
               {related.map(r => (
-                <Link key={r.code} href={`/careers/${r.code}`} className="text-xs px-3 py-1 rounded-full border border-border hover:border-border-hover text-muted-foreground no-underline">
+                <Link key={r.code} href={`/careers/${r.slug ?? r.code}`} className="text-xs px-3 py-1 rounded-full border border-border hover:border-border-hover text-muted-foreground no-underline">
                   {r.title}
                 </Link>
               ))}

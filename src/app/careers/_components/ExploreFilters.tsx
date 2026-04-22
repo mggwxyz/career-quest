@@ -165,7 +165,11 @@ export function ExploreFilters() {
           <button
             type="button"
             onClick={toggleBright}
-            className={`${chip} ${bright ? chipActive : chipIdle}`}
+            className={
+              bright
+                ? `${chip} border-green-500/50 bg-green-400 font-medium text-black`
+                : `${chip} ${chipIdle}`
+            }
           >
             ✦ Bright
           </button>
