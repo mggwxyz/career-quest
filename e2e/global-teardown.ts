@@ -1,6 +1,7 @@
-import { existsSync, readFileSync, unlinkSync } from 'fs'
+import { existsSync, readFileSync, rmSync, unlinkSync } from 'fs'
+import path from 'path'
 import { neon } from '@neondatabase/serverless'
-import { TEST_USER_FILE, type TestUserRecord } from './global-setup'
+import { STORAGE_STATE_FILE, TEST_USER_FILE, type TestUserRecord } from './global-setup'
 
 export default async function globalTeardown() {
   if (!existsSync(TEST_USER_FILE)) {
@@ -31,5 +32,9 @@ export default async function globalTeardown() {
   finally {
     unlinkSync(TEST_USER_FILE)
     console.log('[e2e] Removed test-user file.')
+    if (existsSync(STORAGE_STATE_FILE)) {
+      rmSync(path.dirname(STORAGE_STATE_FILE), { recursive: true, force: true })
+      console.log('[e2e] Removed storage state directory.')
+    }
   }
 }

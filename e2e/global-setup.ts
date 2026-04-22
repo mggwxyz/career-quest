@@ -1,9 +1,11 @@
-import { writeFileSync } from 'fs'
+import { mkdirSync, writeFileSync } from 'fs'
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { neon } from '@neondatabase/serverless'
+import { chromium } from '@playwright/test'
 
 export const TEST_USER_FILE = path.resolve(__dirname, '.test-user.json')
+export const STORAGE_STATE_FILE = path.resolve(__dirname, '.auth', 'test-user-state.json')
 
 const BASE_URL = 'http://localhost:3000'
 const DEV_SERVER_TIMEOUT_MS = 60_000
@@ -87,4 +89,25 @@ export default async function globalSetup() {
 
   writeFileSync(TEST_USER_FILE, JSON.stringify(testUser, null, 2) + '\n')
   console.log(`[e2e] Wrote ${TEST_USER_FILE}`)
+
+  // Persist a logged-in browser storage state once, so every test starts
+  // pre-authenticated. This avoids hitting Neon Auth's rate limit when many
+  // tests run back-to-back.
+  console.log('[e2e] Persisting authenticated storage state...')
+  mkdirSync(path.dirname(STORAGE_STATE_FILE), { recursive: true })
+  const browser = await chromium.launch()
+  try {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    await page.goto(`${BASE_URL}/auth/login`)
+    await page.getByLabel('Email').fill(testUser.email)
+    await page.getByLabel('Password').fill(testUser.password)
+    await page.getByRole('button', { name: 'Sign In' }).click()
+    await page.waitForURL(`${BASE_URL}/`)
+    await context.storageState({ path: STORAGE_STATE_FILE })
+    console.log(`[e2e] Wrote ${STORAGE_STATE_FILE}`)
+  }
+  finally {
+    await browser.close()
+  }
 }

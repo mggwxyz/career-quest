@@ -24,12 +24,13 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? 'html' : 'list',
-  timeout: 60_000,
+  timeout: 20_000,
 
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    storageState: path.resolve(__dirname, '.auth', 'test-user-state.json'),
   },
 
   projects: [

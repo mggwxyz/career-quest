@@ -60,6 +60,7 @@ bun.lockb
 /blob-report/
 /playwright/.cache/
 /e2e/.test-user.json
+/e2e/.auth/
 
 # superpowers brainstorm
 .superpowers/

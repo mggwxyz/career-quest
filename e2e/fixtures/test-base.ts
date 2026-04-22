@@ -30,13 +30,9 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page }, use) => {
-    const testUser = loadTestUser()
-    await page.goto('/auth/login')
-    await page.getByLabel('Email').fill(testUser.email)
-    await page.getByLabel('Password').fill(testUser.password)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    // Wait for redirect after login
-    await page.waitForURL('/')
+    // The browser context is pre-authenticated via storageState loaded in
+    // playwright.config.ts (written once by global-setup). This avoids
+    // hitting Neon Auth's login rate limit when many tests run back-to-back.
     await use(page)
   },
 

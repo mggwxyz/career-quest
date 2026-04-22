@@ -1,12 +1,12 @@
 import { test, expect } from '../fixtures/test-base'
 
-test.describe('/profile/answers page', () => {
+test.describe('/discover/profile/answers page', () => {
   test.beforeEach(async ({ dbUtils }) => {
     await dbUtils.truncateAppTables()
   })
 
   test('empty state when no completed session exists', async ({ authenticatedPage: page }) => {
-    await page.goto('/profile/answers')
+    await page.goto('/discover/profile/answers')
     await expect(page.getByRole('heading', { name: /No Answers Yet/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Start the Assessment/i })).toBeVisible()
   })
@@ -30,7 +30,7 @@ test.describe('/profile/answers page', () => {
         (${sessionId}, 'rs-appliance-counsel', 3, NOW(), NULL)
     `
 
-    await page.goto('/profile/answers')
+    await page.goto('/discover/profile/answers')
 
     await expect(page.getByRole('heading', { name: /Your Would You Rathers/i })).toBeVisible()
     await expect(page.getByText('Question 1')).toBeVisible()
@@ -40,7 +40,7 @@ test.describe('/profile/answers page', () => {
     await expect(page.getByText(/Skipped/i)).toBeVisible()
   })
 
-  test('retake flow navigates to /get-started/would-you-rather', async ({
+  test('retake flow navigates to /discover/would-you-rather', async ({
     authenticatedPage: page,
     dbUtils,
   }) => {
@@ -56,14 +56,14 @@ test.describe('/profile/answers page', () => {
       VALUES (${sessionId}, 'rs-bike-tutor', 1, NOW(), 1)
     `
 
-    await page.goto('/profile/answers')
+    await page.goto('/discover/profile/answers')
     await page.getByRole('button', { name: /Retake Assessment/i }).click()
 
     const dialog = page.getByRole('heading', { name: /Start over\?/i })
     await expect(dialog).toBeVisible()
 
     await page.getByRole('button', { name: /Yes, start over/i }).click()
-    await page.waitForURL('**/get-started/would-you-rather')
-    expect(page.url()).toContain('/get-started/would-you-rather')
+    await page.waitForURL('**/discover/would-you-rather')
+    expect(page.url()).toContain('/discover/would-you-rather')
   })
 })

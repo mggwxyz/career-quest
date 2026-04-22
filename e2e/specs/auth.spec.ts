@@ -3,6 +3,10 @@ import { test, expect } from '../fixtures/test-base'
 import { TEST_USER_FILE, type TestUserRecord } from '../global-setup'
 
 test.describe('Authentication', () => {
+  // These tests exercise the unauthenticated sign-in/sign-up flows, so they
+  // must start from a fresh browser context (no pre-authenticated cookies).
+  test.use({ storageState: { cookies: [], origins: [] } })
+
   test('should sign up a new user and redirect to home', async ({ page }) => {
     const uniqueEmail = `e2e-${Date.now()}@example.com`
 
