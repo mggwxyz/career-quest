@@ -157,7 +157,7 @@ export default function PreferencesPage() {
 
   if (phase === 'intro') {
     return (
-      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
         <FlowStepper />
         <IntroCard onStart={() => beginNewSession(null)} />
       </div>
@@ -165,7 +165,7 @@ export default function PreferencesPage() {
   }
   if (phase === 'loading') {
     return (
-      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
         <FlowStepper />
         <div className="text-center pt-24 text-muted-foreground">Starting…</div>
       </div>
@@ -174,7 +174,7 @@ export default function PreferencesPage() {
   if (phase === 'complete' && result) {
     const showInconsistency = result.meta.inconsistencyFlag && !inconsistencyDismissed
     return (
-      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
         <FlowStepper />
         <div className="text-center pt-20">
           <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
@@ -205,7 +205,7 @@ export default function PreferencesPage() {
   if (phase !== 'question' || !currentItem) return null
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl relative">
+    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl relative">
       <FlowStepper />
       <ConfidenceMeter itemsAnswered={itemsAnswered} />
 
