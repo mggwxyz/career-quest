@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { db } from '@/db'
 import { onetOccupations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { resolveSlug, getOccupationByCode } from '../occupations'
+import { resolveSlug, getOccupationByCode, getSlugsByOnetCodes } from '../occupations'
 
 describe('mirror lookups', () => {
   const fixture = {
@@ -42,5 +42,15 @@ describe('mirror lookups', () => {
 
   it('getOccupationByCode returns null for unknown code', async () => {
     expect(await getOccupationByCode('00-0000.00')).toBeNull()
+  })
+
+  it('getSlugsByOnetCodes returns a map of code to slug', async () => {
+    const m = await getSlugsByOnetCodes(['29-1141.00', '00-0000.00'])
+    expect(m.get('29-1141.00')).toBe('registered-nurses')
+    expect(m.has('00-0000.00')).toBe(false)
+  })
+
+  it('getSlugsByOnetCodes returns empty map for empty input', async () => {
+    expect((await getSlugsByOnetCodes([])).size).toBe(0)
   })
 })

@@ -1,7 +1,7 @@
 import 'server-only'
 import { db } from '@/db'
 import { onetOccupations } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { onetFetch } from './client'
 import {
   MnmCareerV2SummarySchema,
@@ -18,7 +18,9 @@ export interface OccupationRow {
   code: string
   slug: string
   title: string
+  shortTitle: string | null
   description: string | null
+  shortDescription: string | null
   jobZone: number
   brightOutlook: boolean
   riasecPrimary: string | null
@@ -40,6 +42,27 @@ export async function getOccupationByCode(code: string): Promise<OccupationRow |
     .where(eq(onetOccupations.code, code))
     .limit(1)
   return rows[0] ?? null
+}
+
+/**
+ * Full mirror rows for a batch of O*NET codes (salary, outlook, RIASEC, slug, title, etc.).
+ */
+export async function getOccupationsByCodes(codes: string[]): Promise<Map<string, OccupationRow>> {
+  const unique = [...new Set(codes.filter(Boolean))]
+  if (unique.length === 0) {
+    return new Map()
+  }
+  const rows = await db.select().from(onetOccupations)
+    .where(inArray(onetOccupations.code, unique))
+  return new Map(rows.map(r => [r.code, r as OccupationRow]))
+}
+
+/**
+ * Batch-resolve canonical career page slugs for O*NET codes (e.g. for recommendation links).
+ */
+export async function getSlugsByOnetCodes(codes: string[]): Promise<Map<string, string>> {
+  const full = await getOccupationsByCodes(codes)
+  return new Map([...full].map(([k, v]) => [k, v.slug]))
 }
 
 export async function getCareerDetail(code: string): Promise<CareerDetail> {
