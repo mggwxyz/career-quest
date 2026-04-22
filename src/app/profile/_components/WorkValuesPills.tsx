@@ -1,4 +1,5 @@
 import type { AssessmentResult, WorkValueScale } from '@/lib/assessment'
+import { ConfidenceDots } from './ConfidenceLevelHint'
 
 const LABELS: Record<WorkValueScale, string> = {
   ACH: 'Achievement',
@@ -30,19 +31,21 @@ export default function WorkValuesPills({ result }: { result: AssessmentResult }
   }
   return (
     <section>
-      <h2 className="font-serif text-lg text-foreground mb-1">What You Value</h2>
-      <p className="text-xs text-muted-foreground mb-4">Top motivators</p>
+      <h2 className="font-serif text-lg text-foreground mb-3">What You Value</h2>
       <div className="flex flex-wrap gap-2">
         {result.workValues.top.map((code) => {
           const entry = result.workValues.all[code]
+          const sr = `${LABELS[code]}, ${entry.confidence} confidence`
           return (
             <span
               key={code}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-surface/60 text-sm text-foreground"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-surface/60 text-xs text-foreground"
+              title={sr}
             >
-              <span>{LABELS[code]}</span>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                {entry.confidence}
+              <span className="sr-only">{sr}</span>
+              <span className="inline-flex items-center gap-1.5" aria-hidden>
+                <span>{LABELS[code]}</span>
+                <ConfidenceDots level={entry.confidence} presentational />
               </span>
             </span>
           )

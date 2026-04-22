@@ -58,7 +58,7 @@ export default function AnswersReviewPage() {
 
   if (!rows || rows.length === 0) {
     return (
-      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl text-center pt-16">
+      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl text-center pt-16">
         <h1 className="font-serif text-2xl text-foreground mb-3">No Answers Yet</h1>
         <p className="text-muted-foreground mb-8">Complete the assessment first to review your picks.</p>
         <Link
@@ -72,7 +72,7 @@ export default function AnswersReviewPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl">
+    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-5xl">
       <div className="flex items-baseline justify-between mb-2">
         <h1 className="font-serif text-2xl sm:text-3xl text-foreground">Your Would You Rathers</h1>
         <Link href="/profile" className="text-sm text-muted-foreground hover:text-foreground no-underline">← Back to results</Link>
