@@ -19,15 +19,15 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params
 
+  const session = await getSession()
+  if (!session?.user) redirect(`/auth/login?redirect=${encodeURIComponent(`/careers/${slug}`)}`)
+
   // Legacy O*NET-code URLs → 301 to canonical slug
   if (ONET_CODE_RE.test(slug)) {
     const byCode = await getOccupationByCode(slug)
     if (byCode) redirect(`/careers/${byCode.slug}`)
     notFound()
   }
-
-  const session = await getSession()
-  if (!session?.user) redirect(`/auth/login?redirect=${encodeURIComponent(`/careers/${slug}`)}`)
 
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()

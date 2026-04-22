@@ -42,12 +42,14 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
   const interests = normalize((body as { interests?: unknown }).interests)
 
-  await db.delete(userInterests).where(eq(userInterests.userId, auth.user.id))
-  if (interests.length > 0) {
-    await db.insert(userInterests).values(
-      interests.map(interest => ({ userId: auth.user.id, interest, source: 'manual' })),
-    )
-  }
+  await db.transaction(async (tx) => {
+    await tx.delete(userInterests).where(eq(userInterests.userId, auth.user.id))
+    if (interests.length > 0) {
+      await tx.insert(userInterests).values(
+        interests.map(interest => ({ userId: auth.user.id, interest, source: 'manual' })),
+      )
+    }
+  })
 
   return NextResponse.json({ interests })
 }
