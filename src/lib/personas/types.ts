@@ -15,6 +15,8 @@ export type AgeBand = '20s' | '30s' | '40s' | '50s_plus'
 export type Persona = {
   onetId: string
   name: string
+  /** Singular, natural job label this persona would use for themselves in first person (e.g. "Special Effects Artist" for the "Special Effects Artists and Animators" career). Optional for legacy manifest entries predating role generation. */
+  role?: string
   age: number
   gender: Gender
   pronouns: string

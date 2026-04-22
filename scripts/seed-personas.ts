@@ -127,6 +127,7 @@ async function generateOne(args: {
   const persona: Persona = {
     onetId,
     name: text.name,
+    role: text.role,
     age: sample.age,
     gender: sample.gender,
     pronouns: text.pronouns,

@@ -49,6 +49,7 @@ export function buildPersonaTextPrompt(args: {
     'Generate these fields. Be specific and concrete — avoid generic statements.',
     '',
     '- name: first + last name consistent with the ethnicity cue.',
+    `- role: the singular, natural job label this person would use for themselves in first person — fits the sentence "I'm a ___.". Never use the O*NET career title verbatim if it is plural or lists multiple titles. For example, "Special Effects Artists and Animators" → pick one of "Special Effects Artist" or "Special Effects Animator" that best fits the path/day you will describe. Match capitalization like a normal English job title (e.g., "Registered Nurse", "Software Developer").`,
     '- pronouns: "she/her", "he/him", "they/them" or similar.',
     '- location: a real US city, chosen to fit the role plausibly.',
     '- educationPath: one sentence, specific schools/credentials.',
