@@ -109,8 +109,13 @@ describe('buildCareerRolePlaySystemPrompt with persona', () => {
 
   it('uses persona.role in the intro line when present', () => {
     const out = buildCareerRolePlaySystemPrompt(careerContext, null, { ...persona, role: 'Emergency Room Nurse' })
-    expect(out).toMatch(/a Emergency Room Nurse with 12 years/)
+    expect(out).toMatch(/an Emergency Room Nurse with 12 years/)
     expect(out).toMatch(/"Emergency Room Nurse" \(singular\)/)
+  })
+
+  it('uses "a" before a consonant-leading persona.role', () => {
+    const out = buildCareerRolePlaySystemPrompt(careerContext, null, { ...persona, role: 'Pediatric Nurse' })
+    expect(out).toMatch(/a Pediatric Nurse with 12 years/)
   })
 
   it('falls back to the career title when persona.role is missing', () => {
