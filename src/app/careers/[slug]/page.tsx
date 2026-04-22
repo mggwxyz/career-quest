@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
-import { resolveSlug, getOccupationByCode, getCareerDetail } from '@/lib/onet/occupations'
+import { resolveSlug, getOccupationByCode, getCareerDetail, getSlugsByOnetCodes } from '@/lib/onet/occupations'
 import { toCareerContext } from '@/lib/onet/projectors'
 import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
@@ -47,6 +47,13 @@ export default async function CareerDetailPage({
 
   const whyItMatches = recRows[0]?.whyItMatches ?? null
 
+  const relatedSlugs = detail
+    ? await getSlugsByOnetCodes(detail.relatedCareers.map(r => r.code))
+    : new Map<string, string>()
+  const relatedCareers = detail
+    ? detail.relatedCareers.map(r => ({ code: r.code, title: r.title, slug: relatedSlugs.get(r.code) ?? null }))
+    : []
+
   // Map RIASEC letter codes back to full names so the fallback chat context
   // stays consistent with the projector (which emits full names).
   const RIASEC_NAMES: Record<string, string> = {
@@ -84,6 +91,7 @@ export default async function CareerDetailPage({
             occupation={occupation}
             detail={detail}
             whyItMatches={whyItMatches}
+            relatedCareers={relatedCareers}
           />
         </div>
         <div className="lg:col-span-2">

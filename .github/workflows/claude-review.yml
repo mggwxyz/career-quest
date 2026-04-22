@@ -76,8 +76,9 @@ jobs:
 
             A PR with any failing test, any injection risk, any broken build, or any stated scope that isn't actually implemented cannot score above 3.
           claude_args: |
-            --max-turns 25
+            --max-turns 40
             --model claude-sonnet-4-6
+            --permission-mode bypassPermissions
 
       - name: Extract review score
         id: score

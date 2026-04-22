@@ -12,6 +12,8 @@ const openai = createOpenAI({
 const PersonaTextSchema = z.object({
   name: z.string().min(2)
     .max(60),
+  role: z.string().min(2)
+    .max(60),
   pronouns: z.string().min(2)
     .max(40),
   location: z.string().min(3)

@@ -13,7 +13,8 @@ interface Props {
 }
 
 function buildOpeningMessage(persona: Persona, careerTitle: string): Message {
-  const content = `Hey — I'm ${persona.name}. I've been a ${careerTitle} for ${persona.yearsInField} years, based in ${persona.location}. Happy to share whatever would be helpful — the day-to-day, how I got here, the hard parts, anything else. What are you curious about?`
+  const role = persona.role?.trim() || careerTitle
+  const content = `Hey — I'm ${persona.name}. I've been a ${role} for ${persona.yearsInField} years, based in ${persona.location}. Happy to share whatever would be helpful — the day-to-day, how I got here, the hard parts, anything else. What are you curious about?`
   return {
     id: 'persona-greeting',
     role: 'assistant',
@@ -70,7 +71,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
                   <>
                     <h2 className="font-serif text-xl text-foreground leading-tight">{persona.name}</h2>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {careerContext.title}
+                      {persona.role?.trim() || careerContext.title}
                       {' • '}
                       {persona.yearsInField}
                       {' years'}

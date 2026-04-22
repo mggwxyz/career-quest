@@ -126,7 +126,9 @@ export const onetOccupations = pgTable('onet_occupations', {
   slug: text().notNull()
     .unique(),
   title: text().notNull(),
+  shortTitle: text('short_title'),
   description: text(),
+  shortDescription: text('short_description'),
   jobZone: integer('job_zone').notNull(),
   brightOutlook: boolean('bright_outlook').notNull()
     .default(false),

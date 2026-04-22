@@ -49,7 +49,7 @@ export default function AnswersReviewPage() {
     if (retaking) return
     setRetaking(true)
     reset()
-    router.push('/get-started/would-you-rather')
+    router.push('/discover/would-you-rather')
   }
 
   if (loading) {
@@ -58,11 +58,11 @@ export default function AnswersReviewPage() {
 
   if (!rows || rows.length === 0) {
     return (
-      <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl text-center pt-16">
+      <div className="text-center pt-16">
         <h1 className="font-serif text-2xl text-foreground mb-3">No Answers Yet</h1>
         <p className="text-muted-foreground mb-8">Complete the assessment first to review your picks.</p>
         <Link
-          href="/get-started/would-you-rather"
+          href="/discover/would-you-rather"
           className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline"
         >
           Start the Assessment
@@ -72,10 +72,10 @@ export default function AnswersReviewPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 lg:px-0 py-6 max-w-4xl">
+    <div>
       <div className="flex items-baseline justify-between mb-2">
         <h1 className="font-serif text-2xl sm:text-3xl text-foreground">Your Would You Rathers</h1>
-        <Link href="/profile" className="text-sm text-muted-foreground hover:text-foreground no-underline">← Back to results</Link>
+        <Link href="/discover/profile" className="text-sm text-muted-foreground hover:text-foreground no-underline">← Back to results</Link>
       </div>
       <p className="text-sm text-muted-foreground mb-8">
         A recap of every pair you saw and which side you picked. To change anything, you&apos;ll need to retake the assessment.

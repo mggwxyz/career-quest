@@ -1,7 +1,6 @@
 'use client'
 
 import { authClient } from '@/lib/auth/client'
-import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -19,5 +18,12 @@ export function LogoutButton() {
     }
   }
 
-  return <Button variant="outline" onClick={logout}>Logout</Button>
+  return (
+    <button
+      onClick={logout}
+      className="text-sm px-3.5 py-1.5 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-primary/5"
+    >
+      Logout
+    </button>
+  )
 }

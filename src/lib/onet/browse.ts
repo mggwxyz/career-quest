@@ -1,7 +1,7 @@
 import 'server-only'
 import { db } from '@/db'
 import { onetOccupations } from '@/db/schema'
-import { and, asc, count, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm'
 import type { OccupationRow } from './occupations'
 
 export interface SearchFilters {
@@ -55,10 +55,23 @@ export async function searchOccupations(filters: SearchFilters): Promise<SearchR
   const page = Math.max(1, filters.page ?? 1)
   const offset = (page - 1) * PAGE_SIZE
 
+  /**
+   * Default sort (more useful than A–Z for exploration):
+   * 1. Bright O*NET outlook first
+   * 2. Higher typical pay — annual median, or hourly × 2080 (~full-time year) when annual is null
+   * 3. Title (stable tie-breaker)
+   */
   const [rows, [{ value: total }]] = await Promise.all([
     db.select().from(onetOccupations)
       .where(where)
-      .orderBy(asc(onetOccupations.title))
+      .orderBy(
+        desc(onetOccupations.brightOutlook),
+        sql`COALESCE(
+          ${onetOccupations.salaryAnnualMedian},
+          ${onetOccupations.salaryHourlyMedian} * 2080
+        ) DESC NULLS LAST`,
+        asc(onetOccupations.title),
+      )
       .limit(PAGE_SIZE)
       .offset(offset),
     db.select({ value: count() }).from(onetOccupations)

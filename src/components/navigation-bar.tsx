@@ -10,9 +10,9 @@ import { ThemeToggle } from './theme-toggle'
 import { Menu } from 'lucide-react'
 
 const navLinks = [
-  { href: '/get-started/interests', label: 'Get Started' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/careers/matches', label: 'Matches' },
+  { href: '/discover/interests', label: 'Get Started' },
+  { href: '/discover/profile', label: 'Profile' },
+  { href: '/discover/matches', label: 'Matches' },
   { href: '/careers', label: 'Explore' },
 ]
 
@@ -44,7 +44,7 @@ export const NavigationBar = () => {
 
   return (
     <nav className="fixed top-3 left-4 right-4 z-50">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center px-6 py-3 bg-[var(--surface-glass)] backdrop-blur-xl border border-border rounded-2xl shadow-[var(--shadow-card)] relative">
           {/* Bottom glow line */}
           <div className="absolute bottom-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
@@ -58,33 +58,32 @@ export const NavigationBar = () => {
           </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-1 ml-auto">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm px-3.5 py-1.5 rounded-lg transition-all no-underline ${
-                  isActive(link.href)
-                    ? 'text-foreground bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <div className="hidden md:flex items-center ml-auto">
+            <div className="flex items-center gap-1">
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm px-3.5 py-1.5 rounded-lg transition-all no-underline ${
+                    isActive(link.href)
+                      ? 'text-foreground bg-primary/10'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex shrink-0 items-center justify-center px-3" aria-hidden="true">
+              <span className="h-5 w-px bg-border" />
+            </div>
 
             <div className="flex items-center gap-2 ml-3">
-              {!loading && (
-                !isAnonymous
-                  ? (
-                    <>
-                      <CurrentUserAvatar />
-                      <LogoutButton />
-                    </>
-                  )
-                  : (
-                    <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
-                  )
+              {(loading || !isAnonymous) && <CurrentUserAvatar />}
+              {!loading && !isAnonymous && <LogoutButton />}
+              {!loading && isAnonymous && (
+                <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline px-2">Log In</Link>
               )}
               <ThemeToggle />
             </div>
@@ -93,7 +92,7 @@ export const NavigationBar = () => {
           {/* Mobile hamburger */}
           <div className="md:hidden flex items-center gap-2 ml-auto">
             <ThemeToggle />
-            {!loading && !isAnonymous && <CurrentUserAvatar />}
+            {(loading || !isAnonymous) && <CurrentUserAvatar />}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-2.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"

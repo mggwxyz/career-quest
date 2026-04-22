@@ -2,13 +2,15 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import {
-  assessmentSessions, careerRecommendations, onetOccupations,
+  assessmentSessions, careerRecommendations,
   recommendationRuns, userInterests,
 } from '@/db/schema'
+import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
+import { getOccupationsByCodes } from '@/lib/onet/occupations'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 import { AssessmentResult, ENGINE_VERSION, formatResultForPrompt } from '@/lib/assessment'
 
@@ -85,13 +87,14 @@ Selected Interests:
 ${cleanInterests.join(', ')}
 
 Suggest 10 career paths that match the profile above. For each, return:
-- title, description, onetId, whyItMatches, jobGrowth, salaryRange.
+- title, description, onetId (valid O*NET-SOC code like 15-1252.00), whyItMatches.
+title and description can be short; salary, job outlook, and interest codes are filled from national O*NET data automatically when the code is in our catalog.
 Respond as a JSON array.
     `.trim()
 
     const result = await generateObject({
       model: openai.chat(MODEL_ID),
-      system: `You are a career counselor. Use the Holland code, confidence bands, work values, and work context to recommend careers that fit. Hedge explicitly when any scale is low confidence.`,
+      system: `You are a career counselor. Use the Holland code, confidence bands, work values, and work context to recommend careers that fit. Hedge explicitly when any scale is low confidence. For onetId you MUST use a real O*NET-SOC occupation code in the form ##-####.## (e.g. 15-1252.00, 29-1141.00). Do not invent codes.`,
       prompt,
       schema: CareersResponseSchema,
     })
@@ -100,15 +103,12 @@ Respond as a JSON array.
       throw new Error('No response from OpenAI')
     }
 
-    // Resolve slugs from the O*NET mirror so links can use canonical URLs.
-    // AI returns onetId only; slug is looked up server-side in a single round-trip.
+    // Enrich from local O*NET mirror: slugs, titles, pay, outlook, Holland codes.
     const codes = result.object.careers.map(c => c.onetId)
-    const mirrorRows = codes.length > 0
-      ? await db.select({ code: onetOccupations.code, slug: onetOccupations.slug })
-        .from(onetOccupations)
-        .where(inArray(onetOccupations.code, codes))
-      : []
-    const slugByCode = new Map(mirrorRows.map(r => [r.code, r.slug]))
+    const onetByCode = await getOccupationsByCodes(codes)
+    const mergedCareers: CareerRecommendation[] = result.object.careers.map(c =>
+      mergeCareerWithOnet(c, onetByCode.get(c.onetId)),
+    )
 
     // NOTE: these two inserts are NOT wrapped in a transaction. The Neon HTTP
     // driver (`@neondatabase/serverless`) supports only a batch-style transaction
@@ -129,12 +129,12 @@ Respond as a JSON array.
       .returning({ id: recommendationRuns.id })
 
     await db.insert(careerRecommendations).values(
-      result.object.careers.map((c, i) => ({
+      mergedCareers.map((c, i) => ({
         runId: run.id,
         userId: user.id,
         rank: i + 1,
         onetId: c.onetId,
-        slug: slugByCode.get(c.onetId) ?? null,
+        slug: c.slug ?? null,
         title: c.title,
         description: c.description,
         whyItMatches: c.whyItMatches,
@@ -145,7 +145,7 @@ Respond as a JSON array.
 
     return {
       success: true,
-      careers: result.object.careers.map(c => ({ ...c, slug: slugByCode.get(c.onetId) ?? null })),
+      careers: mergedCareers,
     }
   }
   catch (error) {
