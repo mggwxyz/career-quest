@@ -14,7 +14,8 @@ interface Props {
 
 function buildOpeningMessage(persona: Persona, careerTitle: string): Message {
   const role = persona.role?.trim() || careerTitle
-  const content = `Hey — I'm ${persona.name}. I've been a ${role} for ${persona.yearsInField} years, based in ${persona.location}. Happy to share whatever would be helpful — the day-to-day, how I got here, the hard parts, anything else. What are you curious about?`
+  const years = `${persona.yearsInField} ${persona.yearsInField === 1 ? 'year' : 'years'}`
+  const content = `Hey — I'm ${persona.name}. I've been a ${role} for ${years}, based in ${persona.location}. Happy to share whatever would be helpful — the day-to-day, how I got here, the hard parts, anything else. What are you curious about?`
   return {
     id: 'persona-greeting',
     role: 'assistant',
@@ -74,9 +75,11 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
                       {persona.role?.trim() || careerContext.title}
                       {' • '}
                       {persona.yearsInField}
-                      {' years'}
+                      {' '}
+                      {persona.yearsInField === 1 ? 'year' : 'years'}
+                      {' • '}
+                      {persona.location}
                     </p>
-                    <p className="text-sm text-muted-foreground">{persona.location}</p>
                   </>
                 )
                 : (
@@ -96,7 +99,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
           <button
             type="button"
             onClick={onStartOver}
-            className="text-xs text-muted-foreground hover:text-primary-soft underline disabled:opacity-40 shrink-0"
+            className="text-xs px-3 py-1 rounded-full border border-border text-muted-foreground hover:border-border-hover hover:text-foreground transition-all disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground shrink-0"
             disabled={messages.length <= openingMessages.length || status === 'streaming'}
           >
             Start over
