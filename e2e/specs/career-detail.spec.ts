@@ -10,7 +10,14 @@ test.describe('Career detail page', () => {
     await dbUtils.sql`
       INSERT INTO onet_occupations (code, slug, title, description, job_zone, bright_outlook, riasec_primary, riasec_all)
       VALUES (${SAMPLE_CODE}, ${SAMPLE_SLUG}, 'Registered Nurses', 'Assess patient health.', 4, true, 'S', ARRAY['S','I','R'])
-      ON CONFLICT (code) DO NOTHING
+      ON CONFLICT (code) DO UPDATE SET
+        slug = EXCLUDED.slug,
+        title = EXCLUDED.title,
+        description = EXCLUDED.description,
+        job_zone = EXCLUDED.job_zone,
+        bright_outlook = EXCLUDED.bright_outlook,
+        riasec_primary = EXCLUDED.riasec_primary,
+        riasec_all = EXCLUDED.riasec_all
     `
   })
 
@@ -18,6 +25,7 @@ test.describe('Career detail page', () => {
     await mockChatStream(page)
     await page.goto(`/careers/${SAMPLE_SLUG}`)
     await expect(page.getByRole('heading', { name: 'Registered Nurses', exact: true })).toBeVisible()
+    await expect(page.getByText('Assess patient health.')).toBeVisible()
     await expect(page.getByText(/Job Zone 4/)).toBeVisible()
     await expect(page.getByText(/Bright Outlook/i)).toBeVisible()
   })
