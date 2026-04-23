@@ -99,7 +99,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
           <button
             type="button"
             onClick={onStartOver}
-            className="text-xs px-3 py-1 rounded-full border border-border bg-surface text-foreground hover:border-border-hover hover:bg-muted transition-all disabled:opacity-40 disabled:hover:bg-surface disabled:hover:border-border shrink-0"
+            className="text-xs px-3 py-1 rounded-full border border-border bg-surface text-foreground hover:border-border-hover hover:bg-muted transition-all disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:bg-surface disabled:hover:border-border shrink-0"
             disabled={messages.length <= openingMessages.length || status === 'streaming'}
           >
             Start over
