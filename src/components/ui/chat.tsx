@@ -243,6 +243,7 @@ export function Chat({
             stop={handleStop}
             isGenerating={isGenerating}
             transcribeAudio={transcribeAudio}
+            placeholder={assistantName ? `Ask ${assistantName.split(' ')[0]}...` : 'Ask an expert...'}
           />
         )}
       </ChatForm>
