@@ -5,6 +5,7 @@ import { careerRecommendations } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { resolveSlug, getOccupationByCode, getCareerDetail, getSlugsByOnetCodes } from '@/lib/onet/occupations'
 import { toCareerContext } from '@/lib/onet/projectors'
+import { CareerDetailsHeader } from './_components/CareerDetailsHeader'
 import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
 import { getPersona } from '@/lib/personas'
@@ -85,21 +86,27 @@ export default async function CareerDetailPage({
 
   return (
     <div className={containerClassName}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <CareerDetailsPanel
-            occupation={occupation}
-            detail={detail}
-            whyItMatches={whyItMatches}
-            relatedCareers={relatedCareers}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <CareerRolePlayChat
-            careerContext={careerContext}
-            recommendationContext={whyItMatches ? { whyItMatches } : null}
-            persona={persona}
-          />
+      <div className="space-y-6">
+        <CareerDetailsHeader
+          occupation={occupation}
+          detail={detail}
+          whyItMatches={whyItMatches}
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <CareerRolePlayChat
+              careerContext={careerContext}
+              recommendationContext={whyItMatches ? { whyItMatches } : null}
+              persona={persona}
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <CareerDetailsPanel
+              occupation={occupation}
+              detail={detail}
+              relatedCareers={relatedCareers}
+            />
+          </div>
         </div>
       </div>
     </div>
