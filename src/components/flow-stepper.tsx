@@ -6,10 +6,10 @@ import { Check } from 'lucide-react'
 import { Fragment } from 'react'
 
 const STEPS = [
-  { href: '/discover/interests', label: 'What Interests You?' },
-  { href: '/discover/would-you-rather', label: 'Would You Rather?' },
-  { href: '/discover/profile', label: 'Your Results' },
-  { href: '/discover/matches', label: 'Your Matches' },
+  { href: '/discover/interests', label: 'What Interests You?', short: 'Interests' },
+  { href: '/discover/would-you-rather', label: 'Would You Rather?', short: 'WYR' },
+  { href: '/discover/profile', label: 'Your Profile', short: 'Profile' },
+  { href: '/discover/matches', label: 'Your Matches', short: 'Matches' },
 ] as const
 
 function getCurrentIndex(pathname: string): number {
@@ -26,8 +26,11 @@ export function FlowStepper() {
   if (currentIndex === -1) return null
 
   return (
-    <nav aria-label="Progress" className="mx-auto mb-10 max-w-2xl px-4">
-      <ol className="flex items-start">
+    <nav
+      aria-label="Progress"
+      className="mb-10 w-full min-w-0 px-4 sm:px-6 md:px-8 lg:px-10"
+    >
+      <ol className="flex w-full min-w-0 items-start">
         {STEPS.map((step, i) => {
           const isComplete = i < currentIndex
           const isActive = i === currentIndex
@@ -51,18 +54,29 @@ export function FlowStepper() {
               <div className={`${circleBase} ${circleClass}`} aria-current={isActive ? 'step' : undefined}>
                 {isComplete ? <Check size={10} strokeWidth={3} /> : i + 1}
               </div>
-              <span className={`absolute top-full mt-1 text-[10px] leading-tight text-center whitespace-nowrap ${labelClass}`}>
-                {step.label}
+              <span
+                className={`absolute left-1/2 top-full z-0 mt-1 -translate-x-1/2 text-center text-[10px] leading-tight ${labelClass}`}
+              >
+                <span className="whitespace-nowrap sm:hidden" title={step.label}>
+                  {step.short}
+                </span>
+                <span className="hidden whitespace-nowrap sm:inline" title={step.label}>
+                  {step.label}
+                </span>
               </span>
             </div>
           )
 
           return (
             <Fragment key={step.href}>
-              <li className="flex justify-center">
+              <li className="flex shrink-0 justify-center">
                 {isClickable
-                  ? <Link href={step.href} className="no-underline">{node}</Link>
-                  : <div className="opacity-80">{node}</div>}
+                  ? (
+                    <Link href={step.href} className="no-underline" title={step.label}>
+                      {node}
+                    </Link>
+                  )
+                  : <div className="opacity-80" title={step.label}>{node}</div>}
               </li>
               {i < STEPS.length - 1 && (
                 <li
