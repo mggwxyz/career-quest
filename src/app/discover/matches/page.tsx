@@ -4,6 +4,8 @@ import { db } from '@/db'
 import { careerRecommendations, recommendationRuns } from '@/db/schema'
 import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
+import { getOccupationsByCodes } from '@/lib/onet/occupations'
+import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
 
 async function getUserCareers(): Promise<CareerRecommendation[]> {
   try {
@@ -30,15 +32,23 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       ))
       .orderBy(careerRecommendations.rank)
 
-    return rows.map(row => ({
-      title: row.title,
-      description: row.description,
-      onetId: row.onetId,
-      slug: row.slug,
-      whyItMatches: row.whyItMatches,
-      jobGrowth: row.jobGrowth ?? '',
-      salaryRange: row.salaryRange ?? '',
-    }))
+    // Enrich from the O*NET mirror at render time so short_title /
+    // short_description, salary, outlook, slug, and RIASEC codes reflect the
+    // current mirror rather than whatever was stored when the run was
+    // generated. Stored fields act as fallbacks.
+    const onetByCode = await getOccupationsByCodes(rows.map(r => r.onetId))
+    return rows.map(row => mergeCareerWithOnet(
+      {
+        title: row.title,
+        description: row.description,
+        onetId: row.onetId,
+        whyItMatches: row.whyItMatches,
+        jobGrowth: row.jobGrowth ?? undefined,
+        salaryRange: row.salaryRange ?? undefined,
+        slug: row.slug,
+      },
+      onetByCode.get(row.onetId),
+    ))
   }
   catch (error) {
     // Let Next.js handle its dynamic-rendering probe — re-throw so

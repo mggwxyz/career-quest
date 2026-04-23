@@ -11,6 +11,13 @@ interface CareersClientProps {
   initialCareers: CareerRecommendation[]
 }
 
+// Treat empty/"—" fallbacks as absent so we don't render "Growth: —" chips.
+function hasMeta(v: string | null | undefined): v is string {
+  if (!v) return false
+  const trimmed = v.trim()
+  return trimmed !== '' && trimmed !== '—'
+}
+
 const loadingMessages = [
   'Analyzing your interests and preferences...',
   'Matching your profile with potential careers...',
@@ -64,7 +71,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full min-w-0">
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>
         <p className="text-sm text-muted-foreground">Ranked by how well they fit your profile</p>
@@ -133,18 +140,24 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                         <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
-                      <div className="flex gap-4 text-xs mb-3">
-                        <span>
-                          <span className="text-text-dim">Growth:</span>
-                          {' '}
-                          <span className="text-green-400 font-medium">{career.jobGrowth}</span>
-                        </span>
-                        <span>
-                          <span className="text-text-dim">Salary:</span>
-                          {' '}
-                          <span className="text-primary-soft font-medium">{career.salaryRange}</span>
-                        </span>
-                      </div>
+                      {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3">
+                          {hasMeta(career.jobGrowth) && (
+                            <span>
+                              <span className="text-text-dim">Growth:</span>
+                              {' '}
+                              <span className="text-green-400 font-medium">{career.jobGrowth}</span>
+                            </span>
+                          )}
+                          {hasMeta(career.salaryRange) && (
+                            <span>
+                              <span className="text-text-dim">Salary:</span>
+                              {' '}
+                              <span className="text-primary-soft font-medium">{career.salaryRange}</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className="mt-auto pt-3 border-t border-border">
                         <p className="text-xs text-muted-foreground leading-relaxed">
                           <span className="text-accent font-medium">Why it fits: </span>
