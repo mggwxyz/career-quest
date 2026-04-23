@@ -24,17 +24,19 @@ const detail: CareerDetail = {
   code: '29-1141.00',
   title: 'Registered Nurses',
   description: 'Assess patient health problems and needs.',
+  brightOutlook: true,
   tasks: [],
   skills: [],
   knowledge: [],
-  workActivities: [],
   technology: [],
-  relatedCareers: [],
   jobZone: 4,
+  riasecNames: ['Social', 'Investigative', 'Realistic'],
   salaryAnnualMedian: 85000,
   salaryHourlyMedian: null,
+  outlookCategory: null,
   outlookDescription: 'Faster than average growth',
-} as CareerDetail
+  relatedCareers: [],
+}
 
 describe('CareerDetailsHeader', () => {
   it('renders the title as a heading', () => {
