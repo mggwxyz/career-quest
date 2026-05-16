@@ -1,6 +1,8 @@
 // src/app/_data/riasecTheme.ts
 // Fixed theme per RIASEC code — used by hero cards and the radar chart.
 
+import type { RiasecScale } from '@/lib/assessment'
+
 export interface RiasecThemeEntry {
   label: string
   /** Short descriptor — the portion of CODE_LABELS after the en-dash. */
@@ -62,7 +64,7 @@ export const RIASEC_THEME: Record<string, RiasecThemeEntry> = {
  * Fixed clockwise axis order for the radar chart (starting from the top).
  * Keeping this stable across users ensures chart shape is comparable.
  */
-export const RIASEC_AXIS_ORDER: readonly string[] = ['S', 'I', 'C', 'A', 'R', 'E']
+export const RIASEC_AXIS_ORDER: readonly RiasecScale[] = ['S', 'I', 'C', 'A', 'R', 'E']
 
 export const getRiasecTheme = (code: string): RiasecThemeEntry | undefined =>
   RIASEC_THEME[code]

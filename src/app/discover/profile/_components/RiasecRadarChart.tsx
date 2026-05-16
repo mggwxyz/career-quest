@@ -1,5 +1,5 @@
 import { RIASEC_AXIS_ORDER, RIASEC_THEME } from '@/app/_data/riasecTheme'
-import type { AssessmentResult, RiasecScale } from '@/lib/assessment'
+import type { AssessmentResult } from '@/lib/assessment'
 import { getPresetInterestIcon } from '@/lib/interestIcons'
 
 interface Props {
@@ -42,7 +42,7 @@ function riasecVariance(confidence: 'high' | 'medium' | 'low'): number {
  */
 export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
   const selectedInterestCodes = RIASEC_AXIS_ORDER
-    .map(code => ({ code: code as RiasecScale, rank: riasec[code as RiasecScale].rank }))
+    .map(code => ({ code, rank: riasec[code].rank }))
     .sort((a, b) => a.rank - b.rank)
     .slice(0, 3)
     .map(x => x.code)
@@ -50,13 +50,13 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
   const topCodes = new Set(selectedInterestCodes)
 
   const meanPoly = RIASEC_AXIS_ORDER
-    .map((code, i) => pointFor(riasec[code as RiasecScale].score, angleFor(i)))
+    .map((code, i) => pointFor(riasec[code].score, angleFor(i)))
     .map(p => `${p[0]},${p[1]}`)
     .join(' ')
 
   const highPoly = RIASEC_AXIS_ORDER
     .map((code, i) => {
-      const s = riasec[code as RiasecScale]
+      const s = riasec[code]
       // Approximate SD from variance by sqrt, scaled.
       const sd = Math.sqrt(riasecVariance(s.confidence)) * VAR_TO_SCORE_SD
       return pointFor(Math.min(100, s.score + sd), angleFor(i))
@@ -66,7 +66,7 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
 
   const lowPoly = RIASEC_AXIS_ORDER
     .map((code, i) => {
-      const s = riasec[code as RiasecScale]
+      const s = riasec[code]
       const sd = Math.sqrt(riasecVariance(s.confidence)) * VAR_TO_SCORE_SD
       return pointFor(Math.max(0, s.score - sd), angleFor(i))
     })
@@ -138,7 +138,7 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
           {/* Mean vertices */}
           {RIASEC_AXIS_ORDER.map((code, i) => {
             const a = angleFor(i)
-            const [x, y] = pointFor(riasec[code as RiasecScale].score, a)
+            const [x, y] = pointFor(riasec[code].score, a)
             return (
               <circle
                 key={code}
@@ -181,7 +181,7 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
         {RIASEC_AXIS_ORDER.map((code) => {
           const theme = RIASEC_THEME[code]
           const highlighted = topCodes.has(code)
-          const s = riasec[code as RiasecScale]
+          const s = riasec[code]
           const scoreLabel = Math.round(s.score)
           const label = theme?.label ?? code
           return (
@@ -244,7 +244,7 @@ export function RiasecRadarChart({ riasec, profileInterests = [] }: Props) {
       <ul className="sr-only">
         {RIASEC_AXIS_ORDER.map((code) => {
           const theme = RIASEC_THEME[code]
-          const s = riasec[code as RiasecScale]
+          const s = riasec[code]
           return (
             <li key={code}>
               {`${theme?.label ?? code}: score ${s.score}, confidence ${s.confidence}`}
