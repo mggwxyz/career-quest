@@ -2,8 +2,8 @@
 // SME-rated item bank for the adaptive RIASEC assessment.
 // 78 forced-choice pairs. Each option carries RIASEC, work-value, and
 // work-context loadings plus a 1..5 desirability rating. See
-// docs/superpowers/plans/ and src/lib/assessment/itemBank.ts for the
-// validator rules this bank satisfies.
+// src/lib/assessment/itemBank.ts for the validator rules this bank
+// satisfies.
 
 import { Item, Option, RiasecScale } from '@/lib/assessment/types'
 import { contrastCategory } from '@/lib/assessment/hexagon'

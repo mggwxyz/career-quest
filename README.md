@@ -2,10 +2,7 @@
 
 An interactive career-exploration tool that helps students discover careers through a game-style "would you rather" quiz, a Bayesian adaptive assessment, and AI-powered career chat.
 
-<!-- TODO: live demo link -->
-<!-- **Live demo:** https://career-quest.example.com -->
-
-<!-- TODO: add screenshots / GIF of the assessment → results → chat flow to ./docs/screenshots/ and reference them here -->
+**Live demo:** https://career-quest-app.vercel.app/
 
 ## What it does
 
