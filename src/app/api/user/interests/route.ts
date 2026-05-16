@@ -41,15 +41,25 @@ export async function POST(request: Request) {
   }
   const body = await request.json().catch(() => ({}))
   const interests = normalize((body as { interests?: unknown }).interests)
+  const userId = auth.user.id
 
-  await db.transaction(async (tx) => {
-    await tx.delete(userInterests).where(eq(userInterests.userId, auth.user.id))
-    if (interests.length > 0) {
-      await tx.insert(userInterests).values(
-        interests.map(interest => ({ userId: auth.user.id, interest, source: 'manual' })),
-      )
-    }
-  })
+  // The neon-http driver is stateless and has no interactive transaction
+  // support (`db.transaction(...)` throws "No transactions support in
+  // neon-http driver"). `db.batch([...])` runs the statements in a single
+  // atomic HTTP request, which is all the atomicity these two
+  // independent statements need.
+  const clear = db.delete(userInterests).where(eq(userInterests.userId, userId))
+  if (interests.length > 0) {
+    await db.batch([
+      clear,
+      db.insert(userInterests).values(
+        interests.map(interest => ({ userId, interest, source: 'manual' })),
+      ),
+    ])
+  }
+  else {
+    await clear
+  }
 
   return NextResponse.json({ interests })
 }
