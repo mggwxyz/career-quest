@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sampleDemographics, type Distribution } from '../sample'
+import { sampleDemographics, applySample, planSamples, type Distribution } from '../sample'
 
 const emptyDist: Distribution = {
   gender: { female: 0, male: 0, nonbinary: 0 },
@@ -74,5 +74,37 @@ describe('sampleDemographics', () => {
       if (s.gender === 'male') male++
     }
     expect(male).toBeGreaterThan(120)
+  })
+})
+
+describe('planSamples', () => {
+  const targets = ['a', 'b', 'c', 'd', 'e']
+
+  it('matches a sequential sampleDemographics/applySample loop exactly', () => {
+    // This is the contract that lets us parallelize generation safely: the
+    // pre-sampled plan must be identical to what the old serial loop produced.
+    const { plan, finalDist } = planSamples(emptyDist, mulberry32(42), targets)
+
+    const rng = mulberry32(42)
+    let d = emptyDist
+    const expected = targets.map((onetId) => {
+      const sample = sampleDemographics(d, rng)
+      d = applySample(d, sample)
+      return { onetId, sample }
+    })
+
+    expect(plan).toEqual(expected)
+    expect(finalDist).toEqual(d)
+  })
+
+  it('does not mutate the input distribution', () => {
+    const snapshot = structuredClone(emptyDist)
+    planSamples(emptyDist, mulberry32(1), targets)
+    expect(emptyDist).toEqual(snapshot)
+  })
+
+  it('advances finalDist.total by the number of targets', () => {
+    const { finalDist } = planSamples(emptyDist, mulberry32(1), targets)
+    expect(finalDist.total).toBe(emptyDist.total + targets.length)
   })
 })

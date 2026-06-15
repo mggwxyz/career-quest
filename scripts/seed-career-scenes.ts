@@ -8,6 +8,7 @@
  *   pnpm tsx scripts/seed-career-scenes.ts --onet 29-1141.00 [--force]
  *   pnpm tsx scripts/seed-career-scenes.ts                       # all missing (default)
  *   pnpm tsx scripts/seed-career-scenes.ts --quality high
+ *   pnpm tsx scripts/seed-career-scenes.ts --rpm 12             # parallelize at ~12 careers/min
  *
  * Requires: OPENAI_API_KEY. `cwebp` must be on PATH (brew install webp).
  */
@@ -16,6 +17,7 @@ import 'dotenv-flow/config'
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { eq } from 'drizzle-orm'
+import pThrottle from 'p-throttle'
 import { db } from '../src/db'
 import { onetOccupations } from '../src/db/schema'
 import { generateSceneText } from './seed-career-scenes/generate-scene-text'
@@ -34,16 +36,19 @@ type CareerScene = {
 
 type SceneManifest = Record<string, CareerScene>
 
+const DEFAULT_RPM = 8
+
 type Args = {
   limit?: number
   onet?: string
   force: boolean
   dryRun: boolean
   quality: Quality
+  rpm: number
 }
 
 function parseArgs(): Args {
-  const a: Args = { force: false, dryRun: false, quality: 'medium' }
+  const a: Args = { force: false, dryRun: false, quality: 'medium', rpm: DEFAULT_RPM }
   const argv = process.argv.slice(2)
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i]
@@ -51,6 +56,10 @@ function parseArgs(): Args {
     else if (flag === '--onet') a.onet = argv[++i]
     else if (flag === '--force') a.force = true
     else if (flag === '--dry-run') a.dryRun = true
+    else if (flag === '--rpm') {
+      a.rpm = Number(argv[++i])
+      if (!Number.isFinite(a.rpm) || a.rpm < 1) throw new Error(`Invalid --rpm: ${a.rpm} (expected a positive number)`)
+    }
     else if (flag === '--quality') {
       const q = argv[++i]
       if (q !== 'low' && q !== 'medium' && q !== 'high') {
@@ -70,8 +79,9 @@ function readManifest(): SceneManifest {
   return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8')) as SceneManifest
 }
 
+let tmpSeq = 0
 function writeJsonAtomic(path: string, data: unknown) {
-  const tmp = `${path}.tmp-${process.pid}`
+  const tmp = `${path}.tmp-${process.pid}-${tmpSeq++}`
   writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n')
   renameSync(tmp, path)
 }
@@ -95,18 +105,22 @@ async function listAllCodes(): Promise<string[]> {
   return rows.map(r => r.code)
 }
 
-async function generateOne(args: {
+type SceneOutcome =
+  | { status: 'wrote', record: CareerScene }
+  | { status: 'dry' }
+  | { status: 'skipped' }
+
+async function generateScene(args: {
   onetId: string
-  manifest: SceneManifest
   dryRun: boolean
   quality: Quality
-}): Promise<{ manifest: SceneManifest, wrote: boolean }> {
-  const { onetId, manifest, dryRun, quality } = args
+}): Promise<SceneOutcome> {
+  const { onetId, dryRun, quality } = args
 
   const career = await fetchCareer(onetId)
   if (!career) {
     console.warn(`[${onetId}] no occupation row in O*NET mirror; skipping`)
-    return { manifest, wrote: false }
+    return { status: 'skipped' }
   }
 
   const scene = await generateSceneText({
@@ -117,7 +131,7 @@ async function generateOne(args: {
 
   if (dryRun) {
     console.log(`[${onetId}] DRY-RUN ${career.title}: ${scene.scene}`)
-    return { manifest, wrote: false }
+    return { status: 'dry' }
   }
 
   const image = await generateSceneImage({ onetId, scene: scene.scene, quality })
@@ -133,10 +147,7 @@ async function generateOne(args: {
     imageModel: 'gpt-image-1',
   }
 
-  const nextManifest = { ...manifest, [onetId]: record }
-  writeJsonAtomic(MANIFEST_PATH, nextManifest)
-  console.log(`[${onetId}] ✓ ${career.title}`)
-  return { manifest: nextManifest, wrote: true }
+  return { status: 'wrote', record }
 }
 
 async function main() {
@@ -148,7 +159,7 @@ async function main() {
   const dataDir = resolve(process.cwd(), 'data/careers')
   if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
 
-  let manifest = readManifest()
+  const manifest = readManifest()
   const existing = new Set(Object.keys(manifest))
 
   let targets: string[]
@@ -165,23 +176,44 @@ async function main() {
     if (typeof args.limit === 'number') targets = targets.slice(0, args.limit)
   }
 
-  console.log(`Processing ${targets.length} O*NET code(s)${args.dryRun ? ' (dry-run)' : ''}...`)
+  console.log(`Processing ${targets.length} O*NET code(s) at ${args.rpm}/min${args.dryRun ? ' (dry-run)' : ''}...`)
 
+  // Shared manifest mutated only inside this synchronous commit: with no await
+  // between the mutation and the atomic write, the single-threaded event loop
+  // runs each commit to completion, so concurrent tasks can't lose updates.
+  function commit(record: CareerScene) {
+    manifest[record.onetId] = record
+    writeJsonAtomic(MANIFEST_PATH, manifest)
+  }
+
+  const throttle = pThrottle({ limit: args.rpm, interval: 60_000 })
+  const run = throttle(generateScene)
+
+  const total = targets.length
+  let done = 0
   let ok = 0
   let failed = 0
-  for (const [i, onetId] of targets.entries()) {
-    const label = `[${i + 1}/${targets.length}]`
-    try {
-      const result = await generateOne({ onetId, manifest, dryRun: args.dryRun, quality: args.quality })
-      manifest = result.manifest
-      if (result.wrote || args.dryRun) ok++
-    }
-    catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error(`${label} [${onetId}] ✗ ${msg}`)
-      failed++
-    }
-  }
+
+  await Promise.allSettled(targets.map(onetId =>
+    run({ onetId, dryRun: args.dryRun, quality: args.quality })
+      .then((outcome) => {
+        done++
+        if (outcome.status === 'wrote') {
+          commit(outcome.record)
+          ok++
+          console.log(`[${done}/${total}] [${onetId}] ✓ ${outcome.record.careerTitle}`)
+        }
+        else if (outcome.status === 'dry') {
+          ok++
+        }
+      })
+      .catch((err) => {
+        done++
+        failed++
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error(`[${done}/${total}] [${onetId}] ✗ ${msg}`)
+      }),
+  ))
 
   console.log(`done: ${ok} ok, ${failed} failed`)
   if (failed > 0) process.exit(1)

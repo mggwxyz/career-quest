@@ -6,6 +6,7 @@
  *   pnpm tsx scripts/seed-personas.ts --all         # phase 2 (remaining codes)
  *   pnpm tsx scripts/seed-personas.ts --onet 29-1141.00 [--force]
  *   pnpm tsx scripts/seed-personas.ts --dry-run --limit 5
+ *   pnpm tsx scripts/seed-personas.ts --all --rpm 12   # parallelize at ~12 personas/min
  *
  * Requires: OPENAI_API_KEY. `cwebp` must be on PATH (brew install webp).
  */
@@ -14,13 +15,16 @@ import 'dotenv-flow/config'
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { eq } from 'drizzle-orm'
+import pThrottle from 'p-throttle'
 import { db } from '../src/db'
 import { onetOccupations } from '../src/db/schema'
 import type { Persona, PersonaManifest } from '../src/lib/personas/types'
-import { sampleDemographics, applySample, type Distribution } from './seed-personas/sample'
+import { applySample, planSamples, type Distribution, type Sample } from './seed-personas/sample'
 import { rankPhase1, rankAll } from './seed-personas/ranking'
 import { generatePersonaText } from './seed-personas/generate-text'
 import { generatePortrait } from './seed-personas/generate-image'
+
+const DEFAULT_RPM = 8
 
 type Args = {
   limit?: number
@@ -28,10 +32,11 @@ type Args = {
   onet?: string
   force: boolean
   dryRun: boolean
+  rpm: number
 }
 
 function parseArgs(): Args {
-  const a: Args = { all: false, force: false, dryRun: false }
+  const a: Args = { all: false, force: false, dryRun: false, rpm: DEFAULT_RPM }
   const argv = process.argv.slice(2)
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i]
@@ -40,6 +45,10 @@ function parseArgs(): Args {
     else if (flag === '--onet') a.onet = argv[++i]
     else if (flag === '--force') a.force = true
     else if (flag === '--dry-run') a.dryRun = true
+    else if (flag === '--rpm') {
+      a.rpm = Number(argv[++i])
+      if (!Number.isFinite(a.rpm) || a.rpm < 1) throw new Error(`Invalid --rpm: ${a.rpm} (expected a positive number)`)
+    }
     else throw new Error(`Unknown flag: ${flag}`)
   }
   return a
@@ -52,8 +61,9 @@ function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T
 }
 
+let tmpSeq = 0
 function writeJsonAtomic(path: string, data: unknown) {
-  const tmp = `${path}.tmp-${process.pid}`
+  const tmp = `${path}.tmp-${process.pid}-${tmpSeq++}`
   writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n')
   renameSync(tmp, path)
 }
@@ -89,26 +99,27 @@ async function fetchCareerForOnet(onetId: string) {
   return { title: rows[0].title, description: rows[0].description ?? '' }
 }
 
-async function generateOne(args: {
+type PersonaOutcome =
+  | { status: 'wrote', persona: Persona, sample: Sample }
+  | { status: 'dry' }
+  | { status: 'skipped' }
+
+async function generatePersona(args: {
   onetId: string
-  manifest: PersonaManifest
-  dist: Distribution
-  rng: () => number
+  sample: Sample
   dryRun: boolean
-}): Promise<{ manifest: PersonaManifest, dist: Distribution, wrote: boolean }> {
-  const { onetId, manifest, dist, rng, dryRun } = args
+}): Promise<PersonaOutcome> {
+  const { onetId, sample, dryRun } = args
 
   const career = await fetchCareerForOnet(onetId)
   if (!career) {
     console.warn(`[${onetId}] no occupation row in O*NET mirror; skipping`)
-    return { manifest, dist, wrote: false }
+    return { status: 'skipped' }
   }
-
-  const sample = sampleDemographics(dist, rng)
 
   if (dryRun) {
     console.log(`[${onetId}] DRY-RUN would sample`, sample)
-    return { manifest, dist: applySample(dist, sample), wrote: false }
+    return { status: 'dry' }
   }
 
   const text = await generatePersonaText({
@@ -145,14 +156,7 @@ async function generateOne(args: {
     imageModel: 'gpt-image-1',
   }
 
-  const nextManifest = { ...manifest, [onetId]: persona }
-  const nextDist = applySample(dist, sample)
-
-  writeJsonAtomic(MANIFEST_PATH, nextManifest)
-  writeJsonAtomic(DIST_PATH, nextDist)
-
-  console.log(`[${onetId}] ✓ ${persona.name} (${persona.age}, ${persona.gender}, ${persona.ethnicityCue})`)
-  return { manifest: nextManifest, dist: nextDist, wrote: true }
+  return { status: 'wrote', persona, sample }
 }
 
 async function main() {
@@ -162,7 +166,7 @@ async function main() {
   const personasDir = resolve(process.cwd(), 'public/careers/personas')
   if (!existsSync(personasDir)) mkdirSync(personasDir, { recursive: true })
 
-  let manifest = readJson<PersonaManifest>(MANIFEST_PATH)
+  const manifest = readJson<PersonaManifest>(MANIFEST_PATH)
   let dist = readJson<Distribution>(DIST_PATH)
   const existing = new Set(Object.keys(manifest))
 
@@ -173,7 +177,6 @@ async function main() {
       console.log(`[${args.onet}] already in manifest; use --force to regenerate`)
       return
     }
-    if (args.force) existing.delete(args.onet)
   }
   else if (args.all) {
     targets = await rankAll(existing)
@@ -185,29 +188,54 @@ async function main() {
     throw new Error('Provide one of --limit N, --all, or --onet <id>')
   }
 
-  console.log(`Processing ${targets.length} O*NET code(s)...`)
-
+  // Pre-sample every target's demographics serially so the seeded RNG and
+  // balancing stay deterministic regardless of the order the (parallelized)
+  // API work below finishes in. Only the text+image generation is parallelized.
   const rng = makeRng(dist.total + 1)
+  const { plan } = planSamples(dist, rng, targets)
+
+  console.log(`Processing ${targets.length} O*NET code(s) at ${args.rpm}/min${args.dryRun ? ' (dry-run)' : ''}...`)
+
+  // Shared state mutated only inside this synchronous commit: with no await
+  // between the read-modify-write and the atomic writes, the single-threaded
+  // event loop runs each commit to completion, so concurrent tasks can't lose
+  // updates. `dist` accumulates successes only, so the on-disk tally matches
+  // what was actually written.
+  function commit(persona: Persona, sample: Sample) {
+    manifest[persona.onetId] = persona
+    dist = applySample(dist, sample)
+    writeJsonAtomic(MANIFEST_PATH, manifest)
+    writeJsonAtomic(DIST_PATH, dist)
+  }
+
+  const throttle = pThrottle({ limit: args.rpm, interval: 60_000 })
+  const run = throttle(generatePersona)
+
+  const total = plan.length
+  let done = 0
   let ok = 0
   let failed = 0
-  for (const [i, onetId] of targets.entries()) {
-    const label = `[${i + 1}/${targets.length}]`
-    try {
-      const before = manifest
-      const result = await generateOne({ onetId, manifest, dist, rng, dryRun: args.dryRun })
-      manifest = result.manifest
-      dist = result.dist
-      if (result.wrote || args.dryRun) ok++
-      if (result.manifest === before && !args.dryRun) {
-        // skipped (no DB row); not an error but not a success
-      }
-    }
-    catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error(`${label} [${onetId}] ✗ ${msg}`)
-      failed++
-    }
-  }
+
+  await Promise.allSettled(plan.map(({ onetId, sample }) =>
+    run({ onetId, sample, dryRun: args.dryRun })
+      .then((outcome) => {
+        done++
+        if (outcome.status === 'wrote') {
+          commit(outcome.persona, outcome.sample)
+          ok++
+          console.log(`[${done}/${total}] [${onetId}] ✓ ${outcome.persona.name} (${outcome.persona.age}, ${outcome.persona.gender}, ${outcome.persona.ethnicityCue})`)
+        }
+        else if (outcome.status === 'dry') {
+          ok++
+        }
+      })
+      .catch((err) => {
+        done++
+        failed++
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error(`[${done}/${total}] [${onetId}] ✗ ${msg}`)
+      }),
+  ))
 
   console.log(`done: ${ok} ok, ${failed} failed`)
   if (failed > 0) process.exit(1)

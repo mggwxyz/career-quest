@@ -79,3 +79,24 @@ export function applySample(dist: Distribution, s: Sample): Distribution {
     total: dist.total + 1,
   }
 }
+
+/**
+ * Pre-sample demographics for every target serially, advancing the running
+ * distribution after each draw exactly as a sequential loop would. This keeps
+ * the seeded RNG and balancing deterministic and independent of the order in
+ * which the (parallelized) generation work later completes. Does not mutate
+ * the input distribution.
+ */
+export function planSamples(
+  dist: Distribution,
+  rng: Rng,
+  targets: string[],
+): { plan: Array<{ onetId: string, sample: Sample }>, finalDist: Distribution } {
+  let working = dist
+  const plan = targets.map((onetId) => {
+    const sample = sampleDemographics(working, rng)
+    working = applySample(working, sample)
+    return { onetId, sample }
+  })
+  return { plan, finalDist: working }
+}
