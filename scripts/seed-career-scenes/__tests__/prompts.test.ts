@@ -8,12 +8,13 @@ describe('CAREER_STYLE_PREFIX', () => {
     expect(CAREER_STYLE_PREFIX).toContain('no gradients')
   })
 
-  it('uses a candid 3:2 multi-person composition, not a centered portrait', () => {
+  it('uses a candid 3:2 single-subject composition with optional background, not a portrait', () => {
     expect(CAREER_STYLE_PREFIX).toContain('3:2 landscape')
-    expect(CAREER_STYLE_PREFIX).toContain('one to three people')
+    expect(CAREER_STYLE_PREFIX).toContain('single person')
+    expect(CAREER_STYLE_PREFIX).toContain('in the background')
     expect(CAREER_STYLE_PREFIX).toContain('no one looking at the camera')
+    expect(CAREER_STYLE_PREFIX).not.toContain('one to three people')
     expect(CAREER_STYLE_PREFIX).not.toContain('Portrait from chest up')
-    expect(CAREER_STYLE_PREFIX).not.toContain('single centered focal subject')
   })
 })
 
@@ -29,12 +30,14 @@ describe('buildSceneTextPrompt', () => {
     expect(p).toContain('Assemble, install, and repair pipes.')
   })
 
-  it('asks for peopleCount, a candid scene, concrete tasks, and diversity', () => {
+  it('asks for a single-focus candid scene with optional background, concrete tasks, and diversity', () => {
     const p = buildSceneTextPrompt({ careerTitle: 'Plumber', onetId: '47-2152.00' })
-    expect(p).toContain('peopleCount')
+    expect(p).toContain('one person')
     expect(p).toContain('- scene:')
+    expect(p).toContain('in the background')
     expect(p.toLowerCase()).toContain('candid')
     expect(p.toLowerCase()).toContain('diverse')
+    expect(p).not.toContain('peopleCount')
   })
 
   it('omits the description line when none is given', () => {

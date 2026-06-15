@@ -9,9 +9,6 @@ const openai = createOpenAI({
 })
 
 const SceneTextSchema = z.object({
-  peopleCount: z.number().int()
-    .min(1)
-    .max(3),
   scene: z.string().min(20)
     .max(900),
 })
@@ -33,7 +30,7 @@ export async function generateSceneText(args: {
 
   const result = await generateObject({
     model: openai.chat(model),
-    system: 'You compose concrete, candid scene descriptions for flat illustration reference. Always describe people mid-task, never posing, using the real tools of the job. Be specific and varied.',
+    system: 'You compose concrete, candid scene descriptions for flat illustration reference. Center one worker mid-task (never posing) using the real tools of the job; include other people only as smaller, secondary background figures when the setting naturally calls for it. Be specific and varied.',
     prompt,
     schema: SceneTextSchema,
     temperature: 1,

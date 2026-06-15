@@ -24,7 +24,6 @@ import { generateSceneImage, type Quality } from './seed-career-scenes/generate-
 type CareerScene = {
   onetId: string
   careerTitle: string
-  peopleCount: number
   sceneDescription: string
   imagePrompt: string
   imagePath: string
@@ -117,7 +116,7 @@ async function generateOne(args: {
   })
 
   if (dryRun) {
-    console.log(`[${onetId}] DRY-RUN ${career.title} — ${scene.peopleCount} ppl: ${scene.scene}`)
+    console.log(`[${onetId}] DRY-RUN ${career.title}: ${scene.scene}`)
     return { manifest, wrote: false }
   }
 
@@ -126,7 +125,6 @@ async function generateOne(args: {
   const record: CareerScene = {
     onetId,
     careerTitle: career.title,
-    peopleCount: scene.peopleCount,
     sceneDescription: scene.scene,
     imagePrompt: image.imagePrompt,
     imagePath: image.imagePath,
@@ -137,7 +135,7 @@ async function generateOne(args: {
 
   const nextManifest = { ...manifest, [onetId]: record }
   writeJsonAtomic(MANIFEST_PATH, nextManifest)
-  console.log(`[${onetId}] ✓ ${career.title} (${scene.peopleCount} ppl)`)
+  console.log(`[${onetId}] ✓ ${career.title}`)
   return { manifest: nextManifest, wrote: true }
 }
 
