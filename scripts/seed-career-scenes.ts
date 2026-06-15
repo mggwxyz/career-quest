@@ -9,6 +9,7 @@
  *   pnpm tsx scripts/seed-career-scenes.ts                       # all missing (default)
  *   pnpm tsx scripts/seed-career-scenes.ts --quality high
  *   pnpm tsx scripts/seed-career-scenes.ts --rpm 12             # parallelize at ~12 careers/min
+ *   pnpm tsx scripts/seed-career-scenes.ts --onet 45-2021.00 --scene "..." --force  # hand-steer one scene
  *
  * Requires: OPENAI_API_KEY. `cwebp` must be on PATH (brew install webp).
  */
@@ -45,6 +46,7 @@ type Args = {
   dryRun: boolean
   quality: Quality
   rpm: number
+  scene?: string
 }
 
 function parseArgs(): Args {
@@ -56,6 +58,7 @@ function parseArgs(): Args {
     else if (flag === '--onet') a.onet = argv[++i]
     else if (flag === '--force') a.force = true
     else if (flag === '--dry-run') a.dryRun = true
+    else if (flag === '--scene') a.scene = argv[++i]
     else if (flag === '--rpm') {
       a.rpm = Number(argv[++i])
       if (!Number.isFinite(a.rpm) || a.rpm < 1) throw new Error(`Invalid --rpm: ${a.rpm} (expected a positive number)`)
@@ -69,6 +72,7 @@ function parseArgs(): Args {
     }
     else throw new Error(`Unknown flag: ${flag}`)
   }
+  if (a.scene !== undefined && !a.onet) throw new Error('--scene requires --onet')
   return a
 }
 
@@ -114,6 +118,7 @@ async function generateScene(args: {
   onetId: string
   dryRun: boolean
   quality: Quality
+  scene?: string
 }): Promise<SceneOutcome> {
   const { onetId, dryRun, quality } = args
 
@@ -123,23 +128,25 @@ async function generateScene(args: {
     return { status: 'skipped' }
   }
 
-  const scene = await generateSceneText({
+  // An operator-supplied scene overrides GPT text generation — useful when the
+  // auto-generated scene keeps tripping the image safety filter.
+  const sceneText = args.scene ?? (await generateSceneText({
     onetId,
     careerTitle: career.title,
     careerDescription: career.description || undefined,
-  })
+  })).scene
 
   if (dryRun) {
-    console.log(`[${onetId}] DRY-RUN ${career.title}: ${scene.scene}`)
+    console.log(`[${onetId}] DRY-RUN ${career.title}: ${sceneText}`)
     return { status: 'dry' }
   }
 
-  const image = await generateSceneImage({ onetId, scene: scene.scene, quality })
+  const image = await generateSceneImage({ onetId, scene: sceneText, quality })
 
   const record: CareerScene = {
     onetId,
     careerTitle: career.title,
-    sceneDescription: scene.scene,
+    sceneDescription: sceneText,
     imagePrompt: image.imagePrompt,
     imagePath: image.imagePath,
     generatedAt: new Date().toISOString(),
@@ -195,7 +202,7 @@ async function main() {
   let failed = 0
 
   await Promise.allSettled(targets.map(onetId =>
-    run({ onetId, dryRun: args.dryRun, quality: args.quality })
+    run({ onetId, dryRun: args.dryRun, quality: args.quality, scene: args.scene })
       .then((outcome) => {
         done++
         if (outcome.status === 'wrote') {
