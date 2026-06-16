@@ -68,3 +68,8 @@ bun.lockb
 
 # superpowers brainstorm
 .superpowers/
+
+# career-scene intermediate PNGs: the app serves the webp (scenes.json
+# imagePath points to .webp); the .png is just the pre-cwebp source. Track
+# the webp, ignore the heavy png.
+public/careers/scenes/*.png
