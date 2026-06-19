@@ -21,7 +21,6 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
           : 'border-border bg-surface/50 hover:border-border-hover focus-visible:border-primary/70'
       }`}
       onClick={onClick}
-      whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.12 }}
     >
