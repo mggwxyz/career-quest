@@ -134,7 +134,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                   >
                     <Link
                       href={`/careers/${career.slug ?? career.onetId}`}
-                      className="flex h-full flex-col p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                      className="flex h-full flex-col p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-[border-color,box-shadow] no-underline group"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>

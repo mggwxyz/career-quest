@@ -55,4 +55,16 @@ test.describe('/careers (explore)', () => {
       .click()
     await expect(page).toHaveURL('/careers/registered-nurses')
   })
+
+  test('does not transform career cards on hover', async ({ authenticatedPage: page }) => {
+    await page.goto('/careers?q=nurse')
+    const card = page.getByRole('link', { name: /Registered Nurses/ }).first()
+    await expect(card).toBeVisible()
+    await expect(card).not.toHaveClass(/hover:-?translate|hover:scale|group-hover:scale/)
+    await expect(card).toHaveCSS('transform', 'none')
+
+    await card.hover()
+
+    await expect(card).toHaveCSS('transform', 'none')
+  })
 })

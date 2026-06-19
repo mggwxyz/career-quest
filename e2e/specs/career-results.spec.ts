@@ -58,6 +58,47 @@ test.describe('Career Results', () => {
     await expect(page.getByText(/Your strong Investigative and Conventional/)).toBeVisible()
   })
 
+  test('does not transform match career cards on hover', async ({ authenticatedPage: page, dbUtils }) => {
+    const userId = await dbUtils.getTestUserId()
+    const career = mockCareers.careers[0]
+    const slug = 'software-developers'
+
+    const sessionRows = await dbUtils.sql`
+      INSERT INTO assessment_sessions (user_id, engine_version, posterior, completed_at)
+      VALUES (${userId}, 'e2e-test', '{}'::jsonb, NOW())
+      RETURNING id
+    ` as Array<{ id: string }>
+    const sessionId = sessionRows[0].id
+
+    const runRows = await dbUtils.sql`
+      INSERT INTO recommendation_runs (user_id, session_id, interests_snapshot, prompt, model, engine_version)
+      VALUES (${userId}, ${sessionId}, ARRAY[]::text[], 'e2e', 'e2e', 'e2e-test')
+      RETURNING id
+    ` as Array<{ id: string }>
+    const runId = runRows[0].id
+
+    await dbUtils.sql`
+      INSERT INTO career_recommendations (run_id, user_id, rank, onet_id, slug, title, description, why_it_matches, job_growth, salary_range)
+      VALUES (${runId}, ${userId}, 1, ${career.onetId}, ${slug}, ${career.title}, ${career.description}, ${career.whyItMatches}, ${career.jobGrowth}, ${career.salaryRange})
+    `
+
+    await dbUtils.sql`
+      INSERT INTO onet_occupations (code, slug, title, description, job_zone, bright_outlook, riasec_primary, riasec_all)
+      VALUES (${career.onetId}, ${slug}, ${career.title}, ${career.description}, 4, true, 'I', ARRAY['I','C'])
+      ON CONFLICT (code) DO NOTHING
+    `
+
+    await page.goto('/discover/matches')
+    const card = page.getByRole('link', { name: /Software Developer/ }).first()
+    await expect(card).toBeVisible()
+    await expect(card).not.toHaveClass(/hover:-?translate|hover:scale|group-hover:scale/)
+    await expect(card).toHaveCSS('transform', 'none')
+
+    await card.hover()
+
+    await expect(card).toHaveCSS('transform', 'none')
+  })
+
   test.skip('should show career generation via server action (MSW mocked)', async () => {
     // see TODO above
   })
