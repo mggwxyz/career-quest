@@ -40,13 +40,15 @@ const option = {
 }
 
 describe('OptionCard', () => {
-  it('does not apply hover motion that zooms or shifts the career image card', () => {
+  it('keeps the career image from zooming while preserving the card hover lift', () => {
     render(<OptionCard option={option} isSelected={false} showCheckmark={false} onClick={vi.fn()} />)
 
     const card = screen.getByRole('button', { name: /Build software/i })
+    const image = screen.getByRole('img', { name: option.prompt })
 
-    expect(card).not.toHaveAttribute('data-while-hover')
-    expect(screen.getByRole('img', { name: option.prompt })).not.toHaveClass(/scale/)
+    expect(card).toHaveAttribute('data-while-hover', '{"y":-4}')
+    expect(image).not.toHaveClass(/scale|transform|transition-transform/)
+    expect(image).toHaveStyle({ transform: 'none' })
   })
 
   it('calls onClick when the card is selected', () => {
