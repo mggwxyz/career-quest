@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
+import { SceneImage } from '@/components/scene-image'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -134,35 +135,43 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                   >
                     <Link
                       href={`/careers/${career.slug ?? career.onetId}`}
-                      className="flex h-full flex-col p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                      className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
-                      {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3">
-                          {hasMeta(career.jobGrowth) && (
-                            <span>
-                              <span className="text-text-dim">Growth:</span>
-                              {' '}
-                              <span className="text-green-400 font-medium">{career.jobGrowth}</span>
-                            </span>
-                          )}
-                          {hasMeta(career.salaryRange) && (
-                            <span>
-                              <span className="text-text-dim">Salary:</span>
-                              {' '}
-                              <span className="text-primary-soft font-medium">{career.salaryRange}</span>
-                            </span>
-                          )}
+                      <SceneImage
+                        onetId={career.onetId}
+                        alt={`${career.title} at work`}
+                        className="aspect-[3/2] w-full border-b border-border"
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                      />
+                      <div className="flex flex-1 flex-col p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
                         </div>
-                      )}
-                      <div className="mt-auto pt-3 border-t border-border">
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          <span className="text-accent font-medium">Why it fits: </span>
-                          {career.whyItMatches}
-                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
+                        {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3">
+                            {hasMeta(career.jobGrowth) && (
+                              <span>
+                                <span className="text-text-dim">Growth:</span>
+                                {' '}
+                                <span className="text-green-400 font-medium">{career.jobGrowth}</span>
+                              </span>
+                            )}
+                            {hasMeta(career.salaryRange) && (
+                              <span>
+                                <span className="text-text-dim">Salary:</span>
+                                {' '}
+                                <span className="text-primary-soft font-medium">{career.salaryRange}</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <div className="mt-auto pt-3 border-t border-border">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            <span className="text-accent font-medium">Why it fits: </span>
+                            {career.whyItMatches}
+                          </p>
+                        </div>
                       </div>
                     </Link>
                   </motion.div>

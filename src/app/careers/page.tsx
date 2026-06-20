@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/get-session'
 import { searchOccupations } from '@/lib/onet/browse'
 import { listPersonaOnetIds } from '@/lib/personas'
+import { hasScene } from '@/lib/scenes'
+import { SceneImage } from '@/components/scene-image'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -103,65 +105,75 @@ export default async function ExplorePage({
                 <Link
                   key={row.code}
                   href={`/careers/${row.slug}`}
-                  className="block p-6 rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
-                      {row.shortTitle ?? row.title}
-                    </h3>
-                    {row.brightOutlook && (
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
-                        ✦ Bright
-                      </span>
-                    )}
-                  </div>
-                  {(row.shortDescription ?? row.description) && (
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                      {row.shortDescription ?? row.description}
-                    </p>
+                  {hasScene(row.code) && (
+                    <SceneImage
+                      onetId={row.code}
+                      alt={`${row.shortTitle ?? row.title} at work`}
+                      className="aspect-[3/2] w-full border-b border-border"
+                      sizes="(min-width: 768px) 50vw, 100vw"
+                    />
                   )}
-                  {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs">
-                      {row.salaryAnnualMedian != null
-                        ? (
-                          <span className="text-muted-foreground">
-                            <span className="text-foreground font-medium">Salary:</span>
-                            {' $'}
-                            {row.salaryAnnualMedian.toLocaleString()}
-                            /yr
-                          </span>
-                        )
-                        : row.salaryHourlyMedian != null
-                          ? (
-                            <span className="text-muted-foreground">
-                              <span className="text-foreground font-medium">Pay:</span>
-                              {' $'}
-                              {row.salaryHourlyMedian}
-                              /hr
-                            </span>
-                          )
-                          : null}
-                      {row.outlookCategory && (
-                        <span className="text-muted-foreground">
-                          <span className="text-foreground font-medium">Growth:</span>
-                          {' '}
-                          {row.outlookCategory}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
+                        {row.shortTitle ?? row.title}
+                      </h3>
+                      {row.brightOutlook && (
+                        <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
+                          ✦ Bright
                         </span>
                       )}
                     </div>
-                  )}
-                  {row.riasecAll.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {row.riasecAll.map(code => (
-                        <span
-                          key={code}
-                          className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border bg-background/40 text-muted-foreground"
-                        >
-                          {code}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                    {(row.shortDescription ?? row.description) && (
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                        {row.shortDescription ?? row.description}
+                      </p>
+                    )}
+                    {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs">
+                        {row.salaryAnnualMedian != null
+                          ? (
+                            <span className="text-muted-foreground">
+                              <span className="text-foreground font-medium">Salary:</span>
+                              {' $'}
+                              {row.salaryAnnualMedian.toLocaleString()}
+                              /yr
+                            </span>
+                          )
+                          : row.salaryHourlyMedian != null
+                            ? (
+                              <span className="text-muted-foreground">
+                                <span className="text-foreground font-medium">Pay:</span>
+                                {' $'}
+                                {row.salaryHourlyMedian}
+                                /hr
+                              </span>
+                            )
+                            : null}
+                        {row.outlookCategory && (
+                          <span className="text-muted-foreground">
+                            <span className="text-foreground font-medium">Growth:</span>
+                            {' '}
+                            {row.outlookCategory}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {row.riasecAll.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {row.riasecAll.map(code => (
+                          <span
+                            key={code}
+                            className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border bg-background/40 text-muted-foreground"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Link>
               ))}
             </div>
