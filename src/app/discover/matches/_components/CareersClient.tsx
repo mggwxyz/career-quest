@@ -135,7 +135,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                   >
                     <Link
                       href={`/careers/${career.slug ?? career.onetId}`}
-                      className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                      className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
                     >
                       <SceneImage
                         onetId={career.onetId}
