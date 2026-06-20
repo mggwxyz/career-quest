@@ -19,8 +19,7 @@ interface SceneImageProps {
  * scene degrades to a text-only card instead of showing a broken image.
  *
  * Path is built from the onetId directly so this stays a tiny client component
- * and never bundles the scene manifest. The hover zoom keys off an ancestor
- * `group` (the card Link); it's simply inert when there's no group.
+ * and never bundles the scene manifest.
  */
 export function SceneImage({ onetId, alt, className, sizes, priority }: SceneImageProps) {
   const [failed, setFailed] = useState(false)
@@ -33,7 +32,7 @@ export function SceneImage({ onetId, alt, className, sizes, priority }: SceneIma
         alt={alt}
         fill
         sizes={sizes ?? '(min-width: 768px) 50vw, 100vw'}
-        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        className="object-cover"
         priority={priority}
         onError={() => setFailed(true)}
       />
