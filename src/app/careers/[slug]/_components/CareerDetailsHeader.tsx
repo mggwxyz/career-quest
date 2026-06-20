@@ -25,17 +25,10 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
   const salary = formatSalary(occupation, detail)
   const outlookDescription = detail?.outlookDescription ?? null
 
+  const showScene = hasScene(occupation.code)
+
   return (
-    <header className="overflow-hidden bg-surface/50 border border-border rounded-2xl">
-      {hasScene(occupation.code) && (
-        <SceneImage
-          onetId={occupation.code}
-          alt={`${occupation.title} at work`}
-          className="h-52 sm:h-64 lg:h-72 w-full border-b border-border"
-          sizes="100vw"
-          priority
-        />
-      )}
+    <header className={`overflow-hidden bg-surface/50 border border-border rounded-2xl ${showScene ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] lg:items-center' : ''}`}>
       <div className="py-6 px-6">
         <h1 className="font-serif text-2xl lg:text-3xl text-foreground mb-2">{occupation.title}</h1>
 
@@ -74,6 +67,15 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
           </div>
         )}
       </div>
+      {showScene && (
+        <SceneImage
+          onetId={occupation.code}
+          alt={`${occupation.title} at work`}
+          className="aspect-[3/2] w-full border-t border-border lg:border-l lg:border-t-0"
+          sizes="(min-width: 1024px) 42vw, 100vw"
+          priority
+        />
+      )}
     </header>
   )
 }

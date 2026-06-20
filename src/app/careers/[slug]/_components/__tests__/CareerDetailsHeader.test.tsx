@@ -74,4 +74,15 @@ describe('CareerDetailsHeader', () => {
     render(<CareerDetailsHeader occupation={occupationNoSalary} detail={null} whyItMatches={null} />)
     expect(screen.getByText(/Median varies/)).toBeInTheDocument()
   })
+
+  it('places the scene image after the header copy in a 3:2 frame', () => {
+    render(<CareerDetailsHeader occupation={occupation} detail={detail} whyItMatches={null} />)
+
+    const heading = screen.getByRole('heading', { name: 'Registered Nurses' })
+    const image = screen.getByRole('img', { name: 'Registered Nurses at work' })
+    const imageFrame = image.parentElement
+
+    expect(heading.compareDocumentPosition(imageFrame!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(imageFrame).toHaveClass('aspect-[3/2]')
+  })
 })
