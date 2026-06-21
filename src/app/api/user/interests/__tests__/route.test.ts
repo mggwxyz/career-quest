@@ -117,7 +117,7 @@ describe('GET /api/user/interests', () => {
   })
 
   it('returns saved interests in query order', async () => {
-    ;(db.select as Mock).mockReturnValueOnce({
+    const selectChain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       orderBy: vi.fn().mockResolvedValue([
@@ -125,12 +125,14 @@ describe('GET /api/user/interests', () => {
         { interest: 'Music' },
         { interest: 'Healthcare' },
       ]),
-    })
+    }
+    ;(db.select as Mock).mockReturnValueOnce(selectChain)
 
     const res = await GET()
     const body = await res.json()
 
     expect(res.status).toBe(200)
+    expect(selectChain.orderBy).toHaveBeenCalledTimes(1)
     expect(body).toEqual({ interests: ['Robotics', 'Music', 'Healthcare'] })
   })
 })

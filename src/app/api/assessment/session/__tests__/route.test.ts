@@ -184,14 +184,18 @@ describe('GET /api/assessment/session', () => {
       .mockReturnValueOnce(responsesSelectChain)
     ;(db.update as ReturnType<typeof vi.fn>).mockReturnValue(updateChain)
 
-    const res = await GET()
-    const body = await res.json()
+    try {
+      const res = await GET()
+      const body = await res.json()
 
-    expect(res.status).toBe(200)
-    expect(body).toEqual({ active: null })
-    expect(db.update).toHaveBeenCalledTimes(1)
-    expect(updateChain.set).toHaveBeenCalledWith({ abandonedAt: expect.any(Date) })
-    warn.mockRestore()
+      expect(res.status).toBe(200)
+      expect(body).toEqual({ active: null })
+      expect(db.update).toHaveBeenCalledTimes(1)
+      expect(updateChain.set).toHaveBeenCalledWith({ abandonedAt: expect.any(Date) })
+    }
+    finally {
+      warn.mockRestore()
+    }
   })
 
   it('falls back to the first item when a zero-answer active session has no response rows', async () => {
