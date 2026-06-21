@@ -12,6 +12,7 @@ vi.mock('@/db', () => ({
 import { POST, GET } from '../route'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
+import { items } from '@/app/_data/items'
 
 describe('POST /api/assessment/session', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -116,8 +117,9 @@ describe('GET /api/assessment/session', () => {
     expect(body.active).toBeNull()
   })
 
-  it('returns the next item when an active session has zero answered responses', async () => {
+  it('returns the stored unanswered item when an active session has zero answered responses', async () => {
     ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const unansweredItem = items[0]
 
     // loadActiveSession performs two selects:
     //   1) the session row (with .where(...).limit(1))
@@ -136,7 +138,7 @@ describe('GET /api/assessment/session', () => {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       orderBy: vi.fn().mockResolvedValue([
-        { itemId: 'some-item', position: 1, choice: null, responseMs: null, respondedAt: null },
+        { itemId: unansweredItem.id, position: 1, choice: null, responseMs: null, respondedAt: null },
       ]),
     }
     ;(db.select as ReturnType<typeof vi.fn>)
@@ -150,7 +152,83 @@ describe('GET /api/assessment/session', () => {
     expect(body.active.sessionId).toBe('sess-1')
     expect(body.active.gradeBand).toBe('middle')
     expect(body.active.itemsAnswered).toBe(0)
+    expect(body.active.item).toEqual(unansweredItem)
+  })
+
+  it('abandons a zero-answer session when its stored item is no longer in the bank', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const sessionSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([{
+        id: 'sess-1',
+        userId: 'u1',
+        gradeBand: 'middle',
+        posterior: {},
+      }]),
+    }
+    const responsesSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        { itemId: 'stale-item', position: 1, choice: null, responseMs: null, respondedAt: null },
+      ]),
+    }
+    const updateChain = {
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue(undefined),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(sessionSelectChain)
+      .mockReturnValueOnce(responsesSelectChain)
+    ;(db.update as ReturnType<typeof vi.fn>).mockReturnValue(updateChain)
+
+    try {
+      const res = await GET()
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(body).toEqual({ active: null })
+      expect(db.update).toHaveBeenCalledTimes(1)
+      expect(updateChain.set).toHaveBeenCalledWith({ abandonedAt: expect.any(Date) })
+    }
+    finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('falls back to the first item when a zero-answer active session has no response rows', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const sessionSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([{
+        id: 'sess-1',
+        userId: 'u1',
+        gradeBand: 'middle',
+        posterior: {},
+      }]),
+    }
+    const responsesSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([]),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(sessionSelectChain)
+      .mockReturnValueOnce(responsesSelectChain)
+
+    const res = await GET()
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.active).toMatchObject({
+      sessionId: 'sess-1',
+      gradeBand: 'middle',
+      itemsAnswered: 0,
+    })
     expect(body.active.item).toBeDefined()
-    expect(body.active.item.option1).toBeDefined()
+    expect(body.active.item.dimensionContrast).toBe('opposite')
   })
 })

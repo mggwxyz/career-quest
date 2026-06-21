@@ -7,10 +7,11 @@ vi.mock('@/db', () => ({
     batch: vi.fn(),
     delete: vi.fn(),
     insert: vi.fn(),
+    select: vi.fn(),
   },
 }))
 
-import { POST } from '../route'
+import { GET, POST } from '../route'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 
@@ -29,6 +30,11 @@ beforeEach(() => {
   })
   ;(db.insert as Mock).mockReturnValue({
     values: vi.fn().mockImplementation((v: unknown) => ({ __op: 'insert', values: v })),
+  })
+  ;(db.select as Mock).mockReturnValue({
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockResolvedValue([]),
   })
   ;(db.batch as Mock).mockResolvedValue([])
 })
@@ -64,6 +70,32 @@ describe('POST /api/user/interests', () => {
     expect(batched[1].__op).toBe('insert')
   })
 
+  it('normalizes submitted interests before storing them', async () => {
+    const longInterest = `${'x'.repeat(70)} tail`
+    const overflow = Array.from({ length: 35 }, (_, i) => `Extra ${i}`)
+    const res = await POST(postReq({
+      interests: [
+        '  Music  ',
+        'Music',
+        '',
+        '   ',
+        42,
+        longInterest,
+        ...overflow,
+      ],
+    }))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.interests).toHaveLength(30)
+    expect(body.interests[0]).toBe('Music')
+    expect(body.interests[1]).toBe('x'.repeat(64))
+    expect(body.interests.at(-1)).toBe('Extra 27')
+
+    const batched = (db.batch as Mock).mock.calls[0][0] as Array<{ __op: string, values?: Array<{ interest: string }> }>
+    expect(batched[1].values?.map(v => v.interest)).toEqual(body.interests)
+  })
+
   it('clears interests when given an empty list', async () => {
     const res = await POST(postReq({ interests: [] }))
 
@@ -72,5 +104,35 @@ describe('POST /api/user/interests', () => {
     expect(db.transaction).not.toHaveBeenCalled()
     expect(db.delete).toHaveBeenCalledTimes(1)
     expect(db.insert).not.toHaveBeenCalled()
+  })
+})
+
+describe('GET /api/user/interests', () => {
+  it('returns 401 when not authenticated', async () => {
+    ;(getSession as Mock).mockResolvedValueOnce(null)
+
+    const res = await GET()
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns saved interests in query order', async () => {
+    const selectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        { interest: 'Robotics' },
+        { interest: 'Music' },
+        { interest: 'Healthcare' },
+      ]),
+    }
+    ;(db.select as Mock).mockReturnValueOnce(selectChain)
+
+    const res = await GET()
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(selectChain.orderBy).toHaveBeenCalledTimes(1)
+    expect(body).toEqual({ interests: ['Robotics', 'Music', 'Healthcare'] })
   })
 })
