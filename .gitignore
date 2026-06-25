@@ -73,3 +73,7 @@ bun.lockb
 # imagePath points to .webp); the .png is just the pre-cwebp source. Track
 # the webp, ignore the heavy png.
 public/careers/scenes/*.png
+
+# image re-render scratch: side-by-side trial output + resumable progress state
+/public/_image2-trial/
+/data/would-you-rather/rerender-state.json
