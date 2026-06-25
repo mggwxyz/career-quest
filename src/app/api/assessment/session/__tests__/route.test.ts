@@ -200,6 +200,7 @@ describe('GET /api/assessment/session', () => {
 
   it('falls back to the first item when a zero-answer active session has no response rows', async () => {
     ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const firstItem = items[0]
     const sessionSelectChain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -228,7 +229,6 @@ describe('GET /api/assessment/session', () => {
       gradeBand: 'middle',
       itemsAnswered: 0,
     })
-    expect(body.active.item).toBeDefined()
-    expect(body.active.item.dimensionContrast).toBe('opposite')
+    expect(body.active.item).toEqual(firstItem)
   })
 })
