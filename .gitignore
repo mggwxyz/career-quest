@@ -77,3 +77,7 @@ public/careers/scenes/*.png
 # image re-render scratch: side-by-side trial output + resumable progress state
 /public/_image2-trial/
 /data/would-you-rather/rerender-state.json
+
+# stray dev screenshots at repo root
+/detail.png
+/explore.png

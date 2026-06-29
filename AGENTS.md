@@ -4,7 +4,7 @@ Career Quest — Next.js 16 (App Router, Turbopack) career-exploration app. Neon
 
 ## Cursor Cloud specific instructions
 
-Dependencies are installed by the startup update script (`pnpm install`). Toolchain: pnpm `10.27.0`; `.nvmrc` pins Node 24, but the executor's `node` is v22 (always first on `PATH`) and the app/tests/build run fine on it (CI itself uses Node 20).
+Dependencies are installed by the startup update script (`pnpm install`). Toolchain: pnpm `10.27.0`; `.nvmrc` pins Node 24 and CI reads `.nvmrc` via `node-version-file`, so the repo and CI are aligned on Node 24. The only remaining variant is the Cursor Cloud executor, whose `node` is v22 (always first on `PATH`); the app/tests/build run fine on it.
 
 ### Secrets / env (the most important gotcha)
 Required secrets are injected as real environment variables: `DATABASE_URL` (must be the **Neon** URL), `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `NEXT_PUBLIC_NEON_PROJECT_ID`, `OPENAI_API_KEY`, `ONET_API_KEY`. Because they live in `process.env`, the app runs without a `.env.local`.
@@ -17,4 +17,4 @@ Required secrets are injected as real environment variables: `DATABASE_URL` (mus
 `pnpm dk:migrate` is idempotent (safe to re-run). The shared Neon DB is already migrated and `onet_occupations` is seeded (~900 rows), so career browse/matches work out of the box; `pnpm seed:onet` (needs `ONET_API_KEY`) only refreshes O*NET data.
 
 ### Tests
-`pnpm test` (Vitest) is mostly isolated, but a few suites (`src/lib/onet/__tests__/occupations.test.ts`, `browse.test.ts`) hit the real Neon DB, so `DATABASE_URL` must point at a reachable Neon endpoint. One test fails deterministically regardless of environment — `GET /api/assessment/session > returns the next item when an active session has zero answered responses` (a fully-mocked unit test; pre-existing code-level issue, not a setup problem). E2E (`pnpm test:e2e`) needs Chromium (`pnpm exec playwright install --with-deps chromium`) plus DB + Neon Auth; it spawns its own dev server and mocks OpenAI/O*NET.
+`pnpm test` (Vitest) is mostly isolated, but a few suites (`src/lib/onet/__tests__/occupations.test.ts`, `browse.test.ts`) hit the real Neon DB, so `DATABASE_URL` must point at a reachable Neon endpoint. E2E (`pnpm test:e2e`) needs Chromium (`pnpm exec playwright install --with-deps chromium`) plus DB + Neon Auth; it spawns its own dev server and mocks OpenAI/O*NET.
