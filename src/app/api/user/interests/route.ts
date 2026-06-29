@@ -45,9 +45,12 @@ export async function POST(request: Request) {
 
   // The neon-http driver is stateless and has no interactive transaction
   // support (`db.transaction(...)` throws "No transactions support in
-  // neon-http driver"). `db.batch([...])` runs the statements in a single
-  // atomic HTTP request, which is all the atomicity these two
-  // independent statements need.
+  // neon-http driver"). `db.batch([...])` is the supported atomic primitive:
+  // per Drizzle's Batch API docs (https://orm.drizzle.team/docs/batch-api) the
+  // statements run "in an implicit transaction ... If any of the statements
+  // fail, the entire transaction is rolled back and no changes are made."
+  // So if the INSERT fails the preceding DELETE is rolled back — no silent
+  // wipe of the user's interests.
   const clear = db.delete(userInterests).where(eq(userInterests.userId, userId))
   if (interests.length > 0) {
     await db.batch([
