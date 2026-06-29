@@ -192,6 +192,7 @@ describe('GET /api/assessment/session', () => {
       expect(body).toEqual({ active: null })
       expect(db.update).toHaveBeenCalledTimes(1)
       expect(updateChain.set).toHaveBeenCalledWith({ abandonedAt: expect.any(Date) })
+      expect(updateChain.where).toHaveBeenCalledTimes(1)
     }
     finally {
       warn.mockRestore()

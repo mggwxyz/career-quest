@@ -68,6 +68,10 @@ describe('POST /api/user/interests', () => {
     expect(batched).toHaveLength(2)
     expect(batched[0]).toEqual({ __op: 'delete' })
     expect(batched[1].__op).toBe('insert')
+    expect((batched[1] as { values: unknown }).values).toEqual([
+      { userId: 'u1', interest: 'Music', source: 'manual' },
+      { userId: 'u1', interest: 'Coding', source: 'manual' },
+    ])
   })
 
   it('normalizes submitted interests before storing them', async () => {

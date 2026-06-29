@@ -137,12 +137,14 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                       href={`/careers/${career.slug ?? career.onetId}`}
                       className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
                     >
-                      <SceneImage
-                        onetId={career.onetId}
-                        alt={`${career.title} at work`}
-                        className="aspect-[3/2] w-full border-b border-border"
-                        sizes="(min-width: 768px) 50vw, 100vw"
-                      />
+                      {career.hasScene && (
+                        <SceneImage
+                          onetId={career.onetId}
+                          alt={`${career.title} at work`}
+                          className="aspect-[3/2] w-full border-b border-border"
+                          sizes="(min-width: 768px) 50vw, 100vw"
+                        />
+                      )}
                       <div className="flex flex-1 flex-col p-6">
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
@@ -183,7 +185,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                   {hasExistingData ? 'Regenerate' : 'Generate New'}
                 </button>
                 <Link href="/discover/profile" className="px-7 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline text-sm">
-                  View Results
+                  View Profile
                 </Link>
               </div>
             </>

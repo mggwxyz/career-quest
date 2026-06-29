@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { writeFile } from 'node:fs/promises'
+import { writeFile, unlink } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { spawn } from 'node:child_process'
 import { buildSceneImagePrompt } from './prompts'
@@ -18,7 +18,7 @@ function runCwebp(inputPath: string, outputPath: string, quality = 82): Promise<
 }
 
 /** Render a candid scene for a career and write it to
- *  public/careers/scenes/{onetId}.webp. Also writes the intermediate .png. */
+ *  public/careers/scenes/{onetId}.webp. The intermediate .png is removed after webp conversion. */
 export async function generateSceneImage(args: {
   onetId: string
   scene: string
@@ -45,6 +45,7 @@ export async function generateSceneImage(args: {
 
   await writeFile(pngPath, Buffer.from(b64, 'base64'))
   await runCwebp(pngPath, webpPath, 82)
+  await unlink(pngPath)
 
   return {
     imagePrompt,

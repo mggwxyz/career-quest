@@ -173,7 +173,7 @@ export default function PreferencesPage() {
           </p>
           <div className="flex flex-col gap-3 items-center">
             <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline">
-              View Your Results
+              View Your Profile
             </Link>
             <Link href="/discover/matches" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
               Explore Career Matches

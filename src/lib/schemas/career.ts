@@ -23,6 +23,7 @@ export const CareerRecommendationSchema = CareerRecommendationAiOutputSchema.ext
   slug: z.string().nullable()
     .optional(),
   riasecCodes: z.array(z.string()).optional(),
+  hasScene: z.boolean().optional(),
 })
 
 export const CareersResponseSchema = z.object({

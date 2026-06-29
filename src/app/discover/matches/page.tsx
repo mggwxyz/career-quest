@@ -6,6 +6,7 @@ import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { getOccupationsByCodes } from '@/lib/onet/occupations'
 import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
+import { hasScene } from '@/lib/scenes'
 
 async function getUserCareers(): Promise<CareerRecommendation[]> {
   try {
@@ -37,18 +38,21 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     // current mirror rather than whatever was stored when the run was
     // generated. Stored fields act as fallbacks.
     const onetByCode = await getOccupationsByCodes(rows.map(r => r.onetId))
-    return rows.map(row => mergeCareerWithOnet(
-      {
-        title: row.title,
-        description: row.description,
-        onetId: row.onetId,
-        whyItMatches: row.whyItMatches,
-        jobGrowth: row.jobGrowth ?? undefined,
-        salaryRange: row.salaryRange ?? undefined,
-        slug: row.slug,
-      },
-      onetByCode.get(row.onetId),
-    ))
+    return rows.map((row) => {
+      const merged = mergeCareerWithOnet(
+        {
+          title: row.title,
+          description: row.description,
+          onetId: row.onetId,
+          whyItMatches: row.whyItMatches,
+          jobGrowth: row.jobGrowth ?? undefined,
+          salaryRange: row.salaryRange ?? undefined,
+          slug: row.slug,
+        },
+        onetByCode.get(row.onetId),
+      )
+      return { ...merged, hasScene: hasScene(merged.onetId) }
+    })
   }
   catch (error) {
     // Let Next.js handle its dynamic-rendering probe — re-throw so

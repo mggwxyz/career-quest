@@ -10,6 +10,7 @@ import {
   recommendationRuns, userInterests,
 } from '@/db/schema'
 import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
+import { hasScene } from '@/lib/scenes'
 import { getOccupationsByCodes } from '@/lib/onet/occupations'
 import { CareerRecommendation, CareersResponseSchema } from '@/lib/schemas/career'
 import { AssessmentResult, ENGINE_VERSION, formatResultForPrompt } from '@/lib/assessment'
@@ -106,9 +107,10 @@ Respond as a JSON array.
     // Enrich from local O*NET mirror: slugs, titles, pay, outlook, Holland codes.
     const codes = result.object.careers.map(c => c.onetId)
     const onetByCode = await getOccupationsByCodes(codes)
-    const mergedCareers: CareerRecommendation[] = result.object.careers.map(c =>
-      mergeCareerWithOnet(c, onetByCode.get(c.onetId)),
-    )
+    const mergedCareers: CareerRecommendation[] = result.object.careers.map((c) => {
+      const merged = mergeCareerWithOnet(c, onetByCode.get(c.onetId))
+      return { ...merged, hasScene: hasScene(merged.onetId) }
+    })
 
     // NOTE: these two inserts are NOT wrapped in a transaction. The Neon HTTP
     // driver (`@neondatabase/serverless`) supports only a batch-style transaction
