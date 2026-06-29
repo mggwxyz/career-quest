@@ -150,7 +150,7 @@ async function generateScene(args: {
     imagePrompt: image.imagePrompt,
     imagePath: image.imagePath,
     generatedAt: new Date().toISOString(),
-    textModel: 'gpt-5',
+    textModel: args.scene ? 'operator-override' : 'gpt-5',
     imageModel: 'gpt-image-1',
   }
 

@@ -23,7 +23,7 @@
  */
 import 'dotenv-flow/config'
 import OpenAI from 'openai'
-import { readFileSync, writeFileSync, renameSync, unlinkSync, mkdtempSync } from 'node:fs'
+import { readFileSync, writeFileSync, renameSync, unlinkSync, mkdtempSync, rmSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { spawn } from 'node:child_process'
@@ -118,14 +118,18 @@ function writeJsonAtomic(path: string, data: unknown) {
   renameSync(tmp, path)
 }
 
-const PNG_TMP = mkdtempSync(join(tmpdir(), 'rerender-'))
+let _pngTmp: string | null = null
+function pngTmpDir(): string {
+  if (_pngTmp === null) _pngTmp = mkdtempSync(join(tmpdir(), 'rerender-'))
+  return _pngTmp
+}
 
 async function renderOne(cfg: KindCfg, onetId: string, prompt: string, model: string, quality: Quality) {
   const result = await client.images.generate({ model, prompt, size: cfg.size, quality, n: 1 })
   const b64 = result.data?.[0]?.b64_json
   if (!b64) throw new Error('no image returned')
 
-  const pngPath = cfg.keepPng ? resolve(cfg.outDir, `${onetId}.png`) : join(PNG_TMP, `${onetId}.png`)
+  const pngPath = cfg.keepPng ? resolve(cfg.outDir, `${onetId}.png`) : join(pngTmpDir(), `${onetId}.png`)
   const webpPath = resolve(cfg.outDir, `${onetId}.webp`)
   writeFileSync(pngPath, Buffer.from(b64, 'base64'))
   await cwebp(pngPath, webpPath, cfg.resize, cfg.webpQ)
@@ -193,11 +197,16 @@ async function main() {
   let totalOk = 0
   let totalFailed = 0
   const allFailures: Record<string, string[]> = {}
-  for (const k of kinds) {
-    const r = await processKind(CONFIGS[k], args)
-    totalOk += r.ok
-    totalFailed += r.failed
-    if (r.failures.length) allFailures[k] = r.failures
+  try {
+    for (const k of kinds) {
+      const r = await processKind(CONFIGS[k], args)
+      totalOk += r.ok
+      totalFailed += r.failed
+      if (r.failures.length) allFailures[k] = r.failures
+    }
+  }
+  finally {
+    if (_pngTmp) rmSync(_pngTmp, { recursive: true, force: true })
   }
 
   console.log(`\n=== done: ${totalOk} rendered, ${totalFailed} failed ===`)

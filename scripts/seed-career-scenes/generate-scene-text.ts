@@ -13,7 +13,7 @@ const SceneTextSchema = z.object({
     .max(900),
 })
 
-export type SceneText = z.infer<typeof SceneTextSchema>
+type SceneText = z.infer<typeof SceneTextSchema>
 
 export async function generateSceneText(args: {
   onetId: string
