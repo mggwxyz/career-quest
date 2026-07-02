@@ -9,9 +9,11 @@ vi.mock('@/db', () => ({
   },
 }))
 
+import { and, eq, isNull } from 'drizzle-orm'
 import { POST, GET } from '../route'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
+import { assessmentSessions } from '@/db/schema'
 import { items } from '@/app/_data/items'
 
 describe('POST /api/assessment/session', () => {
@@ -192,7 +194,14 @@ describe('GET /api/assessment/session', () => {
       expect(body).toEqual({ active: null })
       expect(db.update).toHaveBeenCalledTimes(1)
       expect(updateChain.set).toHaveBeenCalledWith({ abandonedAt: expect.any(Date) })
+      // Assert the full predicate, not just that .where() was called — a
+      // regression that drops the userId filter must fail this test.
       expect(updateChain.where).toHaveBeenCalledTimes(1)
+      expect(updateChain.where).toHaveBeenCalledWith(and(
+        eq(assessmentSessions.userId, 'u1'),
+        isNull(assessmentSessions.completedAt),
+        isNull(assessmentSessions.abandonedAt),
+      ))
     }
     finally {
       warn.mockRestore()

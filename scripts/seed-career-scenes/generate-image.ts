@@ -8,6 +8,9 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export type Quality = 'low' | 'medium' | 'high'
 
+// Keep in sync with the fleet: all committed art is gpt-image-2 (medium) as of 2026-06-21.
+export const IMAGE_MODEL = 'gpt-image-2'
+
 function runCwebp(inputPath: string, outputPath: string, quality = 82): Promise<void> {
   return new Promise((res, rej) => {
     // -resize 1024 0 → width 1024, height auto, preserving the 3:2 aspect.
@@ -25,7 +28,7 @@ export async function generateSceneImage(args: {
   quality?: Quality
   model?: string
 }): Promise<{ imagePrompt: string, imagePath: string }> {
-  const model = args.model ?? 'gpt-image-1'
+  const model = args.model ?? IMAGE_MODEL
   const imagePrompt = buildSceneImagePrompt({ scene: args.scene })
 
   const result = await client.images.generate({
@@ -44,8 +47,15 @@ export async function generateSceneImage(args: {
   const webpPath = resolve(scenesDir, `${args.onetId}.webp`)
 
   await writeFile(pngPath, Buffer.from(b64, 'base64'))
-  await runCwebp(pngPath, webpPath, 82)
-  await unlink(pngPath)
+  try {
+    await runCwebp(pngPath, webpPath, 82)
+  }
+  finally {
+    // Always remove the intermediate PNG — a failed conversion must not leave
+    // a multi-MB unoptimized file behind in the served public/ directory.
+    await unlink(pngPath).catch(() => {
+    })
+  }
 
   return {
     imagePrompt,

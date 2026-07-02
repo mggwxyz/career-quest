@@ -15,6 +15,8 @@ export default function ProfilePage() {
   const [result, setResult] = useState<AssessmentResult | null>(null)
   const [profileInterests, setProfileInterests] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -24,6 +26,9 @@ export default function ProfilePage() {
           fetch('/api/assessment/result'),
           fetch('/api/user/interests'),
         ])
+        // A failed result fetch must not masquerade as "no results yet" —
+        // that empty state tells a finished user to redo the assessment.
+        if (!resultRes.ok) throw new Error(`result fetch ${resultRes.status}`)
         const data = await resultRes.json()
         if (!cancelled) setResult(data.result as AssessmentResult | null)
 
@@ -36,6 +41,7 @@ export default function ProfilePage() {
       }
       catch (err) {
         console.error('[profile] fetch result failed:', err)
+        if (!cancelled) setFetchError(true)
       }
       finally {
         if (!cancelled) setLoading(false)
@@ -44,10 +50,33 @@ export default function ProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [attempt])
 
   if (loading) {
     return <div className="text-center pt-24 text-muted-foreground">Loading…</div>
+  }
+
+  if (fetchError) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-5xl mb-4">📡</div>
+        <h2 className="font-serif text-2xl text-foreground mb-3">Couldn’t load your profile</h2>
+        <p className="text-muted-foreground max-w-lg mx-auto mb-8">
+          Something went wrong fetching your results. Your answers are safe — try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoading(true)
+            setFetchError(false)
+            setAttempt(a => a + 1)
+          }}
+          className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)]"
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   if (!result) {

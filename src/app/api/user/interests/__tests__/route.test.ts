@@ -64,11 +64,11 @@ describe('POST /api/user/interests', () => {
 
     // Delete + insert must run in a single atomic batch.
     expect(db.batch).toHaveBeenCalledTimes(1)
-    const batched = (db.batch as Mock).mock.calls[0][0] as Array<{ __op: string }>
+    const batched = (db.batch as Mock).mock.calls[0][0] as Array<{ __op: string, values?: unknown }>
     expect(batched).toHaveLength(2)
     expect(batched[0]).toEqual({ __op: 'delete' })
     expect(batched[1].__op).toBe('insert')
-    expect((batched[1] as { values: unknown }).values).toEqual([
+    expect(batched[1].values).toEqual([
       { userId: 'u1', interest: 'Music', source: 'manual' },
       { userId: 'u1', interest: 'Coding', source: 'manual' },
     ])

@@ -19,6 +19,8 @@ type AnswerRow = {
 export default function AnswersReviewPage() {
   const [rows, setRows] = useState<AnswerRow[] | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [retaking, setRetaking] = useState(false)
   const router = useRouter()
@@ -29,12 +31,15 @@ export default function AnswersReviewPage() {
     ;(async () => {
       try {
         const res = await fetch('/api/assessment/responses')
+        // A failed fetch must not render as "No Answers Yet" — that state
+        // sends a finished user back to restart the assessment.
+        if (!res.ok) throw new Error(`responses fetch ${res.status}`)
         const data = await res.json()
         if (!cancelled) setRows((data.responses ?? []) as AnswerRow[])
       }
       catch (err) {
         console.error('[answers] fetch failed:', err)
-        if (!cancelled) setRows([])
+        if (!cancelled) setFetchError(true)
       }
       finally {
         if (!cancelled) setLoading(false)
@@ -43,7 +48,17 @@ export default function AnswersReviewPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [attempt])
+
+  // Close the retake confirm dialog on Escape.
+  useEffect(() => {
+    if (!confirmOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !retaking) setConfirmOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [confirmOpen, retaking])
 
   const handleRetake = async () => {
     if (retaking) return
@@ -54,6 +69,26 @@ export default function AnswersReviewPage() {
 
   if (loading) {
     return <div className="text-center pt-24 text-muted-foreground">Loading…</div>
+  }
+
+  if (fetchError) {
+    return (
+      <div className="text-center pt-16">
+        <h1 className="font-serif text-2xl text-foreground mb-3">Couldn’t load your answers</h1>
+        <p className="text-muted-foreground mb-8">Something went wrong fetching your answers. Try again.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoading(true)
+            setFetchError(false)
+            setAttempt(a => a + 1)
+          }}
+          className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)]"
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   if (!rows || rows.length === 0) {
@@ -115,14 +150,15 @@ export default function AnswersReviewPage() {
 
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => !retaking && setConfirmOpen(false)}>
-          <div className="max-w-md w-full rounded-2xl border border-border bg-surface p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-            <h2 className="font-serif text-xl text-foreground mb-2">Start over?</h2>
+          <div role="dialog" aria-modal="true" aria-labelledby="retake-confirm-title" className="max-w-md w-full rounded-2xl border border-border bg-surface p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h2 id="retake-confirm-title" className="font-serif text-xl text-foreground mb-2">Start over?</h2>
             <p className="text-sm text-muted-foreground mb-6">
               Your current answers will be replaced with a fresh assessment. This can&apos;t be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
+                autoFocus
                 onClick={() => setConfirmOpen(false)}
                 disabled={retaking}
                 className="px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover"

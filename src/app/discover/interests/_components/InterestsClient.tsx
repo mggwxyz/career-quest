@@ -41,10 +41,14 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
   }
 
   const handleAddCustomInterest = () => {
-    if (customInterest.trim() && !interests.includes(customInterest.trim())) {
-      addInterest(customInterest.trim())
-      setCustomInterest('')
+    const trimmed = customInterest.trim()
+    if (!trimmed) return
+    if (interests.includes(trimmed)) {
+      toast.info(`“${trimmed}” is already in your list`)
+      return
     }
+    addInterest(trimmed)
+    setCustomInterest('')
   }
 
   const handleContinue = () => {

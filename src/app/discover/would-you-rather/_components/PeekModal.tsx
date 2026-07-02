@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react'
 import { confidenceBand, Posterior, RIASEC_SCALES } from '@/lib/assessment'
 
 const LABELS: Record<string, string> = {
@@ -7,10 +8,18 @@ const LABELS: Record<string, string> = {
 }
 
 export default function PeekModal({ posterior, onClose }: { posterior: Posterior | null, onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[min(92vw,420px)] rounded-2xl border border-border bg-surface p-6">
-        <h2 className="font-serif text-xl text-foreground mb-1">Your profile so far</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="peek-modal-title" className="w-[min(92vw,420px)] rounded-2xl border border-border bg-surface p-6" onClick={e => e.stopPropagation()}>
+        <h2 id="peek-modal-title" className="font-serif text-xl text-foreground mb-1">Your profile so far</h2>
         <p className="text-xs text-muted-foreground mb-4">Still forming — keep answering for a sharper picture.</p>
         {posterior === null
           ? <p className="text-sm text-muted-foreground">Loading…</p>
@@ -35,6 +44,7 @@ export default function PeekModal({ posterior, onClose }: { posterior: Posterior
           )}
         <button
           type="button"
+          autoFocus
           onClick={onClose}
           className="mt-6 w-full px-5 py-2 rounded-full text-sm border border-border text-muted-foreground hover:border-border-hover hover:text-primary-soft transition-all"
         >

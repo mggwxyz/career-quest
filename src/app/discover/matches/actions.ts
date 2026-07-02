@@ -64,6 +64,18 @@ export async function generateCareerRecommendationsAction(): Promise<
     }
     const user = session.user
 
+    // Durable rate limit on a paid gpt-4o call: at most one generation per
+    // minute per user, enforced from recommendation_runs (indexed on
+    // user_id + created_at), so it survives serverless instance recycling.
+    const [lastRun] = await db.select({ createdAt: recommendationRuns.createdAt })
+      .from(recommendationRuns)
+      .where(eq(recommendationRuns.userId, user.id))
+      .orderBy(desc(recommendationRuns.createdAt))
+      .limit(1)
+    if (lastRun?.createdAt && Date.now() - lastRun.createdAt.getTime() < 60_000) {
+      return { success: false, error: 'Recommendations were just generated — try again in a minute' }
+    }
+
     const [latest] = await db.select().from(assessmentSessions)
       .where(and(
         eq(assessmentSessions.userId, user.id),

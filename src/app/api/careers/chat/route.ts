@@ -2,6 +2,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
+import { rateLimit } from '@/lib/rate-limit'
 import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
 import type { Persona } from '@/lib/personas/types'
 
@@ -58,8 +59,8 @@ void _personaSchemaMatchesType
 const BodySchema = z.object({
   messages: z.array(z.object({
     role: z.enum(['user', 'assistant']),
-    content: z.string(),
-  })),
+    content: z.string().max(8_000),
+  })).max(50),
   careerContext: CareerContextSchema,
   recommendationContext: z.object({ whyItMatches: z.string() }).nullable(),
   persona: PersonaSchema.nullable().optional(),
@@ -73,9 +74,23 @@ export async function POST(req: Request) {
     })
   }
 
+  if (!rateLimit(`chat:${session.user.id}`, 20, 60_000)) {
+    return new Response(JSON.stringify({ error: 'Too many requests — slow down a bit' }), {
+      status: 429, headers: { 'content-type': 'application/json' },
+    })
+  }
+
   let body: z.infer<typeof BodySchema>
   try {
-    body = BodySchema.parse(await req.json())
+    // Total-size gate: bounds every field (career context, persona, messages)
+    // before any of it reaches the model, capping worst-case token spend.
+    const raw = await req.text()
+    if (raw.length > 100_000) {
+      return new Response(JSON.stringify({ error: 'Request body too large' }), {
+        status: 413, headers: { 'content-type': 'application/json' },
+      })
+    }
+    body = BodySchema.parse(JSON.parse(raw))
   }
   catch {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {
@@ -95,5 +110,7 @@ export async function POST(req: Request) {
     messages: body.messages,
   })
 
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse({
+    getErrorMessage: () => 'Chat is temporarily unavailable. Please try again.',
+  })
 }

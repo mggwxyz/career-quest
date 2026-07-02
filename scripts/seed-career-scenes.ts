@@ -22,7 +22,7 @@ import pThrottle from 'p-throttle'
 import { db } from '../src/db'
 import { onetOccupations } from '../src/db/schema'
 import { generateSceneText } from './seed-career-scenes/generate-scene-text'
-import { generateSceneImage, type Quality } from './seed-career-scenes/generate-image'
+import { generateSceneImage, IMAGE_MODEL, type Quality } from './seed-career-scenes/generate-image'
 
 type CareerScene = {
   onetId: string
@@ -151,7 +151,7 @@ async function generateScene(args: {
     imagePath: image.imagePath,
     generatedAt: new Date().toISOString(),
     textModel: args.scene ? 'operator-override' : 'gpt-5',
-    imageModel: 'gpt-image-1',
+    imageModel: IMAGE_MODEL,
   }
 
   return { status: 'wrote', record }

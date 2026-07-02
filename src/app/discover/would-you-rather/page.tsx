@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import OptionCard from './_components/OptionCard'
@@ -38,6 +39,16 @@ export default function PreferencesPage() {
   const [submitting, setSubmitting] = useState(false)
   const shownAtRef = useRef<number>(0)
   const pendingSubmitRef = useRef<number | null>(null)
+  const questionRef = useRef<HTMLDivElement>(null)
+
+  // Each answer swaps the motion.div key, unmounting the focused OptionCard and
+  // dropping keyboard/screen-reader focus to <body>. Re-anchor focus on the new
+  // question container so keyboard users aren't stranded every question.
+  useEffect(() => {
+    if (phase === 'question' && currentItem) {
+      questionRef.current?.focus()
+    }
+  }, [phase, currentItem])
 
   useEffect(() => () => {
     if (pendingSubmitRef.current !== null) {
@@ -103,6 +114,7 @@ export default function PreferencesPage() {
     }
     catch (err) {
       console.error('[preferences] start failed:', err)
+      toast.error('Couldn’t start the assessment. Check your connection and try again.')
       setPhase('intro')
     }
   }, [setPhase, startSession])
@@ -129,6 +141,9 @@ export default function PreferencesPage() {
     }
     catch (err) {
       console.error('[preferences] submit failed:', err)
+      // The finally block clears the selection, so the question stays
+      // answerable — the user can just tap their choice again.
+      toast.error('That answer didn’t save. Please try again.')
     }
     finally {
       setSelectedOption(null)
@@ -158,7 +173,12 @@ export default function PreferencesPage() {
     return <IntroCard onStart={() => beginNewSession(null)} />
   }
   if (phase === 'loading') {
-    return <div className="text-center pt-24 text-muted-foreground">Starting…</div>
+    return (
+      <div className="flex flex-col items-center gap-3 pt-24 text-muted-foreground">
+        <span className="loading loading-spinner loading-md text-primary" aria-hidden />
+        Starting…
+      </div>
+    )
   }
   if (phase === 'complete' && result) {
     const showInconsistency = result.meta.inconsistencyFlag && !inconsistencyDismissed
@@ -208,7 +228,7 @@ export default function PreferencesPage() {
           exit={{ opacity: 0, x: -30 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
         >
-          <div className="relative max-w-3xl mx-auto">
+          <div ref={questionRef} tabIndex={-1} className="relative max-w-3xl mx-auto outline-none">
             <div className="block sm:hidden space-y-4">
               <OptionCard option={currentItem.option1} isSelected={selectedOption === 1} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(1)} />
               <OptionCard option={currentItem.option2} isSelected={selectedOption === 2} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(2)} />

@@ -44,6 +44,32 @@ describe('POST /api/careers/chat', () => {
     expect(streamText).not.toHaveBeenCalled()
   })
 
+  it('returns 413 when the body exceeds the total-size gate', async () => {
+    const req = new Request('http://test/api/careers/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'x'.repeat(120_000) }],
+        careerContext: validCtx(),
+        recommendationContext: null,
+      }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(413)
+  })
+
+  it('returns 400 when the messages array exceeds 50 entries', async () => {
+    const req = new Request('http://test/api/careers/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages: Array.from({ length: 51 }, () => ({ role: 'user', content: 'hi' })),
+        careerContext: validCtx(),
+        recommendationContext: null,
+      }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
   it('returns 401 when no session', async () => {
     const { getSession } = await import('@/lib/auth/get-session')
     vi.mocked(getSession).mockResolvedValueOnce(null)

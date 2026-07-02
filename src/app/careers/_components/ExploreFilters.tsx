@@ -76,6 +76,16 @@ export function ExploreFilters() {
     }, 350)
   }
 
+  // Enter applies the search immediately instead of waiting out the debounce.
+  const onSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    const trimmed = searchValue.trim()
+    if (trimmed === q) return
+    skipNextSync.current = true
+    setFilters({ q: trimmed, page: null })
+  }
+
   const toggleRiasec = (code: string) => {
     const set = new Set(riasec)
     if (set.has(code)) set.delete(code)
@@ -107,7 +117,8 @@ export function ExploreFilters() {
       {/* Top-left: Search */}
       <div>
         <span className={`${groupLabel} block mb-1.5`}>Search careers</span>
-        <div className="relative">
+        {/* Native GET form: search still works via Enter before React hydrates. */}
+        <form action="/careers" method="get" onSubmit={onSearchSubmit} className="relative">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -122,12 +133,13 @@ export function ExploreFilters() {
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
+            name="q"
             value={searchValue}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Search careers…"
             className="w-full rounded-full border border-border/70 bg-background/50 pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/60 focus:bg-background transition-colors"
           />
-        </div>
+        </form>
       </div>
 
       {/* Top-right: Interest */}
