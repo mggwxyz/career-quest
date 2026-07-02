@@ -223,12 +223,12 @@ export default function PreferencesPage() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentItem.id}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -30 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
         >
-          <div ref={questionRef} tabIndex={-1} className="relative max-w-3xl mx-auto outline-none">
+          <div ref={questionRef} tabIndex={-1} className="relative w-full max-w-3xl mx-auto outline-none">
             <div className="block sm:hidden space-y-4">
               <OptionCard option={currentItem.option1} isSelected={selectedOption === 1} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(1)} />
               <OptionCard option={currentItem.option2} isSelected={selectedOption === 2} showCheckmark={showCheckmark} onClick={() => handleOptionSelect(2)} />

@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
 import {
-  abandonActiveSessionsForUser, createNewSession, isGradeBand,
+  abandonActiveSessionsForUser, createNewSession,
   loadActiveSession, rebuildSessionFromLog,
 } from '@/lib/assessment/serverSession'
 import { items } from '@/app/_data/items'
 import { chooseFirstItem, startSession } from '@/lib/assessment'
+
+const BodySchema = z.object({
+  gradeBand: z.enum(['middle', 'early-hs', 'late-hs', 'college']).nullish()
+    .transform(v => v ?? undefined),
+})
 
 export async function POST(request: Request) {
   try {
@@ -13,16 +19,13 @@ export async function POST(request: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    const body = await request.json().catch(() => ({})) as { gradeBand?: unknown }
-    const gradeBand = body.gradeBand === undefined || body.gradeBand === null
-      ? undefined
-      : (isGradeBand(body.gradeBand) ? body.gradeBand : '__invalid__')
-    if (gradeBand === '__invalid__') {
+    const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid gradeBand' }, { status: 400 })
     }
 
     await abandonActiveSessionsForUser(session.user.id)
-    const { sessionId, firstItem } = await createNewSession(session.user.id, gradeBand)
+    const { sessionId, firstItem } = await createNewSession(session.user.id, parsed.data.gradeBand)
 
     return NextResponse.json({ sessionId, item: firstItem, itemsAnswered: 0 })
   }

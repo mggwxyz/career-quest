@@ -26,6 +26,7 @@ export const CurrentUserAvatar = ({ className }: CurrentUserAvatarProps) => {
   return (
     <Avatar
       className={cn('size-9', className)}
+      role="img"
       aria-busy={loading}
       aria-label={loading ? 'Loading profile' : `Profile: ${name || 'User'}`}
     >

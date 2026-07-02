@@ -50,8 +50,8 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
   return (
     <div className="flex flex-col gap-2">
       <div className="bg-surface/50 border border-border rounded-2xl h-[600px] flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-border flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 min-w-0">
+        <div className="p-4 border-b border-border flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
             {portraitSrc && persona
               ? (
                 <Image
@@ -99,7 +99,7 @@ export function CareerRolePlayChat({ careerContext, recommendationContext, perso
           <button
             type="button"
             onClick={onStartOver}
-            className="text-xs px-3 py-1 rounded-full border border-border bg-surface text-foreground hover:border-border-hover hover:bg-muted transition-all disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:bg-surface disabled:hover:border-border shrink-0"
+            className="self-start text-xs px-3 py-1 rounded-full border border-border bg-surface text-foreground hover:border-border-hover hover:bg-muted transition-all disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:bg-surface disabled:hover:border-border shrink-0 sm:self-auto"
             disabled={messages.length <= openingMessages.length || status === 'streaming'}
           >
             Start over

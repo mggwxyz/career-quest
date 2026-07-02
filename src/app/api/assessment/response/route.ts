@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server'
 import { and, eq, isNull } from 'drizzle-orm'
+import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { finalize, ResponseChoice } from '@/lib/assessment'
 import { isGradeBand, rebuildSessionFromLog } from '@/lib/assessment/serverSession'
 
-type Body = { sessionId?: string, itemId?: string, choice?: number | null, responseMs?: number }
-
-function isValidChoice(c: unknown): c is ResponseChoice {
-  return c === 1 || c === 2 || c === null
-}
+const ResponseChoiceSchema = z.union([z.literal(1), z.literal(2), z.null()])
+const BodySchema = z.object({
+  sessionId: z.string().min(1),
+  itemId: z.string().min(1),
+  choice: ResponseChoiceSchema.optional().default(null),
+  responseMs: z.number()
+    .int()
+    .nonnegative()
+    .max(24 * 60 * 60 * 1000)
+    .optional(),
+})
 
 export async function POST(request: Request) {
   try {
@@ -18,12 +25,12 @@ export async function POST(request: Request) {
     if (!auth?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    const body = await request.json().catch(() => ({})) as Body
-    const choiceInput = body.choice ?? null
-    if (!body.sessionId || !body.itemId || !isValidChoice(choiceInput)) {
+    const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
     }
-    const choice: ResponseChoice = choiceInput
+    const body = parsed.data
+    const choice: ResponseChoice = body.choice
 
     // Verify session belongs to this user and is active
     const [sessionRow] = await db.select().from(assessmentSessions)

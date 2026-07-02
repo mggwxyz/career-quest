@@ -5,6 +5,7 @@ import { searchOccupations } from '@/lib/onet/browse'
 import { listPersonaOnetIds } from '@/lib/personas'
 import { hasScene } from '@/lib/scenes'
 import { SceneImage } from '@/components/scene-image'
+import { ONET_NATIONAL_DATA_LABEL } from '@/lib/onet/source-labels'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -71,7 +72,12 @@ export default async function ExplorePage({
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Explore careers</h1>
         <p className="text-sm text-muted-foreground">Search and filter the full O*NET catalog</p>
         <p className="text-xs text-muted-foreground/80 mt-2 max-w-lg mx-auto">
-          Ordered with bright outlook and higher typical pay first, then A–Z by title
+          Ordered with bright outlook and higher typical pay first, then A-Z by title.
+          {' '}
+          Pay and outlook use
+          {' '}
+          {ONET_NATIONAL_DATA_LABEL}
+          .
         </p>
       </div>
 
@@ -101,7 +107,7 @@ export default async function ExplorePage({
         : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {rows.map(row => (
+              {rows.map((row, index) => (
                 <Link
                   key={row.code}
                   href={`/careers/${row.slug}`}
@@ -113,13 +119,14 @@ export default async function ExplorePage({
                       alt={`${row.shortTitle ?? row.title} at work`}
                       className="aspect-[3/2] w-full border-b border-border"
                       sizes="(min-width: 768px) 50vw, 100vw"
+                      priority={index < 2}
                     />
                   )}
                   <div className="p-6">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
+                    <div className="flex items-start justify-between gap-3 mb-2 min-w-0">
+                      <h2 className="min-w-0 break-words text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
                         {row.shortTitle ?? row.title}
-                      </h3>
+                      </h2>
                       {row.brightOutlook && (
                         <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
                           ✦ Bright
@@ -132,7 +139,7 @@ export default async function ExplorePage({
                       </p>
                     )}
                     {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2 text-xs">
                         {row.salaryAnnualMedian != null
                           ? (
                             <span className="text-muted-foreground">
@@ -160,6 +167,13 @@ export default async function ExplorePage({
                           </span>
                         )}
                       </div>
+                    )}
+                    {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
+                      <p className="mb-3 text-[10px] leading-snug text-muted-foreground">
+                        Source:
+                        {' '}
+                        {ONET_NATIONAL_DATA_LABEL}
+                      </p>
                     )}
                     {row.riasecAll.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">

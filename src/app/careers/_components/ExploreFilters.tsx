@@ -110,12 +110,12 @@ export function ExploreFilters() {
   const chip = 'text-[11px] leading-none px-2.5 py-1.5 rounded-full border transition-colors cursor-pointer whitespace-nowrap'
   const chipIdle = 'border-border/70 bg-transparent text-muted-foreground hover:border-border-hover hover:text-foreground'
   const chipActive = 'border-primary/60 bg-primary/15 text-foreground'
-  const groupLabel = 'text-[10px] uppercase tracking-wider text-muted-foreground/70 mr-0.5 select-none'
+  const groupLabel = 'text-[10px] uppercase tracking-wider text-muted-foreground mr-0.5 select-none'
 
   return (
-    <div className="rounded-xl border border-border bg-surface/30 px-4 py-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 backdrop-blur-sm">
+    <div className="grid min-w-0 grid-cols-1 gap-x-6 gap-y-3 rounded-xl border border-border bg-surface/30 px-4 py-3 backdrop-blur-sm md:grid-cols-2">
       {/* Top-left: Search */}
-      <div>
+      <div className="min-w-0">
         <span className={`${groupLabel} block mb-1.5`}>Search careers</span>
         {/* Native GET form: search still works via Enter before React hydrates. */}
         <form action="/careers" method="get" onSubmit={onSearchSubmit} className="relative">
@@ -143,7 +143,7 @@ export function ExploreFilters() {
       </div>
 
       {/* Top-right: Interest */}
-      <div>
+      <div className="min-w-0">
         <span className={`${groupLabel} block mb-1.5`}>Interest</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {RIASEC_OPTIONS.map((opt) => {
@@ -153,6 +153,7 @@ export function ExploreFilters() {
                 key={opt.code}
                 type="button"
                 onClick={() => toggleRiasec(opt.code)}
+                aria-pressed={active}
                 title={opt.name}
                 className={`${chip} font-semibold ${active ? chipActive : chipIdle}`}
               >
@@ -164,12 +165,13 @@ export function ExploreFilters() {
       </div>
 
       {/* Bottom-left: Highlights (matches, bright, chat-ready) */}
-      <div>
+      <div className="min-w-0">
         <span className={`${groupLabel} block mb-1.5`}>Highlights</span>
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={toggleMatches}
+            aria-pressed={matches}
             className={`${chip} ${matches ? chipActive : chipIdle}`}
           >
             ⭐ Matches
@@ -177,6 +179,7 @@ export function ExploreFilters() {
           <button
             type="button"
             onClick={toggleBright}
+            aria-pressed={bright}
             className={
               bright
                 ? `${chip} border-green-500/50 bg-green-400 font-medium text-black`
@@ -188,6 +191,7 @@ export function ExploreFilters() {
           <button
             type="button"
             onClick={toggleChatReady}
+            aria-pressed={chat}
             className={`${chip} ${chat ? chipActive : chipIdle}`}
           >
             💬 Chat-ready
@@ -196,7 +200,7 @@ export function ExploreFilters() {
       </div>
 
       {/* Bottom-right: Education */}
-      <div>
+      <div className="min-w-0">
         <span className={`${groupLabel} block mb-1.5`}>Education</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {EDUCATION_OPTIONS.map((opt) => {
@@ -206,6 +210,7 @@ export function ExploreFilters() {
                 key={opt.label}
                 type="button"
                 onClick={() => toggleZoneGroup(opt.zones)}
+                aria-pressed={active}
                 className={`${chip} ${active ? chipActive : chipIdle}`}
               >
                 {opt.label}

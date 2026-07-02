@@ -7,6 +7,7 @@ import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { SceneImage } from '@/components/scene-image'
+import { ONET_NATIONAL_DATA_LABEL } from '@/lib/onet/source-labels'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
@@ -143,11 +144,12 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                           alt={`${career.title} at work`}
                           className="aspect-[3/2] w-full border-b border-border"
                           sizes="(min-width: 768px) 50vw, 100vw"
+                          priority={index === 0}
                         />
                       )}
                       <div className="flex flex-1 flex-col p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
+                        <div className="flex items-start justify-between mb-3 min-w-0">
+                          <h2 className="min-w-0 break-words text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h2>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
                         {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
@@ -167,6 +169,13 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                               </span>
                             )}
                           </div>
+                        )}
+                        {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
+                          <p className="mb-3 text-[10px] leading-snug text-muted-foreground">
+                            Source:
+                            {' '}
+                            {ONET_NATIONAL_DATA_LABEL}
+                          </p>
                         )}
                         <div className="mt-auto pt-3 border-t border-border">
                           <p className="text-xs text-muted-foreground leading-relaxed">

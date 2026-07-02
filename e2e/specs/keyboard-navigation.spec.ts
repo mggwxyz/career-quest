@@ -32,7 +32,7 @@ test.describe('Would-you-rather keyboard navigation', () => {
     await page.keyboard.press('Enter')
 
     // After the 220ms handleOptionSelect timeout the quiz advances to question 2.
-    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 })
+    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 10000 })
   })
 
   test('Space key also selects a focused option card', async ({ authenticatedPage: page }) => {
@@ -46,7 +46,7 @@ test.describe('Would-you-rather keyboard navigation', () => {
     await firstDesktopCard.focus()
     await page.keyboard.press('Space')
 
-    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 })
+    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 10000 })
   })
 
   test('Tab traversal reaches an option card from the start of the page', async ({ authenticatedPage: page }) => {

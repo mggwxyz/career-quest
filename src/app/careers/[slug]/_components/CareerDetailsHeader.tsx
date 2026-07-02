@@ -4,6 +4,7 @@ import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_NAMES } from '@/lib/onet/projectors'
 import { hasScene } from '@/lib/scenes'
 import { SceneImage } from '@/components/scene-image'
+import { ONET_NATIONAL_DATA_LABEL } from '@/lib/onet/source-labels'
 
 interface Props {
   occupation: OccupationRow
@@ -37,7 +38,7 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
         />
       )}
       <div className="py-6 px-6">
-        <h1 className="font-serif text-2xl lg:text-3xl text-foreground mb-2">{occupation.title}</h1>
+        <h1 className="break-words font-serif text-2xl lg:text-3xl text-foreground mb-2">{occupation.title}</h1>
 
         {occupation.description && (
           <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-3xl">
@@ -63,6 +64,13 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
           </span>
           <span className={pillClass}>{`Job Zone ${occupation.jobZone} · ${JOB_ZONE_NAMES[occupation.jobZone]}`}</span>
         </div>
+
+        <p className="mt-3 text-[11px] leading-snug text-muted-foreground/75">
+          Pay, outlook, job zone, and career details use
+          {' '}
+          {ONET_NATIONAL_DATA_LABEL}
+          .
+        </p>
 
         {whyItMatches && (
           <div className="mt-4 p-4 rounded-xl border border-primary-soft/30 bg-primary-soft/10">

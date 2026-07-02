@@ -56,6 +56,7 @@ describe('CareerDetailsHeader', () => {
     expect(screen.getByText(/Faster than average growth/)).toBeInTheDocument()
     expect(screen.getByText(/\$85,000/)).toBeInTheDocument()
     expect(screen.getByText(/Job Zone 4/)).toBeInTheDocument()
+    expect(screen.getByText(/O\*NET 30\.3 national data/)).toBeInTheDocument()
   })
 
   it('renders the "Why it fits you" callout when whyItMatches is present', () => {

@@ -47,7 +47,7 @@ export function FlowStepper() {
             ? 'text-foreground font-medium'
             : isComplete
               ? 'text-primary-soft'
-              : 'text-muted-foreground/70'
+              : 'text-muted-foreground'
 
           const node = (
             <div className="relative flex flex-col items-center">

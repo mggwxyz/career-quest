@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
 import { userInterests } from '@/db/schema'
@@ -7,8 +8,13 @@ import { userInterests } from '@/db/schema'
 const MAX_INTEREST_LENGTH = 64
 const MAX_INTERESTS = 30
 
-function normalize(list: unknown): string[] {
-  if (!Array.isArray(list)) return []
+const BodySchema = z.object({
+  interests: z.array(z.unknown())
+    .optional()
+    .default([]),
+})
+
+function normalize(list: unknown[]): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const raw of list) {
@@ -39,8 +45,11 @@ export async function POST(request: Request) {
   if (!auth?.user) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
   }
-  const body = await request.json().catch(() => ({}))
-  const interests = normalize((body as { interests?: unknown }).interests)
+  const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  }
+  const interests = normalize(parsed.data.interests)
   const userId = auth.user.id
 
   // The neon-http driver is stateless and has no interactive transaction

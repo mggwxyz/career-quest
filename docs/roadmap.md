@@ -12,7 +12,7 @@ Shipped and live at career-quest-app.vercel.app:
 - O*NET-backed career matching with salary/outlook, scene images, why-it-fits
 - Career browse/search/filter over the full O*NET catalog + detail pages with role-play AI chat
 - Neon Auth (email/password + Google), Drizzle/Neon Postgres persistence
-- Vitest unit suite, 8-spec Playwright suite running in CI (chromium, single worker)
+- Vitest unit suite, 9-spec Playwright suite running in CI (chromium, single worker)
 
 Worktrees already branched for G01, G02, G03, G05 (`goal-g*/`, no commits yet).
 
@@ -30,14 +30,14 @@ _Goal: zero known defects, every surface feels finished. Small, closeable items.
 
 ### 1.2 UX finish pass
 - [x] Audit every route for loading / empty / error states — fixed: silent assessment submit/start failures now toast, profile/answers distinguish fetch errors from empty (with retry), `/careers` + `/careers/[slug]` got loading skeletons, Enter applies career search pre- and post-hydration
-- [ ] Mobile sweep: assessment cards, matches grid, career detail, compare-width tables; no horizontal overflow anywhere
-- [ ] Accessibility pass: run axe on the main flows, fix violations, verify the keyboard-navigation spec covers the assessment end-to-end
-- [ ] Copy/labeling pass: data vintage on O*NET-derived numbers ("O*NET 2025", "BLS 2024") so nothing overclaims
-- [ ] Perceived-perf pass: skeletons where fetches are slow, `next/image` sizing on scene art
+- [x] Mobile sweep: automated 375px no-overflow check covers assessment, matches, profile/answers, `/careers`, and `/careers/[slug]`; fixed card/chat wrapping
+- [x] Accessibility pass: axe-clean on core flows, FlowStepper contrast fixed, keyboard-navigation spec green for Tab/Enter/Space assessment flow
+- [x] Copy/labeling pass: O*NET-derived pay/outlook/job-zone details now label `O*NET 30.3 national data`
+- [x] Perceived-perf pass: loading skeletons are in place and above-the-fold scene images now opt into priority loading
 
 ### 1.3 Hardening
 - [x] Rate limiting on AI endpoints — chat: 20 req/min + 100KB body cap + 50×8k message caps; recommendations: 1 generation/min via `recommendation_runs`
-- [ ] Consistent Zod validation on all route handler inputs
+- [x] Consistent Zod validation on all local route handler inputs (`assessment/session`, `assessment/response`, `user/interests`, `careers/chat`)
 - [ ] Error tracking (Sentry or Vercel-native) so production failures stop being invisible
 - [ ] Prune dead branches/worktrees (`.worktrees/`, stale `claude/*`) and archive `archive/` decisions
 

@@ -14,6 +14,8 @@ import {
   type CareerDetail,
 } from './schemas'
 
+const CAREER_DETAIL_TIMEOUT_MS = 4_000
+
 export interface OccupationRow {
   code: string
   slug: string
@@ -66,6 +68,7 @@ export async function getSlugsByOnetCodes(codes: string[]): Promise<Map<string, 
 }
 
 export async function getCareerDetail(code: string): Promise<CareerDetail> {
+  const options = { timeoutMs: CAREER_DETAIL_TIMEOUT_MS }
   const [
     summaryRaw,
     knowledgeRaw,
@@ -76,14 +79,14 @@ export async function getCareerDetail(code: string): Promise<CareerDetail> {
     exploreMoreRaw,
     interestsRaw,
   ] = await Promise.all([
-    onetFetch<unknown>(`/mnm/careers/${code}`),
-    onetFetch<unknown>(`/mnm/careers/${code}/knowledge`),
-    onetFetch<unknown>(`/mnm/careers/${code}/skills`),
-    onetFetch<unknown>(`/mnm/careers/${code}/technology`),
-    onetFetch<unknown>(`/mnm/careers/${code}/education`),
-    onetFetch<unknown>(`/mnm/careers/${code}/job_outlook`),
-    onetFetch<unknown>(`/mnm/careers/${code}/explore_more`),
-    onetFetch<unknown>(`/online/occupations/${code}/summary/interests`),
+    onetFetch<unknown>(`/mnm/careers/${code}`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/knowledge`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/skills`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/technology`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/education`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/job_outlook`, options),
+    onetFetch<unknown>(`/mnm/careers/${code}/explore_more`, options),
+    onetFetch<unknown>(`/online/occupations/${code}/summary/interests`, options),
   ])
 
   const summary = MnmCareerV2SummarySchema.parse(summaryRaw)

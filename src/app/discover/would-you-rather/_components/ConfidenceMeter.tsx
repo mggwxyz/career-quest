@@ -10,6 +10,7 @@ export default function ConfidenceMeter({ itemsAnswered }: { itemsAnswered: numb
       <div
         className="flex items-center justify-center gap-1.5"
         role="progressbar"
+        aria-label="Assessment progress"
         aria-valuemin={0}
         aria-valuemax={TOTAL_DOTS}
         aria-valuenow={filled}

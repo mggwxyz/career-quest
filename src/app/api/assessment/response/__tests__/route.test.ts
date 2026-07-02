@@ -62,4 +62,14 @@ describe('POST /api/assessment/response', () => {
     const res = await POST(req)
     expect(res.status).toBe(400)
   })
+
+  it('rejects invalid response timing with 400', async () => {
+    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
+    const req = new Request('http://x/api/assessment/response', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId: 's', itemId: 'i', choice: 1, responseMs: -1 }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
 })

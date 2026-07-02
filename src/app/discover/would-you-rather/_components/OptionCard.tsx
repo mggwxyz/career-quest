@@ -15,7 +15,8 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
   return (
     <motion.button
       type="button"
-      className={`rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-150 ${
+      aria-pressed={isSelected}
+      className={`w-full min-w-0 rounded-2xl overflow-hidden cursor-pointer flex flex-col border transition-all duration-150 ${
         isSelected
           ? 'border-primary/70'
           : 'border-border bg-surface/50 hover:border-border-hover focus-visible:border-primary/70'
@@ -36,6 +37,7 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
         />
         {showCheckmark && isSelected && (
           <motion.div
+            aria-hidden="true"
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm z-10"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -46,7 +48,7 @@ export default function OptionCard({ option, isSelected, showCheckmark, onClick 
         )}
       </figure>
       <div className="p-5 flex-none text-left">
-        <h2 className="text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
+        <h2 className="break-words text-[15px] font-semibold text-foreground mb-1.5 leading-snug">
           {option.text}
         </h2>
       </div>
