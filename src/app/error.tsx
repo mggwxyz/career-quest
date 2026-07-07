@@ -12,6 +12,19 @@ export default function ErrorBoundary({
 }) {
   useEffect(() => {
     console.error('Root error boundary caught:', error)
+    void fetch('/api/error-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'client',
+        name: error.name,
+        message: error.message || 'Root error boundary caught an error',
+        stack: error.stack,
+        digest: error.digest,
+        route: window.location.pathname,
+        metadata: { boundary: 'app/error' },
+      }),
+    }).catch(() => undefined)
   }, [error])
 
   return (

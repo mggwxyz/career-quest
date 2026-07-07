@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth/get-session'
+import { getUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -20,8 +20,7 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params
 
-  const session = await getSession()
-  if (!session?.user) redirect(`/auth/login?redirect=${encodeURIComponent(`/careers/${slug}`)}`)
+  const identity = await getUserId()
 
   // Legacy O*NET-code URLs → 301 to canonical slug
   if (ONET_CODE_RE.test(slug)) {
@@ -38,12 +37,14 @@ export default async function CareerDetailPage({
       console.error('[careers/[slug]] getCareerDetail failed:', err)
       return null
     }),
-    db.select().from(careerRecommendations)
-      .where(and(
-        eq(careerRecommendations.userId, session.user.id),
-        eq(careerRecommendations.onetId, occupation.code),
-      ))
-      .limit(1),
+    identity
+      ? db.select().from(careerRecommendations)
+        .where(and(
+          eq(careerRecommendations.userId, identity.id),
+          eq(careerRecommendations.onetId, occupation.code),
+        ))
+        .limit(1)
+      : Promise.resolve([]),
   ])
 
   const whyItMatches = recRows[0]?.whyItMatches ?? null

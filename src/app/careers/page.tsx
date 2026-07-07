@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth/get-session'
+import { getUserId } from '@/lib/auth/identity'
 import { searchOccupations } from '@/lib/onet/browse'
 import { listPersonaOnetIds } from '@/lib/personas'
 import { hasScene } from '@/lib/scenes'
 import { SceneImage } from '@/components/scene-image'
+import { GuestSaveBanner } from '@/components/guest-save-banner'
 import { ONET_NATIONAL_DATA_LABEL } from '@/lib/onet/source-labels'
 import { db } from '@/db'
 import { careerRecommendations } from '@/db/schema'
@@ -27,8 +27,7 @@ export default async function ExplorePage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const session = await getSession()
-  if (!session?.user) redirect('/auth/login?redirect=/careers')
+  const identity = await getUserId()
 
   const params = await searchParams
   const chatReady = params.chat === '1'
@@ -46,9 +45,11 @@ export default async function ExplorePage({
 
   let matchesOnetIds: string[] | undefined
   if (matchesOnly) {
-    const recRows = await db.select({ onetId: careerRecommendations.onetId })
-      .from(careerRecommendations)
-      .where(eq(careerRecommendations.userId, session.user.id))
+    const recRows = identity
+      ? await db.select({ onetId: careerRecommendations.onetId })
+        .from(careerRecommendations)
+        .where(eq(careerRecommendations.userId, identity.id))
+      : []
     matchesOnetIds = [...new Set(recRows.map(r => r.onetId))]
   }
 
@@ -68,6 +69,7 @@ export default async function ExplorePage({
 
   return (
     <div className={`${containerClassName} min-h-[calc(100vh-5rem)]`}>
+      <GuestSaveBanner />
       <div className="text-center mb-8 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Explore careers</h1>
         <p className="text-sm text-muted-foreground">Search and filter the full O*NET catalog</p>

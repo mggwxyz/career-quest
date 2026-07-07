@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import {
   abandonActiveSessionsForUser, createNewSession,
   loadActiveSession, rebuildSessionFromLog,
@@ -15,17 +15,14 @@ const BodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const { id: userId } = await getOrCreateUserId()
     const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid gradeBand' }, { status: 400 })
     }
 
-    await abandonActiveSessionsForUser(session.user.id)
-    const { sessionId, firstItem } = await createNewSession(session.user.id, parsed.data.gradeBand)
+    await abandonActiveSessionsForUser(userId)
+    const { sessionId, firstItem } = await createNewSession(userId, parsed.data.gradeBand)
 
     return NextResponse.json({ sessionId, item: firstItem, itemsAnswered: 0 })
   }
@@ -37,11 +34,8 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-    const active = await loadActiveSession(session.user.id)
+    const { id: userId } = await getOrCreateUserId()
+    const active = await loadActiveSession(userId)
     if (!active) {
       return NextResponse.json({ active: null })
     }
@@ -61,7 +55,7 @@ export async function GET() {
             '[api/assessment/session] GET: stored itemId %s not in bank for session %s; abandoning',
             unanswered.itemId, active.sessionId,
           )
-          await abandonActiveSessionsForUser(session.user.id)
+          await abandonActiveSessionsForUser(userId)
           return NextResponse.json({ active: null })
         }
         return NextResponse.json({

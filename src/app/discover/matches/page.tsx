@@ -1,7 +1,8 @@
 import { and, desc, eq } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { careerRecommendations, recommendationRuns } from '@/db/schema'
+import { GuestSaveBanner } from '@/components/guest-save-banner'
 import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { getOccupationsByCodes } from '@/lib/onet/occupations'
@@ -10,15 +11,14 @@ import { hasScene } from '@/lib/scenes'
 
 async function getUserCareers(): Promise<CareerRecommendation[]> {
   try {
-    const session = await getSession()
-    if (!session?.user) {
+    const identity = await getUserId()
+    if (!identity) {
       return []
     }
-    const user = session.user
 
     const [latestRun] = await db.select({ id: recommendationRuns.id })
       .from(recommendationRuns)
-      .where(eq(recommendationRuns.userId, user.id))
+      .where(eq(recommendationRuns.userId, identity.id))
       .orderBy(desc(recommendationRuns.createdAt))
       .limit(1)
     if (!latestRun) {
@@ -28,7 +28,7 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     const rows = await db.select()
       .from(careerRecommendations)
       .where(and(
-        eq(careerRecommendations.userId, user.id),
+        eq(careerRecommendations.userId, identity.id),
         eq(careerRecommendations.runId, latestRun.id),
       ))
       .orderBy(careerRecommendations.rank)
@@ -69,5 +69,10 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
 export default async function CareersPage() {
   const initialCareers = await getUserCareers()
 
-  return <CareersClient initialCareers={initialCareers} />
+  return (
+    <>
+      <GuestSaveBanner />
+      <CareersClient initialCareers={initialCareers} />
+    </>
+  )
 }

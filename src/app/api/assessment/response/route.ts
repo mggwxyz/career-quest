@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { finalize, ResponseChoice } from '@/lib/assessment'
@@ -21,10 +21,7 @@ const BodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await getSession()
-    if (!auth?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const { id: userId } = await getOrCreateUserId()
     const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
@@ -36,7 +33,7 @@ export async function POST(request: Request) {
     const [sessionRow] = await db.select().from(assessmentSessions)
       .where(and(
         eq(assessmentSessions.id, body.sessionId),
-        eq(assessmentSessions.userId, auth.user.id),
+        eq(assessmentSessions.userId, userId),
         isNull(assessmentSessions.completedAt),
         isNull(assessmentSessions.abandonedAt),
       ))

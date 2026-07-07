@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { POST } from '@/app/api/careers/chat/route'
 
-vi.mock('@/lib/auth/get-session', () => ({
-  getSession: vi.fn().mockResolvedValue({ user: { id: 'u1' } }),
+vi.mock('@/lib/auth/identity', () => ({
+  getOrCreateUserId: vi.fn().mockResolvedValue({ id: 'u1', isGuest: false }),
 }))
 
 vi.mock('ai', () => ({
@@ -70,15 +70,15 @@ describe('POST /api/careers/chat', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 401 when no session', async () => {
-    const { getSession } = await import('@/lib/auth/get-session')
-    vi.mocked(getSession).mockResolvedValueOnce(null)
+  it('serves a guest (no account) — rate-limited by the guest id', async () => {
+    const { getOrCreateUserId } = await import('@/lib/auth/identity')
+    vi.mocked(getOrCreateUserId).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
-      body: JSON.stringify({ messages: [], careerContext: validCtx(), recommendationContext: null }),
+      body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }], careerContext: validCtx(), recommendationContext: null }),
     })
     const res = await POST(req)
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
   })
 
   it('passes through on a valid body', async () => {

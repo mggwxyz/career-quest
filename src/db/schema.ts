@@ -121,6 +121,32 @@ export const careerUserActions = pgTable('career_user_actions', {
   index('career_user_actions_user_action_idx').on(t.userId, t.action, t.createdAt),
 ])
 
+export const appErrorEvents = pgTable('app_error_events', {
+  id: uuid().primaryKey()
+    .defaultRandom(),
+  source: text().notNull(),
+  severity: text().notNull()
+    .default('error'),
+  message: text().notNull(),
+  name: text(),
+  stack: text(),
+  digest: text(),
+  route: text(),
+  method: text(),
+  userId: text('user_id'),
+  userAgent: text('user_agent'),
+  componentStack: text('component_stack'),
+  metadata: jsonb().notNull()
+    .default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, t => [
+  index('app_error_events_created_idx').on(t.createdAt),
+  index('app_error_events_source_created_idx').on(t.source, t.createdAt),
+  index('app_error_events_route_created_idx').on(t.route, t.createdAt),
+  index('app_error_events_user_created_idx').on(t.userId, t.createdAt),
+])
+
 export const onetOccupations = pgTable('onet_occupations', {
   code: text().primaryKey(),
   slug: text().notNull()
