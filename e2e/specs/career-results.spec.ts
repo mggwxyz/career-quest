@@ -54,7 +54,7 @@ test.describe('Career Results', () => {
     // Verify the detail page renders the career title and "Why it fits you" block
     // (the old page showed salaryRange; the new page shows O*NET-derived fields)
     await expect(page.getByText('Software Developer').first()).toBeVisible()
-    await expect(page.getByText('Why it fits you')).toBeVisible()
+    await expect(page.getByText('Why it fits you').first()).toBeVisible()
     await expect(page.getByText(/Your strong Investigative and Conventional/)).toBeVisible()
   })
 
