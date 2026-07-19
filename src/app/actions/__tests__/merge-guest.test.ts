@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/headers', () => ({ cookies: vi.fn() }))
 vi.mock('@/lib/auth/get-session', () => ({ getSession: vi.fn() }))
@@ -14,6 +14,7 @@ import { reassignGuestData } from '@/lib/auth/merge-guest-data'
 
 const GUEST_ID = 'guest_11111111-1111-1111-1111-111111111111'
 const REAL_ID = 'user_22222222-2222-2222-2222-222222222222'
+const originalCookieSecret = process.env.NEON_AUTH_COOKIE_SECRET
 
 function sessionFor(userId: string): Awaited<ReturnType<typeof getSession>> {
   return { user: { id: userId } } as Awaited<ReturnType<typeof getSession>>
@@ -31,6 +32,15 @@ function mockCookies(value?: string) {
 
 beforeAll(() => {
   process.env.NEON_AUTH_COOKIE_SECRET = 'test-secret-for-merge-action'
+})
+
+afterAll(() => {
+  if (originalCookieSecret === undefined) {
+    delete process.env.NEON_AUTH_COOKIE_SECRET
+    return
+  }
+
+  process.env.NEON_AUTH_COOKIE_SECRET = originalCookieSecret
 })
 
 describe('mergeGuestAction', () => {
