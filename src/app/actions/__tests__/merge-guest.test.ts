@@ -94,13 +94,16 @@ describe('mergeGuestAction', () => {
     mockGetSession.mockResolvedValue({ user: { id: REAL_ID } })
     mockReassignGuestData.mockRejectedValue(error)
 
-    await expect(mergeGuestAction()).resolves.toEqual({ merged: false })
+    try {
+      await expect(mergeGuestAction()).resolves.toEqual({ merged: false })
 
-    expect(mockReassignGuestData).toHaveBeenCalledWith(mockDb, GUEST_ID, REAL_ID)
-    expect(store.delete).not.toHaveBeenCalled()
-    expect(consoleError).toHaveBeenCalledWith('[mergeGuestAction] reassign failed:', error)
-
-    consoleError.mockRestore()
+      expect(mockReassignGuestData).toHaveBeenCalledWith(mockDb, GUEST_ID, REAL_ID)
+      expect(store.delete).not.toHaveBeenCalled()
+      expect(consoleError).toHaveBeenCalledWith('[mergeGuestAction] reassign failed:', error)
+    }
+    finally {
+      consoleError.mockRestore()
+    }
   })
 
   it('reassigns guest data and deletes the cookie after a successful merge', async () => {
