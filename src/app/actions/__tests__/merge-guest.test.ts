@@ -89,7 +89,7 @@ describe('mergeGuestAction', () => {
   it('retains the guest cookie when reassignment fails so a later load can retry', async () => {
     const store = makeCookieStore(signGuestCookie(GUEST_ID))
     const error = new Error('database unavailable')
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     mockCookies.mockResolvedValue(store)
     mockGetSession.mockResolvedValue({ user: { id: REAL_ID } })
     mockReassignGuestData.mockRejectedValue(error)
