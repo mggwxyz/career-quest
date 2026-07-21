@@ -28,7 +28,7 @@ import { getOrCreateUserId, getUserId } from '../identity'
 
 describe('identity resolution', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     process.env.NEON_AUTH_COOKIE_SECRET = 'test-secret-for-identity'
     mocks.cookies.mockResolvedValue(mocks.cookieStore)
     mocks.cookieStore.get.mockReturnValue(undefined)

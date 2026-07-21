@@ -101,6 +101,8 @@ describe('GET /api/assessment/responses', () => {
   })
 
   it('returns a 500 response when response lookup fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {
+    })
     const sessionChain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -121,5 +123,10 @@ describe('GET /api/assessment/responses', () => {
 
     expect(res.status).toBe(500)
     expect(body).toEqual({ error: 'Failed to load responses' })
+    expect(consoleError).toHaveBeenCalledWith(
+      '[api/assessment/responses] GET failed:',
+      expect.any(Error),
+    )
+    consoleError.mockRestore()
   })
 })
