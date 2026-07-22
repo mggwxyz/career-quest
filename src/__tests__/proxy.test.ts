@@ -27,7 +27,8 @@ function expectNextResponse(response: Response) {
 
 describe('proxy', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    mocks.authMiddleware.mockClear()
+    mocks.innerMiddleware.mockReset()
     mocks.innerMiddleware.mockResolvedValue(new Response('auth-gated', { status: 418 }))
   })
 
@@ -47,7 +48,7 @@ describe('proxy', () => {
     '/careers',
     '/careers/software-developers',
     '/auth/login',
-  ])('treats %s as public for the guest-accessible funnel', async pathname => {
+  ])('treats %s as public for the guest-accessible funnel', async (pathname) => {
     const response = await proxy(request(pathname))
 
     expectNextResponse(response)
@@ -56,7 +57,7 @@ describe('proxy', () => {
 
   it.each(['/discoverX', '/careersX', '/authentic'])(
     'does not treat prefix impostor path %s as public',
-    async pathname => {
+    async (pathname) => {
       const req = request(pathname)
       const gatedResponse = new Response('auth-gated', { status: 418 })
       mocks.innerMiddleware.mockResolvedValueOnce(gatedResponse)
