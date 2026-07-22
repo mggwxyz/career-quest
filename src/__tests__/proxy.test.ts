@@ -33,7 +33,10 @@ describe('proxy', () => {
   })
 
   it('passes server actions through before applying route gating', async () => {
-    const req = request('/dashboard', { headers: { 'next-action': 'action-id' } })
+    const req = request('/dashboard', {
+      method: 'POST',
+      headers: { 'next-action': 'action-id' },
+    })
 
     const response = await proxy(req)
 
@@ -47,6 +50,7 @@ describe('proxy', () => {
     '/discover/matches',
     '/careers',
     '/careers/software-developers',
+    '/auth',
     '/auth/login',
   ])('treats %s as public for the guest-accessible funnel', async (pathname) => {
     const response = await proxy(request(pathname))
