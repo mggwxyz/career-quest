@@ -1,16 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const getUserIdMock = vi.fn()
-const getOccupationByCodeMock = vi.fn()
-const resolveSlugMock = vi.fn()
-const getCareerDetailMock = vi.fn()
-const getSlugsByOnetCodesMock = vi.fn()
-const redirectMock = vi.fn((url: string) => {
-  throw new Error(`NEXT_REDIRECT:${url}`)
-})
-const notFoundMock = vi.fn(() => {
-  throw new Error('NEXT_NOT_FOUND')
-})
+const {
+  getUserIdMock,
+  getOccupationByCodeMock,
+  resolveSlugMock,
+  getCareerDetailMock,
+  getSlugsByOnetCodesMock,
+  redirectMock,
+  notFoundMock,
+} = vi.hoisted(() => ({
+  getUserIdMock: vi.fn(),
+  getOccupationByCodeMock: vi.fn(),
+  resolveSlugMock: vi.fn(),
+  getCareerDetailMock: vi.fn(),
+  getSlugsByOnetCodesMock: vi.fn(),
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`)
+  }),
+  notFoundMock: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND')
+  }),
+}))
 
 vi.mock('next/navigation', () => ({
   redirect: redirectMock,
