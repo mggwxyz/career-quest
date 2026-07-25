@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { OccupationRow } from '@/lib/onet/occupations'
 
 const {
   getUserIdMock,
@@ -80,7 +81,7 @@ const occupation = {
   salaryAnnualMedian: 85000,
   salaryHourlyMedian: null,
   outlookCategory: null,
-}
+} satisfies OccupationRow
 
 describe('CareerDetailPage routing', () => {
   beforeEach(() => {
