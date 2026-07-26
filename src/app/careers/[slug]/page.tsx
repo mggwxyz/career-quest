@@ -20,14 +20,14 @@ export default async function CareerDetailPage({
 }) {
   const { slug } = await params
 
-  const identity = await getUserId()
-
   // Legacy O*NET-code URLs → 301 to canonical slug
   if (ONET_CODE_RE.test(slug)) {
     const byCode = await getOccupationByCode(slug)
     if (byCode) redirect(`/careers/${byCode.slug}`)
     notFound()
   }
+
+  const identity = await getUserId()
 
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()
