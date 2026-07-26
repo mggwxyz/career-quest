@@ -35,7 +35,7 @@ test.describe('Career detail page', () => {
   test('redirects O*NET code URL to canonical slug', async ({ authenticatedPage: page }) => {
     const response = await page.goto(`/careers/${SAMPLE_CODE}`)
     expect(response?.status()).toBe(200)
-    expect(page.url()).toContain(`/careers/${SAMPLE_SLUG}`)
+    await expect(page).toHaveURL(new RegExp(`/careers/${SAMPLE_SLUG}$`))
   })
 
   test('shows 404 for an unknown slug', async ({ authenticatedPage: page }) => {
