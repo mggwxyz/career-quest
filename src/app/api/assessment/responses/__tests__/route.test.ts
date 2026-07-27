@@ -35,6 +35,7 @@ describe('GET /api/assessment/responses', () => {
       isNotNull(assessmentSessions.completedAt),
     ))
     expect(sessionSelectChain.orderBy).toHaveBeenCalledWith(desc(assessmentSessions.completedAt))
+    expect(sessionSelectChain.limit).toHaveBeenCalledWith(1)
   })
 
   it('returns only answered known-item responses for the latest completed session', async () => {
@@ -100,6 +101,7 @@ describe('GET /api/assessment/responses', () => {
     })
     expect(responsesSelectChain.where).toHaveBeenCalledWith(eq(assessmentResponses.sessionId, 'sess-completed'))
     expect(responsesSelectChain.orderBy).toHaveBeenCalledWith(assessmentResponses.position)
+    expect(sessionSelectChain.limit).toHaveBeenCalledWith(1)
     expect(body.responses[0].item.option1).not.toHaveProperty('prompt')
     expect(body.responses[0].item.option1).not.toHaveProperty('loadings')
     expect(body.responses[0].item.option1).not.toHaveProperty('desirability')
