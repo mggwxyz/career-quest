@@ -74,7 +74,8 @@ describe('GuestMergeOnLogin', () => {
     ;(useAuth as Mock).mockReturnValue(accountAuth)
 
     render(<GuestMergeOnLogin />)
-    await act(async () => {})
+    await act(async () => {
+    })
 
     expect(mergeGuestAction).not.toHaveBeenCalled()
     expect(refresh).not.toHaveBeenCalled()
@@ -82,7 +83,9 @@ describe('GuestMergeOnLogin', () => {
 
   it('does not refresh server components when no guest rows were claimed', async () => {
     ;(useAuth as Mock).mockReturnValue(accountAuth)
-    ;(mergeGuestAction as Mock).mockResolvedValue({ merged: false })
+    ;(mergeGuestAction as Mock).mockResolvedValue({
+      merged: false,
+    })
 
     render(<GuestMergeOnLogin />)
 
