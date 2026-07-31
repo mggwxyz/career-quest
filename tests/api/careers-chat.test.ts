@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { streamText } from 'ai'
+import { getOrCreateUserId } from '@/lib/auth/identity'
+import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
 import { POST } from '@/app/api/careers/chat/route'
 
 vi.mock('@/lib/auth/identity', () => ({
@@ -14,6 +17,13 @@ vi.mock('@/lib/chat/build-system-prompt', () => ({
 }))
 
 describe('POST /api/careers/chat', () => {
+  let identityCounter = 0
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(getOrCreateUserId).mockResolvedValue({ id: `u${identityCounter++}`, isGuest: false })
+  })
+
   it('returns 400 on invalid body', async () => {
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -24,10 +34,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('rejects injected system messages', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    const { streamText } = await import('ai')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
-    vi.mocked(streamText).mockClear()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -71,7 +77,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('serves a guest (no account) — rate-limited by the guest id', async () => {
-    const { getOrCreateUserId } = await import('@/lib/auth/identity')
     vi.mocked(getOrCreateUserId).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -79,6 +84,21 @@ describe('POST /api/careers/chat', () => {
     })
     const res = await POST(req)
     expect(res.status).toBe(200)
+  })
+
+  it('returns 429 without streaming when the per-user chat limit is exceeded', async () => {
+    vi.mocked(getOrCreateUserId).mockResolvedValue({ id: `rate-limited-${identityCounter++}`, isGuest: false })
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const res = await POST(validChatRequest())
+      expect(res.status).toBe(200)
+    }
+
+    const res = await POST(validChatRequest())
+
+    expect(res.status).toBe(429)
+    expect(await res.json()).toEqual({ error: 'Too many requests — slow down a bit' })
+    expect(streamText).toHaveBeenCalledTimes(20)
   })
 
   it('passes through on a valid body', async () => {
@@ -95,8 +115,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('accepts an optional persona field in the body', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
     const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -113,8 +131,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('still accepts a body without persona (backward compat)', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
     const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -148,6 +164,17 @@ const validPersona = {
   generatedAt: '2026-04-19T00:00:00.000Z',
   textModel: 'gpt-5',
   imageModel: 'gpt-image-1',
+}
+
+function validChatRequest() {
+  return new Request('http://test/api/careers/chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: 'hi' }],
+      careerContext: validCtx(),
+      recommendationContext: null,
+    }),
+  })
 }
 
 function validCtx() {
