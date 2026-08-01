@@ -147,6 +147,8 @@ describe('POST /api/assessment/response', () => {
       responseMs: 2500,
     })
     expect(responseUpdate.where).toHaveBeenCalledWith(eq(assessmentResponses.id, 'response-1'))
+    expect(responseUpdate.where.mock.invocationCallOrder[0])
+      .toBeLessThan(allResponsesSelect.orderBy.mock.invocationCallOrder[0])
     expect(sessionUpdate.set).toHaveBeenCalledWith({ posterior: body.posteriorSnapshot })
     expect(sessionUpdate.where).toHaveBeenCalledWith(eq(assessmentSessions.id, 'sess-1'))
     expect(nextInsert.values).toHaveBeenCalledWith({
