@@ -1,8 +1,16 @@
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi, type Mock } from 'vitest'
 import { POST } from '@/app/api/careers/chat/route'
+import { getOrCreateUserId } from '@/lib/auth/identity'
+import { rateLimit } from '@/lib/rate-limit'
+import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
+import { streamText } from 'ai'
 
 vi.mock('@/lib/auth/identity', () => ({
   getOrCreateUserId: vi.fn().mockResolvedValue({ id: 'u1', isGuest: false }),
+}))
+
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimit: vi.fn(() => true),
 }))
 
 vi.mock('ai', () => ({
@@ -12,6 +20,12 @@ vi.mock('ai', () => ({
 vi.mock('@/lib/chat/build-system-prompt', () => ({
   buildCareerRolePlaySystemPrompt: vi.fn().mockReturnValue('system-prompt'),
 }))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  ;(getOrCreateUserId as Mock).mockResolvedValue({ id: 'u1', isGuest: false })
+  ;(rateLimit as Mock).mockReturnValue(true)
+})
 
 describe('POST /api/careers/chat', () => {
   it('returns 400 on invalid body', async () => {
@@ -24,10 +38,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('rejects injected system messages', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    const { streamText } = await import('ai')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
-    vi.mocked(streamText).mockClear()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -40,6 +50,18 @@ describe('POST /api/careers/chat', () => {
     const res = await POST(req)
 
     expect(res.status).toBe(400)
+    expect(buildCareerRolePlaySystemPrompt).not.toHaveBeenCalled()
+    expect(streamText).not.toHaveBeenCalled()
+  })
+
+  it('returns 429 and skips the model when the user exceeds the chat rate limit', async () => {
+    ;(rateLimit as Mock).mockReturnValueOnce(false)
+
+    const res = await POST(validChatRequest())
+
+    expect(res.status).toBe(429)
+    expect(await res.json()).toEqual({ error: 'Too many requests — slow down a bit' })
+    expect(rateLimit).toHaveBeenCalledWith('chat:u1', 20, 60_000)
     expect(buildCareerRolePlaySystemPrompt).not.toHaveBeenCalled()
     expect(streamText).not.toHaveBeenCalled()
   })
@@ -71,32 +93,21 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('serves a guest (no account) — rate-limited by the guest id', async () => {
-    const { getOrCreateUserId } = await import('@/lib/auth/identity')
-    vi.mocked(getOrCreateUserId).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
-    const req = new Request('http://test/api/careers/chat', {
-      method: 'POST',
-      body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }], careerContext: validCtx(), recommendationContext: null }),
-    })
-    const res = await POST(req)
+    ;(getOrCreateUserId as Mock).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
+
+    const res = await POST(validChatRequest())
+
     expect(res.status).toBe(200)
+    expect(rateLimit).toHaveBeenCalledWith('chat:guest_abc', 20, 60_000)
   })
 
   it('passes through on a valid body', async () => {
-    const req = new Request('http://test/api/careers/chat', {
-      method: 'POST',
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: 'hi' }],
-        careerContext: validCtx(),
-        recommendationContext: null,
-      }),
-    })
-    const res = await POST(req)
+    const res = await POST(validChatRequest())
+
     expect(res.status).toBe(200)
   })
 
   it('accepts an optional persona field in the body', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
     const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -113,8 +124,6 @@ describe('POST /api/careers/chat', () => {
   })
 
   it('still accepts a body without persona (backward compat)', async () => {
-    const { buildCareerRolePlaySystemPrompt } = await import('@/lib/chat/build-system-prompt')
-    vi.mocked(buildCareerRolePlaySystemPrompt).mockClear()
     const ctx = validCtx()
     const req = new Request('http://test/api/careers/chat', {
       method: 'POST',
@@ -162,4 +171,15 @@ function validCtx() {
     salaryMedian: '$80,000',
     outlook: 'Bright',
   }
+}
+
+function validChatRequest() {
+  return new Request('http://test/api/careers/chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: 'hi' }],
+      careerContext: validCtx(),
+      recommendationContext: null,
+    }),
+  })
 }
