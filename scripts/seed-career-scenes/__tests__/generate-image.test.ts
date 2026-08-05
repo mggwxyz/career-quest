@@ -52,8 +52,9 @@ describe('generateSceneImage', () => {
     const pngPath = resolve(process.cwd(), 'public/careers/scenes/29-1141.00.png')
     const webpPath = resolve(process.cwd(), 'public/careers/scenes/29-1141.00.webp')
 
+    expect(IMAGE_MODEL).toBe('gpt-image-2')
     expect(mocks.imagesGenerate).toHaveBeenCalledWith({
-      model: IMAGE_MODEL,
+      model: 'gpt-image-2',
       prompt: expect.stringContaining('A nurse checks a patient monitor beside a hospital bed.'),
       size: '1536x1024',
       quality: 'medium',
@@ -72,6 +73,12 @@ describe('generateSceneImage', () => {
       webpPath,
     ])
     expect(mocks.unlink).toHaveBeenCalledWith(pngPath)
+    expect(mocks.writeFile.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.spawn.mock.invocationCallOrder[0],
+    )
+    expect(mocks.spawn.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.unlink.mock.invocationCallOrder[0],
+    )
     expect(result).toEqual({
       imagePrompt: expect.stringContaining('No text'),
       imagePath: '/careers/scenes/29-1141.00.webp',
@@ -89,6 +96,12 @@ describe('generateSceneImage', () => {
 
     expect(mocks.unlink).toHaveBeenCalledWith(
       resolve(process.cwd(), 'public/careers/scenes/47-2152.00.png'),
+    )
+    expect(mocks.writeFile.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.spawn.mock.invocationCallOrder[0],
+    )
+    expect(mocks.spawn.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.unlink.mock.invocationCallOrder[0],
     )
   })
 })
