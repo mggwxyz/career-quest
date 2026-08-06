@@ -23,8 +23,10 @@ interface SearchParams {
 }
 
 function parsePageParam(value: string | undefined) {
-  const page = Number(value ?? 1)
-  return Number.isInteger(page) && page >= 1 ? page : 1
+  const raw = value ?? '1'
+  if (!/^\d+$/.test(raw)) return 1
+  const page = Number(raw)
+  return Number.isSafeInteger(page) && page >= 1 ? page : 1
 }
 
 export default async function ExplorePage({

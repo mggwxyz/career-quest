@@ -81,6 +81,16 @@ describe('ExplorePage', () => {
     }))
   })
 
+  it.each(['1e2', '0x10'])('normalizes non-decimal page query "%s" to the first page', async (page) => {
+    await ExplorePage({
+      searchParams: Promise.resolve({ page }),
+    })
+
+    expect(searchOccupationsMock).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1,
+    }))
+  })
+
   it('uses an empty O*NET allowlist for matches-only browsing without an identity', async () => {
     await ExplorePage({
       searchParams: Promise.resolve({ matches: '1' }),
