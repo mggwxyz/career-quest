@@ -71,6 +71,16 @@ describe('ExplorePage', () => {
     }))
   })
 
+  it('normalizes a partially numeric page query to the first page before searching', async () => {
+    await ExplorePage({
+      searchParams: Promise.resolve({ page: '2abc' }),
+    })
+
+    expect(searchOccupationsMock).toHaveBeenCalledWith(expect.objectContaining({
+      page: 1,
+    }))
+  })
+
   it('uses an empty O*NET allowlist for matches-only browsing without an identity', async () => {
     await ExplorePage({
       searchParams: Promise.resolve({ matches: '1' }),

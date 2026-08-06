@@ -22,6 +22,11 @@ interface SearchParams {
   page?: string
 }
 
+function parsePageParam(value: string | undefined) {
+  const page = Number(value ?? 1)
+  return Number.isInteger(page) && page >= 1 ? page : 1
+}
+
 export default async function ExplorePage({
   searchParams,
 }: {
@@ -32,7 +37,6 @@ export default async function ExplorePage({
   const params = await searchParams
   const chatReady = params.chat === '1'
   const matchesOnly = params.matches === '1'
-  const requestedPage = parseInt(params.page ?? '1', 10)
   const filters = {
     q: params.q,
     riasec: params.riasec?.split(',').filter(Boolean) ?? [],
@@ -41,7 +45,7 @@ export default async function ExplorePage({
     bright: params.bright === '1',
     chatReady,
     matchesOnly,
-    page: Number.isNaN(requestedPage) ? 1 : requestedPage,
+    page: parsePageParam(params.page),
   }
 
   let matchesOnetIds: string[] | undefined
