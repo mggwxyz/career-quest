@@ -32,6 +32,7 @@ export default async function ExplorePage({
   const params = await searchParams
   const chatReady = params.chat === '1'
   const matchesOnly = params.matches === '1'
+  const requestedPage = parseInt(params.page ?? '1', 10)
   const filters = {
     q: params.q,
     riasec: params.riasec?.split(',').filter(Boolean) ?? [],
@@ -40,7 +41,7 @@ export default async function ExplorePage({
     bright: params.bright === '1',
     chatReady,
     matchesOnly,
-    page: parseInt(params.page ?? '1', 10),
+    page: Number.isNaN(requestedPage) ? 1 : requestedPage,
   }
 
   let matchesOnetIds: string[] | undefined
