@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
+import { proxy } from '@/proxy'
 
 const { authMiddleware, authResponse, innerMiddleware } = vi.hoisted(() => {
   const authResponse = new Response('auth required')
@@ -13,8 +14,6 @@ vi.mock('@/lib/auth/server', () => ({
     middleware: authMiddleware,
   },
 }))
-
-import { proxy } from '@/proxy'
 
 function request(pathname: string, init?: RequestInit) {
   return new NextRequest(new URL(pathname, 'https://career-quest.test'), init)
