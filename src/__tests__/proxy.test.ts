@@ -21,11 +21,19 @@ function request(pathname: string, init?: RequestInit) {
 
 describe('proxy', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    innerMiddleware.mockClear()
+  })
+
+  it('configures auth middleware to redirect protected visitors to the login route', () => {
+    expect(authMiddleware).toHaveBeenCalledTimes(1)
+    expect(authMiddleware).toHaveBeenCalledWith({ loginUrl: '/auth/login' })
   })
 
   it('bypasses auth for Server Actions before checking the pathname', async () => {
-    const response = await proxy(request('/dashboard', { headers: { 'next-action': 'abc123' } }))
+    const response = await proxy(request('/dashboard', {
+      method: 'POST',
+      headers: { 'next-action': 'abc123' },
+    }))
 
     expect(response.headers.get('x-middleware-next')).toBe('1')
     expect(innerMiddleware).not.toHaveBeenCalled()
