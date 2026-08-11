@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { desc, eq } from 'drizzle-orm'
 import type { AssessmentResult } from '@/lib/assessment'
+import { recommendationRuns } from '@/db/schema'
 
 const mocks = vi.hoisted(() => ({
   createOpenAI: vi.fn(() => ({
@@ -134,12 +136,16 @@ describe('generateCareerRecommendationsAction', () => {
     const now = new Date('2026-08-11T10:00:00.000Z')
     vi.useFakeTimers()
     vi.setSystemTime(now)
-    mocks.dbSelect.mockReturnValueOnce(limitSelect([
+    const rateLimitSelect = limitSelect([
       { createdAt: new Date(now.getTime() - 30_000) },
-    ]))
+    ])
+    mocks.dbSelect.mockReturnValueOnce(rateLimitSelect)
 
     const result = await generateCareerRecommendationsAction()
 
+    expect(rateLimitSelect.where).toHaveBeenCalledWith(eq(recommendationRuns.userId, 'user-1'))
+    expect(rateLimitSelect.orderBy).toHaveBeenCalledWith(desc(recommendationRuns.createdAt))
+    expect(rateLimitSelect.limit).toHaveBeenCalledWith(1)
     expect(result).toEqual({
       error: 'Recommendations were just generated — try again in a minute',
       success: false,
