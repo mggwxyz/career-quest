@@ -1,4 +1,4 @@
-import type { AnchorHTMLAttributes, ImgHTMLAttributes, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ReactNode } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ProfilePage from '../page'
@@ -23,7 +23,7 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: (props: ImgHTMLAttributes<HTMLImageElement>) => <img {...props} />,
+  default: () => null,
 }))
 
 vi.mock('next/navigation', () => ({
@@ -38,7 +38,7 @@ vi.mock('@/store/appStore', () => ({
 beforeEach(() => {
   mocks.routerPush.mockReset()
   mocks.reset.mockReset()
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => undefined)
 })
 
 afterEach(() => {
