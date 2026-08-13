@@ -19,11 +19,23 @@ type RenderableStatement = {
   }
 }
 
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T/
+
+function normalizeParam(param: unknown) {
+  if (param instanceof Date) {
+    return '[date]'
+  }
+  if (typeof param === 'string' && ISO_TIMESTAMP.test(param)) {
+    return '[date]'
+  }
+  return param
+}
+
 function render(statement: unknown) {
   const { sql, params } = (statement as RenderableStatement).toSQL()
   return {
     sql,
-    params: params.map(param => param instanceof Date ? '[date]' : param),
+    params: params.map(normalizeParam),
   }
 }
 
