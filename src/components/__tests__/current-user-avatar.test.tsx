@@ -46,14 +46,25 @@ describe('CurrentUserAvatar', () => {
   })
 
   it('shows a busy loading avatar without fallback initials', () => {
-    mockAuth({ loading: true })
+    mockAuth({
+      user: {
+        id: 'user_1',
+        email: 'ada@example.com',
+        name: 'Ada Lovelace',
+        isAnonymous: false,
+      },
+      loading: true,
+      isLoggedIn: true,
+      isAnonymous: false,
+    })
 
     render(<CurrentUserAvatar />)
 
     const avatar = screen.getByRole('img', { name: 'Loading profile' })
     expect(avatar).toHaveAttribute('aria-busy', 'true')
-    expect(avatar).toHaveTextContent('')
+    expect(avatar).toBeEmptyDOMElement()
     expect(screen.queryByText('?')).not.toBeInTheDocument()
+    expect(screen.queryByText('AL')).not.toBeInTheDocument()
   })
 
   it('falls back to an anonymous user label and question mark for blank names', () => {
