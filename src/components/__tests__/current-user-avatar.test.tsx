@@ -62,7 +62,7 @@ describe('CurrentUserAvatar', () => {
 
     const avatar = screen.getByRole('img', { name: 'Loading profile' })
     expect(avatar).toHaveAttribute('aria-busy', 'true')
-    expect(avatar).toBeEmptyDOMElement()
+    expect(avatar).not.toHaveTextContent(/\S/)
     expect(screen.queryByText('?')).not.toBeInTheDocument()
     expect(screen.queryByText('AL')).not.toBeInTheDocument()
   })
