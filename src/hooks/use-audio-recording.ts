@@ -58,11 +58,12 @@ export function useAudioRecording({
 
   const toggleListening = async () => {
     if (!isListening) {
+      let stream: MediaStream | null = null
       try {
         setIsListening(true)
         setIsRecording(true)
         // Get audio stream first
-        const stream = await navigator.mediaDevices.getUserMedia({
+        stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
         })
         setAudioStream(stream)
@@ -74,8 +75,9 @@ export function useAudioRecording({
         console.error('Error recording audio:', error)
         setIsListening(false)
         setIsRecording(false)
-        if (audioStream) {
-          audioStream.getTracks().forEach(track => track.stop())
+        const streamToStop = stream ?? audioStream
+        if (streamToStop) {
+          streamToStop.getTracks().forEach(track => track.stop())
           setAudioStream(null)
         }
       }
