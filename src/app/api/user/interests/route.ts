@@ -38,12 +38,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { id: userId } = await getOrCreateUserId()
-  const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
+  let body: unknown
+  try {
+    body = await request.json()
+  }
+  catch {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  }
+
+  const parsed = BodySchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
   const interests = normalize(parsed.data.interests)
+  const { id: userId } = await getOrCreateUserId()
 
   // The neon-http driver is stateless and has no interactive transaction
   // support (`db.transaction(...)` throws "No transactions support in
