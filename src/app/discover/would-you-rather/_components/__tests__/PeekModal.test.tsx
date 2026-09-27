@@ -17,4 +17,13 @@ describe('PeekModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /Keep going|Close/i }))
     expect(fn).toHaveBeenCalled()
   })
+
+  it('calls onClose when Escape is pressed', () => {
+    const fn = vi.fn()
+    render(<PeekModal posterior={initialPosterior({})} onClose={fn} />)
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(fn).toHaveBeenCalledTimes(1)
+  })
 })
