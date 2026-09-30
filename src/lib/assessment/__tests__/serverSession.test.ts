@@ -11,7 +11,7 @@ vi.mock('@/db', () => ({
 }))
 
 import { items } from '@/app/_data/items'
-import { initialPosterior } from '@/lib/assessment'
+import { finalize, initialPosterior } from '@/lib/assessment'
 import { loadActiveSession, rebuildSessionFromLog } from '../serverSession'
 import { db } from '@/db'
 
@@ -31,7 +31,7 @@ describe('rebuildSessionFromLog', () => {
       rebuildSessionFromLog({
         gradeBand: undefined,
         responses: [
-          { itemId: 'this-item-does-not-exist', choice: 1, responseMs: 1200 },
+          { itemId: 'this-item-does-not-exist', choice: 1, responseMs: 1200, respondedAt: new Date() },
         ],
       }),
     ).not.toThrow()
@@ -39,7 +39,7 @@ describe('rebuildSessionFromLog', () => {
     const { session, lastAdvance } = rebuildSessionFromLog({
       gradeBand: undefined,
       responses: [
-        { itemId: 'this-item-does-not-exist', choice: 1, responseMs: null },
+        { itemId: 'this-item-does-not-exist', choice: 1, responseMs: null, respondedAt: new Date() },
       ],
     })
     // Unknown item was dropped — equivalent to an empty log.
@@ -47,16 +47,32 @@ describe('rebuildSessionFromLog', () => {
     expect(session.responses).toHaveLength(0)
   })
 
-  it('skips responses with choice: null (shown-but-unanswered)', () => {
+  it('ignores shown-but-unanswered rows without a response timestamp', () => {
     const firstItem = items[0]
     const { session, lastAdvance } = rebuildSessionFromLog({
       gradeBand: undefined,
       responses: [
-        { itemId: firstItem.id, choice: null, responseMs: null },
+        { itemId: firstItem.id, choice: null, responseMs: null, respondedAt: null },
       ],
     })
     expect(lastAdvance).toBeNull()
     expect(session.responses).toHaveLength(0)
+  })
+
+  it('replays submitted skips and retains them in completion metadata', () => {
+    const firstItem = items[0]
+    const { session, lastAdvance } = rebuildSessionFromLog({
+      gradeBand: undefined,
+      responses: [
+        { itemId: firstItem.id, choice: null, responseMs: 500, respondedAt: new Date() },
+        { itemId: items[1].id, choice: null, responseMs: null, respondedAt: null },
+      ],
+    })
+    expect(session.responses).toHaveLength(1)
+    expect(session.seenItemIds.has(firstItem.id)).toBe(true)
+    expect(lastAdvance?.kind).toBe('next')
+    if (lastAdvance?.kind === 'next') expect(lastAdvance.nextItem.id).not.toBe(firstItem.id)
+    expect(finalize(session).meta).toMatchObject({ itemsAnswered: 0, itemsSkipped: 1 })
   })
 
   it('replays three valid responses and updates the session', () => {
@@ -65,6 +81,7 @@ describe('rebuildSessionFromLog', () => {
       itemId: it.id,
       choice: (i % 2 === 0 ? 1 : 2) as 1 | 2,
       responseMs: 1000 + i,
+      respondedAt: new Date(),
     }))
 
     const { session, lastAdvance } = rebuildSessionFromLog({

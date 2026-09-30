@@ -24,23 +24,68 @@ test.describe('Adaptive Assessment Flow', () => {
     await expect(page.locator('button:has(figure) h2').first()).not.toHaveText(firstText, { timeout: 5000 })
   })
 
-  test('skip does not record an answer', async ({ authenticatedPage: page }) => {
-    await page.goto('/discover/would-you-rather')
-    await page.getByRole('button', { name: /Let's go/i }).click()
+  for (const answersBeforeSkip of [0, 1]) {
+    test(`consecutive skips advance and resume after ${answersBeforeSkip} answers`, async ({ authenticatedPage: page, dbUtils }, testInfo) => {
+      await page.goto('/discover/would-you-rather')
+      const started = page.waitForResponse(r => r.url().endsWith('/api/assessment/session') && r.request().method() === 'POST')
+      await page.getByRole('button', { name: /Let's go/i }).click()
+      const startResponse = await started
+      expect(startResponse.ok()).toBe(true)
+      const start = await startResponse.json()
+      let currentItem = start.item
+      const seen = new Set<string>()
+      const meter = page.getByRole('progressbar')
+      const card = page.locator('button:has(figure):visible').first()
+      const captureQuestion = async (name: string) => {
+        await expect(card.locator('xpath=../../..')).toHaveCSS('opacity', '1')
+        await expect.poll(() => page.locator('button:has(figure):visible img').evaluateAll(images =>
+          images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0),
+        )).toBe(true)
+        await page.screenshot({ path: testInfo.outputPath(name), fullPage: true })
+      }
+      await expect(card.locator('h2')).toHaveText(currentItem.option1.text)
+      await captureQuestion('first-question.png')
 
-    const meter = page.getByRole('progressbar')
+      for (const choice of [...Array<number>(answersBeforeSkip).fill(1), null, null]) {
+        seen.add(currentItem.id)
+        const responded = page.waitForResponse(r => r.url().endsWith('/api/assessment/response') && r.request().method() === 'POST')
+        if (choice === null) await page.getByRole('button', { name: /Skip/i }).click()
+        else await card.click()
+        const response = await responded
+        expect(response.ok()).toBe(true)
+        const body = await response.json()
+        expect(body.kind).toBe('next')
+        expect(seen.has(body.item.id)).toBe(false)
+        expect(body.itemsAnswered).toBe(choice === null ? answersBeforeSkip : 1)
+        currentItem = body.item
+        await expect(card.locator('h2')).toHaveText(currentItem.option1.text)
+        await expect(meter).toHaveAttribute('aria-valuenow', String(choice === null ? answersBeforeSkip : 1))
+        await captureQuestion(`question-${seen.size + 1}.png`)
+      }
 
-    // Answer one item so the itemsAnswered counter advances to 1.
-    await page.locator('button:has(figure)').nth(2)
-      .click()
-    await expect(meter).toHaveAttribute('aria-valuenow', '1', { timeout: 3000 })
+      const resumed = page.waitForResponse(r => r.url().endsWith('/api/assessment/session') && r.request().method() === 'GET')
+      await page.reload()
+      const resumeResponse = await resumed
+      expect(resumeResponse.ok()).toBe(true)
+      const { active } = await resumeResponse.json()
+      expect(active.item.id).toBe(currentItem.id)
+      expect(active.itemsAnswered).toBe(answersBeforeSkip)
+      await expect(card.locator('h2')).toHaveText(currentItem.option1.text)
+      await expect(meter).toHaveAttribute('aria-valuenow', String(answersBeforeSkip))
+      await captureQuestion('resumed-question.png')
 
-    // Skipping the current item must NOT increment itemsAnswered.
-    await page.getByRole('button', { name: /Skip/i }).click()
-    // Give the skip request time to round-trip before asserting.
-    await page.waitForTimeout(500)
-    await expect(meter).toHaveAttribute('aria-valuenow', '1')
-  })
+      const rows = await dbUtils.sql`SELECT item_id, choice, responded_at FROM assessment_responses WHERE session_id = ${start.sessionId} ORDER BY position`
+      expect(rows.filter(r => r.responded_at !== null && r.choice === null)).toHaveLength(2)
+      expect(rows.filter(r => r.responded_at === null)).toHaveLength(1)
+      const skippedId = rows.find(r => r.responded_at !== null && r.choice === null)!.item_id
+      const stale = await page.request.post('/api/assessment/response', {
+        data: { sessionId: start.sessionId, itemId: skippedId, choice: 1 },
+      })
+      expect(stale.status()).toBe(409)
+      const [stillSkipped] = await dbUtils.sql`SELECT choice FROM assessment_responses WHERE session_id = ${start.sessionId} AND item_id = ${skippedId}`
+      expect(stillSkipped.choice).toBeNull()
+    })
+  }
 
   test('peek button appears after 13 answers', async ({ authenticatedPage: page }) => {
     await page.goto('/discover/would-you-rather')
