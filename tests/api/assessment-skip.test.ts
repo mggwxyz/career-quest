@@ -30,6 +30,7 @@ function setupSession() {
   const session = {
     id: 'skip-session', userId: 'u1', gradeBand: null,
     posterior: initialPosterior(), completedAt: null as Date | null,
+    abandonedAt: null as Date | null,
     result: null as unknown,
   }
   const first = chooseFirstItem(items, startSession({ bank: items }))
@@ -41,15 +42,17 @@ function setupSession() {
   let loseUpdate = false
   let beforeNextInsert: (() => Promise<void>) | null = null
   let afterRecord: (() => Promise<void>) | null = null
+  let abandonBeforeCompletion = false
   const shownWhere = vi.fn()
   const responseUpdateWhere = vi.fn()
+  const sessionUpdateWhere = vi.fn()
 
   vi.mocked(getOrCreateUserId).mockResolvedValue({ id: 'u1', isGuest: false })
   vi.mocked(db.select).mockImplementation(() => ({
     from: (table: unknown) => {
       if (table === assessmentSessions) {
         return { where: () => ({
-          limit: async () => session.completedAt ? [] : [session],
+          limit: async () => session.completedAt || session.abandonedAt ? [] : [session],
           orderBy: () => ({ limit: async () => session.completedAt ? [session] : [] }),
         }) }
       }
@@ -68,8 +71,13 @@ function setupSession() {
     set: (values: object) => ({
       where: (predicate: unknown) => {
         if (table === assessmentSessions) {
+          sessionUpdateWhere(predicate)
+          if ('completedAt' in values && abandonBeforeCompletion) {
+            session.abandonedAt = new Date()
+            return { returning: async () => [] }
+          }
           Object.assign(session, values)
-          return Promise.resolve()
+          return Object.assign(Promise.resolve(), { returning: async () => [{ id: session.id }] })
         }
         responseUpdateWhere(predicate)
         const row = rows.find(r => r.itemId === requestedItemId && r.respondedAt === null)
@@ -110,7 +118,10 @@ function setupSession() {
       body: JSON.stringify({ sessionId: session.id, itemId, choice, responseMs: 1234 }),
     }))
   }
-  return { session, first, rows, submit, shownWhere, responseUpdateWhere,
+  return { session, first, rows, submit, shownWhere, responseUpdateWhere, sessionUpdateWhere,
+    abandonBeforeCompletion: () => {
+      abandonBeforeCompletion = true
+    },
     beforeInsert: (hook: () => Promise<void>) => {
       beforeNextInsert = hook
     },
@@ -229,7 +240,7 @@ describe('assessment skip persistence and replay', () => {
     expect(state.rows[0].respondedAt).toBeNull()
   })
 
-  it('retains skipped counts at the existing engine cap and on stopped resume', async () => {
+  it.each([false, true])('retains capped skip history and handles concurrent abandonment=%s on resume', async (abandon) => {
     const state = setupSession()
     let currentId = state.first.id
     const seen = new Set<string>()
@@ -267,6 +278,19 @@ describe('assessment skip persistence and replay', () => {
     // stopped, and resume must finalize it so /result returns this session.
     state.session.completedAt = null
     state.session.result = null
+    if (abandon) {
+      state.abandonBeforeCompletion()
+      expect(await (await GET()).json()).toEqual({ active: null })
+      expect(state.sessionUpdateWhere).toHaveBeenLastCalledWith(and(
+        eq(assessmentSessions.id, state.session.id),
+        isNull(assessmentSessions.abandonedAt),
+      ))
+      expect(state.session.abandonedAt).toEqual(expect.any(Date))
+      expect(state.session.completedAt).toBeNull()
+      expect(state.session.result).toBeNull()
+      expect(await (await getResult()).json()).toEqual({ result: null })
+      return
+    }
     expect(await (await GET()).json()).toMatchObject({ active: { item: null, stopped: true, itemsAnswered: 0 } })
     expect(state.session.completedAt).toEqual(expect.any(Date))
     expect(state.session.result).toMatchObject({ meta: { itemsAnswered: 0, itemsSkipped: 30 } })
