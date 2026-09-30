@@ -9,6 +9,7 @@ import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { getOrCreateUserId } from '@/lib/auth/identity'
 import { POST } from '@/app/api/assessment/response/route'
 import { GET } from '@/app/api/assessment/session/route'
+import { GET as getResult } from '@/app/api/assessment/result/route'
 import { GET as getHistory } from '@/app/api/assessment/responses/route'
 import { items } from '@/app/_data/items'
 import { chooseFirstItem, initialPosterior, startSession, type ResponseChoice } from '@/lib/assessment'
@@ -47,7 +48,10 @@ function setupSession() {
   vi.mocked(db.select).mockImplementation(() => ({
     from: (table: unknown) => {
       if (table === assessmentSessions) {
-        return { where: () => ({ limit: async () => session.completedAt ? [] : [session] }) }
+        return { where: () => ({
+          limit: async () => session.completedAt ? [] : [session],
+          orderBy: () => ({ limit: async () => session.completedAt ? [session] : [] }),
+        }) }
       }
       return {
         where: (predicate: unknown) => ({
@@ -266,5 +270,9 @@ describe('assessment skip persistence and replay', () => {
     expect(await (await GET()).json()).toMatchObject({ active: { item: null, stopped: true, itemsAnswered: 0 } })
     expect(state.session.completedAt).toEqual(expect.any(Date))
     expect(state.session.result).toMatchObject({ meta: { itemsAnswered: 0, itemsSkipped: 30 } })
+    const currentResult = await getResult()
+    expect(currentResult.status).toBe(200)
+    expect(await currentResult.json()).toMatchObject({ result: { meta: { itemsAnswered: 0, itemsSkipped: 30 } } })
+    expect(await (await GET()).json()).toEqual({ active: null })
   })
 })
