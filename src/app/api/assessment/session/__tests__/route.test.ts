@@ -15,6 +15,7 @@ import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { assessmentSessions } from '@/db/schema'
 import { items } from '@/app/_data/items'
+import { rebuildSessionFromLog } from '@/lib/assessment/serverSession'
 
 describe('POST /api/assessment/session', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -87,6 +88,33 @@ describe('POST /api/assessment/session', () => {
 
 describe('GET /api/assessment/session', () => {
   beforeEach(() => vi.clearAllMocks())
+
+  function mockActiveSessionResponses(responses: Array<{
+    itemId: string
+    position: number
+    choice: 1 | 2 | null
+    responseMs: number | null
+    respondedAt: Date | null
+  }>) {
+    const sessionSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([{
+        id: 'sess-1',
+        userId: 'u1',
+        gradeBand: 'middle',
+        posterior: {},
+      }]),
+    }
+    const responsesSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue(responses),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(sessionSelectChain)
+      .mockReturnValueOnce(responsesSelectChain)
+  }
 
   it('returns { active: null } when no active session', async () => {
     ;(getOrCreateUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'u1', isGuest: false })
@@ -224,5 +252,69 @@ describe('GET /api/assessment/session', () => {
       itemsAnswered: 0,
     })
     expect(body.active.item).toEqual(firstItem)
+  })
+
+  it('rebuilds progress from answered rows instead of trusting a stale queued item', async () => {
+    ;(getOrCreateUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'u1', isGuest: false })
+    const answered = [{ itemId: items[0].id, choice: 1 as const, responseMs: 900 }]
+    const { lastAdvance } = rebuildSessionFromLog({ gradeBand: 'middle', responses: answered })
+    expect(lastAdvance?.kind).toBe('next')
+    if (lastAdvance?.kind !== 'next') throw new Error('expected one answered row to produce a next item')
+    const staleQueuedItem = items.find(item => item.id !== lastAdvance.nextItem.id && item.id !== items[0].id)
+    if (!staleQueuedItem) throw new Error('expected fixture bank to contain a stale queued item candidate')
+    mockActiveSessionResponses([
+      {
+        itemId: items[0].id,
+        position: 1,
+        choice: 1,
+        responseMs: 900,
+        respondedAt: new Date('2026-01-01T00:00:00Z'),
+      },
+      {
+        itemId: staleQueuedItem.id,
+        position: 2,
+        choice: null,
+        responseMs: null,
+        respondedAt: null,
+      },
+    ])
+
+    const res = await GET()
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.active).toMatchObject({
+      sessionId: 'sess-1',
+      gradeBand: 'middle',
+      itemsAnswered: 1,
+    })
+    expect(body.active.item).toEqual(lastAdvance.nextItem)
+    expect(body.active.item.id).not.toBe(staleQueuedItem.id)
+  })
+
+  it('returns a stopped active session when replaying answered rows reaches the cap', async () => {
+    ;(getOrCreateUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'u1', isGuest: false })
+    const answeredRows = items.slice(0, 30).map((item, index) => ({
+      itemId: item.id,
+      position: index + 1,
+      choice: (index % 2 === 0 ? 1 : 2) as 1 | 2,
+      responseMs: 800 + index,
+      respondedAt: new Date(`2026-01-01T00:00:${String(index).padStart(2, '0')}Z`),
+    }))
+    mockActiveSessionResponses(answeredRows)
+
+    const res = await GET()
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body).toEqual({
+      active: {
+        sessionId: 'sess-1',
+        gradeBand: 'middle',
+        itemsAnswered: 30,
+        item: null,
+        stopped: true,
+      },
+    })
   })
 })
