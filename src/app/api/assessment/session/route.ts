@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { db } from '@/db'
+import { assessmentResponses } from '@/db/schema'
 import { getOrCreateUserId } from '@/lib/auth/identity'
 import {
   abandonActiveSessionsForUser, createNewSession,
@@ -40,11 +42,11 @@ export async function GET() {
       return NextResponse.json({ active: null })
     }
 
-    const answered = active.responses.filter(r => r.choice !== null && r.choice !== undefined)
-    const answeredCount = answered.length
+    const submitted = active.responses.filter(r => r.respondedAt !== null)
+    const answeredCount = submitted.filter(r => r.choice === 1 || r.choice === 2).length
 
-    if (answeredCount === 0) {
-      const unanswered = active.responses.find(r => r.choice === null || r.choice === undefined)
+    if (submitted.length === 0) {
+      const unanswered = active.responses.find(r => r.respondedAt === null)
       if (unanswered) {
         const storedItem = items.find(i => i.id === unanswered.itemId)
         if (!storedItem) {
@@ -80,7 +82,7 @@ export async function GET() {
 
     const { lastAdvance } = rebuildSessionFromLog({
       gradeBand: active.gradeBand,
-      responses: answered.map(a => ({ itemId: a.itemId, choice: a.choice, responseMs: a.responseMs })),
+      responses: active.responses,
     })
     if (lastAdvance?.kind === 'stop') {
       return NextResponse.json({
@@ -96,11 +98,22 @@ export async function GET() {
     // defense-in-depth — signals DB/engine skew when log contains only unknown item IDs
     if (!lastAdvance) {
       console.warn(
-        '[api/assessment/session] GET: rebuildSessionFromLog returned no advance despite answeredCount=%d for session %s',
-        answeredCount, active.sessionId,
+        '[api/assessment/session] GET: rebuildSessionFromLog returned no advance despite submittedCount=%d for session %s',
+        submitted.length, active.sessionId,
       )
     }
     const nextItem = lastAdvance?.kind === 'next' ? lastAdvance.nextItem : null
+    if (nextItem && !active.responses.some(r => r.respondedAt === null && r.itemId === nextItem.id)) {
+      // Old skip handling either omitted the next row or logged the skipped item
+      // again. Preserve that history and make the replayed item answerable.
+      const nextPosition = Math.max(0, ...active.responses.map(r => r.position)) + 1
+      await db.insert(assessmentResponses).values({
+        sessionId: active.sessionId,
+        itemId: nextItem.id,
+        position: nextPosition,
+      })
+        .onConflictDoNothing()
+    }
     return NextResponse.json({
       active: {
         sessionId: active.sessionId,
