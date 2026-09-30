@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
@@ -91,12 +91,19 @@ export async function GET() {
       // last response). Persist completion here so /api/assessment/result
       // returns this session's result instead of a stale or missing one.
       const result = finalize(engineSession)
+      // Guard on the session still being active: a concurrent POST may have
+      // abandoned it between loadActiveSession and this write, and completing
+      // an abandoned session would let it surface as the latest result.
       await db.update(assessmentSessions).set({
         completedAt: new Date(),
         result,
         inconsistency: result.meta.inconsistencyFlag,
       })
-        .where(eq(assessmentSessions.id, active.sessionId))
+        .where(and(
+          eq(assessmentSessions.id, active.sessionId),
+          isNull(assessmentSessions.completedAt),
+          isNull(assessmentSessions.abandonedAt),
+        ))
       return NextResponse.json({
         active: {
           sessionId: active.sessionId,
