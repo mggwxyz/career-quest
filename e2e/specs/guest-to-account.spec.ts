@@ -1,4 +1,6 @@
 import { test, expect } from '../fixtures/test-base'
+import { cleanupGuestData } from '../fixtures/guest-cleanup'
+import { GUEST_COOKIE } from '../../src/lib/auth/guest'
 
 // G01 — a first-time visitor with NO account can pick interests, take the
 // assessment, and browse careers with zero signup. These specs run
@@ -6,13 +8,9 @@ import { test, expect } from '../fixtures/test-base'
 test.use({ storageState: { cookies: [], origins: [] } })
 
 test.describe('Guest-to-account (G01)', () => {
-  test.afterEach(async ({ dbUtils }) => {
-    // Clean up guest rows this spec created. workers:1, so a broad guest_%
-    // delete is safe and never touches the real per-run test user's rows.
-    await dbUtils.sql`DELETE FROM assessment_responses WHERE session_id IN (SELECT id FROM assessment_sessions WHERE user_id LIKE 'guest_%')`
-    await dbUtils.sql`DELETE FROM assessment_sessions WHERE user_id LIKE 'guest_%'`
-    await dbUtils.sql`DELETE FROM user_interests WHERE user_id LIKE 'guest_%'`
-    await dbUtils.sql`DELETE FROM user_profiles WHERE user_id LIKE 'guest_%'`
+  test.afterEach(async ({ dbUtils, context }) => {
+    const guestCookie = (await context.cookies()).find(c => c.name === GUEST_COOKIE)
+    await cleanupGuestData(dbUtils.sql, guestCookie?.value)
   })
 
   test('reaches the interest picker without being bounced to login', async ({ page }) => {
@@ -28,7 +26,7 @@ test.describe('Guest-to-account (G01)', () => {
     // The first question renders — a session was created for the guest.
     await expect(page.getByRole('heading', { name: /Would you rather/i })).toBeVisible()
 
-    const guestCookie = (await context.cookies()).find(c => c.name === 'cq_guest')
+    const guestCookie = (await context.cookies()).find(c => c.name === GUEST_COOKIE)
     expect(guestCookie?.value).toBeTruthy()
     expect(guestCookie?.httpOnly).toBe(true)
   })
