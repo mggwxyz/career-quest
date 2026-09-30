@@ -259,8 +259,12 @@ describe('assessment skip persistence and replay', () => {
     expect(saved.responses).toHaveLength(30)
     expect(saved.responses.every((r: { choice: ResponseChoice }) => r.choice === null)).toBe(true)
     expect(saved.responses.map((r: { item: { id: string } }) => r.item.id)).toEqual([...seen])
-    // A session interrupted before completion was cached must still resume as stopped.
+    // A session interrupted before completion was cached must still resume as
+    // stopped, and resume must finalize it so /result returns this session.
     state.session.completedAt = null
+    state.session.result = null
     expect(await (await GET()).json()).toMatchObject({ active: { item: null, stopped: true, itemsAnswered: 0 } })
+    expect(state.session.completedAt).toEqual(expect.any(Date))
+    expect(state.session.result).toMatchObject({ meta: { itemsAnswered: 0, itemsSkipped: 30 } })
   })
 })

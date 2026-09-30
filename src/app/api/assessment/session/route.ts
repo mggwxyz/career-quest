@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/db'
-import { assessmentResponses } from '@/db/schema'
+import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { getOrCreateUserId } from '@/lib/auth/identity'
 import {
   abandonActiveSessionsForUser, createNewSession,
   loadActiveSession, rebuildSessionFromLog,
 } from '@/lib/assessment/serverSession'
 import { items } from '@/app/_data/items'
-import { chooseFirstItem, startSession } from '@/lib/assessment'
+import { chooseFirstItem, finalize, startSession } from '@/lib/assessment'
 
 const BodySchema = z.object({
   gradeBand: z.enum(['middle', 'early-hs', 'late-hs', 'college']).nullish()
@@ -80,11 +81,22 @@ export async function GET() {
       })
     }
 
-    const { lastAdvance } = rebuildSessionFromLog({
+    const { session: engineSession, lastAdvance } = rebuildSessionFromLog({
       gradeBand: active.gradeBand,
       responses: active.responses,
     })
     if (lastAdvance?.kind === 'stop') {
+      // Replay can hit the stop cap on a session that was never finalized
+      // (e.g. a legacy skip log, or a completion write that failed after the
+      // last response). Persist completion here so /api/assessment/result
+      // returns this session's result instead of a stale or missing one.
+      const result = finalize(engineSession)
+      await db.update(assessmentSessions).set({
+        completedAt: new Date(),
+        result,
+        inconsistency: result.meta.inconsistencyFlag,
+      })
+        .where(eq(assessmentSessions.id, active.sessionId))
       return NextResponse.json({
         active: {
           sessionId: active.sessionId,
