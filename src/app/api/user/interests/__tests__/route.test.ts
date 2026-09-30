@@ -111,6 +111,18 @@ describe('POST /api/user/interests', () => {
     expect(db.batch).not.toHaveBeenCalled()
   })
 
+  it('rejects malformed JSON without clearing saved interests', async () => {
+    const res = await POST(new Request('http://x/api/user/interests', {
+      method: 'POST',
+      body: 'not-json',
+    }))
+
+    expect(res.status).toBe(400)
+    expect(db.delete).not.toHaveBeenCalled()
+    expect(db.insert).not.toHaveBeenCalled()
+    expect(db.batch).not.toHaveBeenCalled()
+  })
+
   it('clears interests when given an empty list', async () => {
     const res = await POST(postReq({ interests: [] }))
 
