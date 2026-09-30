@@ -31,10 +31,13 @@ export async function getUserId(): Promise<Identity | null> {
  * Like {@link getUserId} but mints and sets a signed guest cookie when the
  * visitor has neither a session nor an existing guest id. Only call from Route
  * Handlers or Server Actions — Server Components cannot set cookies.
+ * Pass an already-resolved session (including null) to reuse an auth lookup.
  */
-export async function getOrCreateUserId(): Promise<Identity> {
-  const session = await getSession()
-  if (session?.user) return { id: session.user.id, isGuest: false }
+export async function getOrCreateUserId(
+  session?: Awaited<ReturnType<typeof getSession>>,
+): Promise<Identity> {
+  const currentSession = session === undefined ? await getSession() : session
+  if (currentSession?.user) return { id: currentSession.user.id, isGuest: false }
 
   const store = await cookies()
   const existing = parseGuestCookie(store.get(GUEST_COOKIE)?.value)

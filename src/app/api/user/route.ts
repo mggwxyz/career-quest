@@ -6,9 +6,10 @@ import { db } from '@/db'
 import { userInterests } from '@/db/schema'
 
 export async function GET() {
-  const { id: userId, isGuest } = await getOrCreateUserId()
+  const session = await getSession()
+  const { id: userId, isGuest } = await getOrCreateUserId(session)
   // Guests have no account details, only saved interests.
-  const user = isGuest ? null : (await getSession())?.user ?? null
+  const user = isGuest ? null : session?.user ?? null
   const rows = await db.select({ interest: userInterests.interest })
     .from(userInterests)
     .where(eq(userInterests.userId, userId))
