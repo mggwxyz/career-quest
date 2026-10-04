@@ -53,12 +53,14 @@ export function errorToEventFields(error: unknown) {
     }
   }
   if (typeof error === 'object' && error !== null && 'message' in error) {
-    const err = error as { message?: unknown, digest?: unknown }
+    const err = error as { name?: unknown, message?: unknown, stack?: unknown, digest?: unknown }
+    const name = typeof err.name === 'string' ? err.name : null
     const message = String(err.message ?? 'Unknown error')
+    const stack = typeof err.stack === 'string' ? err.stack : null
     const digest = typeof err.digest === 'string'
       ? err.digest
       : null
-    return { name: null, message, stack: null, digest }
+    return { name, message, stack, digest }
   }
   return {
     name: null,
