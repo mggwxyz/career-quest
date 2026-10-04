@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { useAppStore } from '@/store/appStore'
 import { useShallow } from 'zustand/react/shallow'
 import OptionCard from './_components/OptionCard'
 import IntroCard from './_components/IntroCard'
+import CompleteCard from './_components/CompleteCard'
 import ConfidenceMeter from './_components/ConfidenceMeter'
 import PeekModal from './_components/PeekModal'
 import InconsistencyModal from './_components/InconsistencyModal'
@@ -184,28 +184,7 @@ export default function PreferencesPage() {
     const showInconsistency = result.meta.inconsistencyFlag && !inconsistencyDismissed
     return (
       <>
-        <div className="text-center pt-20">
-          <h1 className="font-serif text-3xl text-foreground mb-4">Assessment Complete</h1>
-          <p className="text-lg text-muted-foreground mb-10">
-            Your Holland code:
-            {' '}
-            <strong className="text-foreground">{result.hollandCode}</strong>
-          </p>
-          <div className="flex flex-col gap-3 items-center">
-            <Link href="/discover/profile" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline">
-              View Your Profile
-            </Link>
-            <Link href="/discover/matches" className="px-8 py-3 rounded-full border border-border text-primary-soft font-medium hover:border-border-hover transition-all no-underline">
-              Explore Career Matches
-            </Link>
-            <Link href="/discover/profile/answers" className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-2 no-underline">
-              Review Your Answers
-            </Link>
-            <button type="button" onClick={handleRetake} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Start Over
-            </button>
-          </div>
-        </div>
+        <CompleteCard hollandCode={result.hollandCode} onRetake={handleRetake} />
         {showInconsistency && <InconsistencyModal onDismiss={dismissInconsistency} onRetake={handleRetake} />}
       </>
     )
