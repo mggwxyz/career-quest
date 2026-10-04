@@ -18,4 +18,13 @@ describe('InconsistencyModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /Review answers|Retake/i }))
     expect(retake).toHaveBeenCalled()
   })
+
+  it('calls onDismiss when Escape is pressed', () => {
+    const dismiss = vi.fn()
+    render(<InconsistencyModal onDismiss={dismiss} onRetake={vi.fn()} />)
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(dismiss).toHaveBeenCalledTimes(1)
+  })
 })

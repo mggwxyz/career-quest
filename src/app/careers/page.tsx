@@ -22,6 +22,13 @@ interface SearchParams {
   page?: string
 }
 
+function parsePageParam(value: string | undefined) {
+  const raw = value ?? '1'
+  if (!/^\d+$/.test(raw)) return 1
+  const page = Number(raw)
+  return Number.isSafeInteger(page) && page >= 1 ? page : 1
+}
+
 export default async function ExplorePage({
   searchParams,
 }: {
@@ -40,7 +47,7 @@ export default async function ExplorePage({
     bright: params.bright === '1',
     chatReady,
     matchesOnly,
-    page: parseInt(params.page ?? '1', 10),
+    page: parsePageParam(params.page),
   }
 
   let matchesOnetIds: string[] | undefined

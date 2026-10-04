@@ -28,6 +28,38 @@ describe('errorToEventFields', () => {
       digest: 'abc123',
     })
   })
+
+  it('extracts useful fields from error-like objects', () => {
+    expect(errorToEventFields({
+      name: 'NeonDbError',
+      message: 'fetch failed',
+      stack: 'NeonDbError: fetch failed',
+      digest: 'db-timeout',
+    })).toEqual({
+      name: 'NeonDbError',
+      message: 'fetch failed',
+      stack: 'NeonDbError: fetch failed',
+      digest: 'db-timeout',
+    })
+  })
+
+  it('uses string throws as the event message', () => {
+    expect(errorToEventFields('session expired')).toEqual({
+      name: null,
+      message: 'session expired',
+      stack: null,
+      digest: null,
+    })
+  })
+
+  it('falls back for primitive thrown values without messages', () => {
+    expect(errorToEventFields(42)).toEqual({
+      name: null,
+      message: 'Unknown error',
+      stack: null,
+      digest: null,
+    })
+  })
 })
 
 describe('captureErrorEvent', () => {
