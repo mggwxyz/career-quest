@@ -10,6 +10,11 @@ import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { containerClassName } from '../_styles/classes'
 import { ExploreFilters } from './_components/ExploreFilters'
+import {
+  CareerCompareProvider,
+  CareerCompareTray,
+  CompareToggleButton,
+} from '@/components/career-compare/CareerCompareControls'
 
 interface SearchParams {
   q?: string
@@ -66,7 +71,7 @@ export default async function ExplorePage({
   const hasMore = page * pageSize < total
 
   return (
-    <div className={`${containerClassName} min-h-[calc(100vh-5rem)]`}>
+    <div className={`${containerClassName} min-h-[calc(100vh-5rem)] pb-28`}>
       <div className="text-center mb-8 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Explore careers</h1>
         <p className="text-sm text-muted-foreground">Search and filter the full O*NET catalog</p>
@@ -75,125 +80,136 @@ export default async function ExplorePage({
         </p>
       </div>
 
-      <ExploreFilters />
+      <CareerCompareProvider>
+        <ExploreFilters />
 
-      <div className="flex items-center justify-between mt-8 mb-5">
-        <p className="text-sm text-muted-foreground">
-          <span className="text-foreground font-medium">{total.toLocaleString()}</span>
-          {' '}
-          careers match
-        </p>
-        {(filters.q || filters.riasec.length || filters.zone.length || filters.bright || filters.chatReady || filters.matchesOnly) && (
-          <Link href="/careers" className="text-sm text-primary-soft hover:underline">
-            Clear filters
-          </Link>
-        )}
-      </div>
+        <div className="flex items-center justify-between mt-8 mb-5">
+          <p className="text-sm text-muted-foreground">
+            <span className="text-foreground font-medium">{total.toLocaleString()}</span>
+            {' '}
+            careers match
+          </p>
+          {(filters.q || filters.riasec.length || filters.zone.length || filters.bright || filters.chatReady || filters.matchesOnly) && (
+            <Link href="/careers" className="text-sm text-primary-soft hover:underline">
+              Clear filters
+            </Link>
+          )}
+        </div>
 
-      {rows.length === 0
-        ? (
-          <div className="text-center py-12">
-            <div className="text-5xl mb-4">🔍</div>
-            <h2 className="font-serif text-xl text-foreground mb-3">No careers match these filters</h2>
-            <p className="text-muted-foreground max-w-lg mx-auto mb-4">Try removing a filter or searching for a different keyword.</p>
-          </div>
-        )
-        : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {rows.map(row => (
-                <Link
-                  key={row.code}
-                  href={`/careers/${row.slug}`}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
-                >
-                  {hasScene(row.code) && (
-                    <SceneImage
-                      onetId={row.code}
-                      alt={`${row.shortTitle ?? row.title} at work`}
-                      className="aspect-[3/2] w-full border-b border-border"
-                      sizes="(min-width: 768px) 50vw, 100vw"
-                    />
-                  )}
-                  <div className="p-6">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
-                        {row.shortTitle ?? row.title}
-                      </h3>
-                      {row.brightOutlook && (
-                        <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
-                          ✦ Bright
-                        </span>
-                      )}
-                    </div>
-                    {(row.shortDescription ?? row.description) && (
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                        {row.shortDescription ?? row.description}
-                      </p>
+        {rows.length === 0
+          ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4">🔍</div>
+              <h2 className="font-serif text-xl text-foreground mb-3">No careers match these filters</h2>
+              <p className="text-muted-foreground max-w-lg mx-auto mb-4">Try removing a filter or searching for a different keyword.</p>
+            </div>
+          )
+          : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {rows.map(row => (
+                  <article
+                    key={row.code}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 transition-all hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]"
+                  >
+                    {hasScene(row.code) && (
+                      <Link href={`/careers/${row.slug}`} className="block no-underline">
+                        <SceneImage
+                          onetId={row.code}
+                          alt={`${row.shortTitle ?? row.title} at work`}
+                          className="aspect-[3/2] w-full border-b border-border"
+                          sizes="(min-width: 768px) 50vw, 100vw"
+                        />
+                      </Link>
                     )}
-                    {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs">
-                        {row.salaryAnnualMedian != null
-                          ? (
-                            <span className="text-muted-foreground">
-                              <span className="text-foreground font-medium">Salary:</span>
-                              {' $'}
-                              {row.salaryAnnualMedian.toLocaleString()}
-                              /yr
+                    <div className="flex flex-1 flex-col p-6">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <Link href={`/careers/${row.slug}`} className="min-w-0 no-underline">
+                          <h3 className="text-base font-semibold text-foreground transition-colors group-hover:text-primary-soft">
+                            {row.shortTitle ?? row.title}
+                          </h3>
+                        </Link>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {row.brightOutlook && (
+                            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
+                              Bright
                             </span>
-                          )
-                          : row.salaryHourlyMedian != null
+                          )}
+                          <CompareToggleButton
+                            career={{ code: row.code, title: row.shortTitle ?? row.title, slug: row.slug }}
+                          />
+                        </div>
+                      </div>
+                      {(row.shortDescription ?? row.description) && (
+                        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                          {row.shortDescription ?? row.description}
+                        </p>
+                      )}
+                      {(row.salaryAnnualMedian != null || row.salaryHourlyMedian != null || row.outlookCategory) && (
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs">
+                          {row.salaryAnnualMedian != null
                             ? (
                               <span className="text-muted-foreground">
-                                <span className="text-foreground font-medium">Pay:</span>
+                                <span className="text-foreground font-medium">Salary:</span>
                                 {' $'}
-                                {row.salaryHourlyMedian}
-                                /hr
+                                {row.salaryAnnualMedian.toLocaleString()}
+                                /yr
                               </span>
                             )
-                            : null}
-                        {row.outlookCategory && (
-                          <span className="text-muted-foreground">
-                            <span className="text-foreground font-medium">Growth:</span>
-                            {' '}
-                            {row.outlookCategory}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {row.riasecAll.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {row.riasecAll.map(code => (
-                          <span
-                            key={code}
-                            className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border bg-background/40 text-muted-foreground"
-                          >
-                            {code}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {hasMore && (
-              <div className="flex justify-center mt-10">
-                <Link
-                  href={{
-                    pathname: '/careers',
-                    query: { ...params, page: String(page + 1) },
-                  }}
-                  className="px-7 py-3 rounded-full border border-border text-sm text-muted-foreground hover:border-border-hover hover:text-foreground transition-all no-underline"
-                  scroll={false}
-                >
-                  Load more
-                </Link>
+                            : row.salaryHourlyMedian != null
+                              ? (
+                                <span className="text-muted-foreground">
+                                  <span className="text-foreground font-medium">Pay:</span>
+                                  {' $'}
+                                  {row.salaryHourlyMedian}
+                                  /hr
+                                </span>
+                              )
+                              : null}
+                          {row.outlookCategory && (
+                            <span className="text-muted-foreground">
+                              <span className="text-foreground font-medium">Growth:</span>
+                              {' '}
+                              {row.outlookCategory}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {row.riasecAll.length > 0 && (
+                        <div className="mt-auto flex flex-wrap gap-1.5">
+                          {row.riasecAll.map(code => (
+                            <span
+                              key={code}
+                              className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border bg-background/40 text-muted-foreground"
+                            >
+                              {code}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))}
               </div>
-            )}
-          </>
-        )}
+
+              {hasMore && (
+                <div className="flex justify-center mt-10">
+                  <Link
+                    href={{
+                      pathname: '/careers',
+                      query: { ...params, page: String(page + 1) },
+                    }}
+                    className="px-7 py-3 rounded-full border border-border text-sm text-muted-foreground hover:border-border-hover hover:text-foreground transition-all no-underline"
+                    scroll={false}
+                  >
+                    Load more
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
+        <CareerCompareTray />
+      </CareerCompareProvider>
     </div>
   )
 }

@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectRoot = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineConfig({
+  root: projectRoot,
   plugins: [react()],
   css: {
     // postcss.config.mjs uses string-form plugin names ('@tailwindcss/postcss')
@@ -17,14 +21,14 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    setupFiles: ['./src/__tests__/setup.ts'],
+    setupFiles: [path.resolve(projectRoot, './src/__tests__/setup.ts')],
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,tsx}'],
     exclude: ['e2e/**', 'node_modules/**', '.next/**'],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      'server-only': path.resolve(__dirname, './src/__tests__/mocks/server-only.ts'),
+      '@': path.resolve(projectRoot, './src'),
+      'server-only': path.resolve(projectRoot, './src/__tests__/mocks/server-only.ts'),
     },
   },
 })

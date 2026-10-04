@@ -65,7 +65,11 @@ export async function getSlugsByOnetCodes(codes: string[]): Promise<Map<string, 
   return new Map([...full].map(([k, v]) => [k, v.slug]))
 }
 
-export async function getCareerDetail(code: string): Promise<CareerDetail> {
+export async function getCareerDetail(
+  code: string,
+  options: { signal?: AbortSignal } = {},
+): Promise<CareerDetail> {
+  const fetchOptions = options.signal ? { signal: options.signal } : undefined
   const [
     summaryRaw,
     knowledgeRaw,
@@ -76,14 +80,14 @@ export async function getCareerDetail(code: string): Promise<CareerDetail> {
     exploreMoreRaw,
     interestsRaw,
   ] = await Promise.all([
-    onetFetch<unknown>(`/mnm/careers/${code}`),
-    onetFetch<unknown>(`/mnm/careers/${code}/knowledge`),
-    onetFetch<unknown>(`/mnm/careers/${code}/skills`),
-    onetFetch<unknown>(`/mnm/careers/${code}/technology`),
-    onetFetch<unknown>(`/mnm/careers/${code}/education`),
-    onetFetch<unknown>(`/mnm/careers/${code}/job_outlook`),
-    onetFetch<unknown>(`/mnm/careers/${code}/explore_more`),
-    onetFetch<unknown>(`/online/occupations/${code}/summary/interests`),
+    onetFetch<unknown>(`/mnm/careers/${code}`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/knowledge`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/skills`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/technology`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/education`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/job_outlook`, fetchOptions),
+    onetFetch<unknown>(`/mnm/careers/${code}/explore_more`, fetchOptions),
+    onetFetch<unknown>(`/online/occupations/${code}/summary/interests`, fetchOptions),
   ])
 
   const summary = MnmCareerV2SummarySchema.parse(summaryRaw)
