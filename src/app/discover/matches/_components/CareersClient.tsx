@@ -7,9 +7,15 @@ import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { SceneImage } from '@/components/scene-image'
+import { CareerActionButtons } from '@/components/career-action-buttons'
+import {
+  createEmptyCareerActionState,
+  type CareerActionState,
+} from '@/lib/career/action-types'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
+  initialActionStates: Record<string, CareerActionState>
 }
 
 // Treat empty/"—" fallbacks as absent so we don't render "Growth: —" chips.
@@ -29,7 +35,7 @@ const loadingMessages = [
   'Personalizing your career recommendations...',
 ]
 
-export default function CareersClient({ initialCareers }: CareersClientProps) {
+export default function CareersClient({ initialCareers, initialActionStates }: CareersClientProps) {
   const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -133,19 +139,23 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                     transition={{ duration: 0.3, delay: index * 0.08 }}
                     className="h-full"
                   >
-                    <Link
-                      href={`/careers/${career.slug ?? career.onetId}`}
-                      className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
-                    >
-                      <SceneImage
-                        onetId={career.onetId}
-                        alt={`${career.title} at work`}
-                        className="aspect-[3/2] w-full border-b border-border"
-                        sizes="(min-width: 768px) 50vw, 100vw"
-                      />
+                    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all group">
+                      <Link href={`/careers/${career.slug ?? career.onetId}`} className="block no-underline">
+                        <SceneImage
+                          onetId={career.onetId}
+                          alt={`${career.title} at work`}
+                          className="aspect-[3/2] w-full border-b border-border"
+                          sizes="(min-width: 768px) 50vw, 100vw"
+                        />
+                      </Link>
                       <div className="flex flex-1 flex-col p-6">
                         <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">{career.title}</h3>
+                          <Link
+                            href={`/careers/${career.slug ?? career.onetId}`}
+                            className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors no-underline"
+                          >
+                            {career.title}
+                          </Link>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed mb-4">{career.description}</p>
                         {(hasMeta(career.jobGrowth) || hasMeta(career.salaryRange)) && (
@@ -171,9 +181,24 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                             <span className="text-accent font-medium">Why it fits: </span>
                             {career.whyItMatches}
                           </p>
+                          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <CareerActionButtons
+                              compact
+                              onetId={career.onetId}
+                              title={career.title}
+                              slug={career.slug}
+                              state={initialActionStates[career.onetId] ?? createEmptyCareerActionState()}
+                            />
+                            <Link
+                              href={`/careers/${career.slug ?? career.onetId}`}
+                              className="text-xs font-medium text-primary-soft hover:underline no-underline"
+                            >
+                              View details
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </Link>
+                    </article>
                   </motion.div>
                 ))}
               </div>

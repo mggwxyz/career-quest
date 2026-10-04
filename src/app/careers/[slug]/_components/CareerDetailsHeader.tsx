@@ -4,11 +4,14 @@ import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_NAMES } from '@/lib/onet/projectors'
 import { hasScene } from '@/lib/scenes'
 import { SceneImage } from '@/components/scene-image'
+import { CareerActionButtons } from '@/components/career-action-buttons'
+import type { CareerActionState } from '@/lib/career/action-types'
 
 interface Props {
   occupation: OccupationRow
   detail: CareerDetail | null
   whyItMatches: string | null
+  actionState: CareerActionState
 }
 
 function formatSalary(occupation: OccupationRow, detail: CareerDetail | null): string {
@@ -21,7 +24,7 @@ function formatSalary(occupation: OccupationRow, detail: CareerDetail | null): s
 
 const pillClass = 'text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground'
 
-export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props) {
+export function CareerDetailsHeader({ occupation, detail, whyItMatches, actionState }: Props) {
   const salary = formatSalary(occupation, detail)
   const outlookDescription = detail?.outlookDescription ?? null
 
@@ -62,6 +65,15 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
             {`Median ${salary}`}
           </span>
           <span className={pillClass}>{`Job Zone ${occupation.jobZone} · ${JOB_ZONE_NAMES[occupation.jobZone]}`}</span>
+        </div>
+
+        <div className="mt-5">
+          <CareerActionButtons
+            onetId={occupation.code}
+            title={occupation.title}
+            slug={occupation.slug}
+            state={actionState}
+          />
         </div>
 
         {whyItMatches && (

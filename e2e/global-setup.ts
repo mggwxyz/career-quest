@@ -85,7 +85,13 @@ export default async function globalSetup() {
   // Wipe any stale app data for this user id (paranoid — id is freshly minted,
   // but a UUID collision or partially-failed previous run could leave junk).
   const sql = neon(databaseUrl)
+  await sql`DELETE FROM career_user_actions WHERE user_id = ${testUser.userId}`
   await sql`DELETE FROM career_recommendations WHERE user_id = ${testUser.userId}`
+  await sql`DELETE FROM recommendation_runs WHERE user_id = ${testUser.userId}`
+  await sql`DELETE FROM assessment_responses WHERE session_id IN (SELECT id FROM assessment_sessions WHERE user_id = ${testUser.userId})`
+  await sql`DELETE FROM assessment_sessions WHERE user_id = ${testUser.userId}`
+  await sql`DELETE FROM user_interests WHERE user_id = ${testUser.userId}`
+  await sql`DELETE FROM user_profiles WHERE user_id = ${testUser.userId}`
 
   writeFileSync(TEST_USER_FILE, JSON.stringify(testUser, null, 2) + '\n')
   console.log(`[e2e] Wrote ${TEST_USER_FILE}`)

@@ -6,12 +6,22 @@ import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { getOccupationsByCodes } from '@/lib/onet/occupations'
 import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
+import {
+  createEmptyCareerActionState,
+  type CareerActionState,
+} from '@/lib/career/action-types'
+import { getCareerActionStates } from '@/lib/career/user-actions'
 
-async function getUserCareers(): Promise<CareerRecommendation[]> {
+interface UserCareersData {
+  careers: CareerRecommendation[]
+  actionStates: Record<string, CareerActionState>
+}
+
+async function getUserCareers(): Promise<UserCareersData> {
   try {
     const session = await getSession()
     if (!session?.user) {
-      return []
+      return { careers: [], actionStates: {} }
     }
     const user = session.user
 
@@ -21,7 +31,7 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       .orderBy(desc(recommendationRuns.createdAt))
       .limit(1)
     if (!latestRun) {
-      return []
+      return { careers: [], actionStates: {} }
     }
 
     const rows = await db.select()
@@ -37,7 +47,7 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     // current mirror rather than whatever was stored when the run was
     // generated. Stored fields act as fallbacks.
     const onetByCode = await getOccupationsByCodes(rows.map(r => r.onetId))
-    return rows.map(row => mergeCareerWithOnet(
+    const careers = rows.map(row => mergeCareerWithOnet(
       {
         title: row.title,
         description: row.description,
@@ -49,6 +59,17 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       },
       onetByCode.get(row.onetId),
     ))
+    const states = await getCareerActionStates(user.id, rows.map(row => row.onetId))
+
+    return {
+      careers,
+      actionStates: Object.fromEntries(
+        rows.map(row => [
+          row.onetId,
+          states.get(row.onetId) ?? createEmptyCareerActionState(),
+        ]),
+      ),
+    }
   }
   catch (error) {
     // Let Next.js handle its dynamic-rendering probe — re-throw so
@@ -58,12 +79,12 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       throw error
     }
     console.error('[careers/page] getUserCareers failed:', error)
-    return []
+    return { careers: [], actionStates: {} }
   }
 }
 
 export default async function CareersPage() {
-  const initialCareers = await getUserCareers()
+  const { careers, actionStates } = await getUserCareers()
 
-  return <CareersClient initialCareers={initialCareers} />
+  return <CareersClient initialCareers={careers} initialActionStates={actionStates} />
 }

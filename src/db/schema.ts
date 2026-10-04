@@ -4,6 +4,20 @@ import {
   timestamp, unique, uniqueIndex, uuid,
 } from 'drizzle-orm/pg-core'
 
+export const CAREER_USER_ACTION_VALUES = [
+  'save',
+  'unsave',
+  'shortlist',
+  'unshortlist',
+  'dismiss',
+  'undismiss',
+  'view',
+  'chat',
+  'note',
+] as const
+
+export type CareerUserActionValue = typeof CAREER_USER_ACTION_VALUES[number]
+
 export const careerRecommendations = pgTable('career_recommendations', {
   id: uuid().primaryKey()
     .defaultRandom(),
@@ -113,12 +127,15 @@ export const careerUserActions = pgTable('career_user_actions', {
     .defaultRandom(),
   userId: text('user_id').notNull(),
   onetId: text('onet_id').notNull(),
+  // Append-only event values are documented in CAREER_USER_ACTION_VALUES.
   action: text().notNull(),
+  note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
     .notNull(),
 }, t => [
   index('career_user_actions_user_onet_idx').on(t.userId, t.onetId),
   index('career_user_actions_user_action_idx').on(t.userId, t.action, t.createdAt),
+  index('career_user_actions_user_created_idx').on(t.userId, t.createdAt),
 ])
 
 export const onetOccupations = pgTable('onet_occupations', {

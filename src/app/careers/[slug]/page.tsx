@@ -10,6 +10,8 @@ import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
 import { getPersona } from '@/lib/personas'
 import { containerClassName } from '../../_styles/classes'
+import { getCareerActionState } from '@/lib/career/user-actions'
+import { CareerViewRecorder } from '@/components/career-view-recorder'
 
 const ONET_CODE_RE = /^\d{2}-\d{4}\.\d{2}$/
 
@@ -33,7 +35,7 @@ export default async function CareerDetailPage({
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()
 
-  const [detail, recRows] = await Promise.all([
+  const [detail, recRows, actionState] = await Promise.all([
     getCareerDetail(occupation.code).catch((err) => {
       console.error('[careers/[slug]] getCareerDetail failed:', err)
       return null
@@ -44,6 +46,7 @@ export default async function CareerDetailPage({
         eq(careerRecommendations.onetId, occupation.code),
       ))
       .limit(1),
+    getCareerActionState(session.user.id, occupation.code),
   ])
 
   const whyItMatches = recRows[0]?.whyItMatches ?? null
@@ -86,11 +89,13 @@ export default async function CareerDetailPage({
 
   return (
     <div className={containerClassName}>
+      <CareerViewRecorder onetId={occupation.code} slug={occupation.slug} />
       <div className="space-y-6">
         <CareerDetailsHeader
           occupation={occupation}
           detail={detail}
           whyItMatches={whyItMatches}
+          actionState={actionState}
         />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -105,6 +110,7 @@ export default async function CareerDetailPage({
               occupation={occupation}
               detail={detail}
               relatedCareers={relatedCareers}
+              actionState={actionState}
             />
           </div>
         </div>

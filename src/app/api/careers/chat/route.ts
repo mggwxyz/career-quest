@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getSession } from '@/lib/auth/get-session'
 import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
 import type { Persona } from '@/lib/personas/types'
+import { appendCareerUserAction } from '@/lib/career/user-actions'
 
 export const maxDuration = 30
 
@@ -88,6 +89,17 @@ export async function POST(req: Request) {
     body.recommendationContext,
     body.persona ?? null,
   )
+
+  try {
+    await appendCareerUserAction({
+      userId: session.user.id,
+      onetId: body.careerContext.onetCode,
+      action: 'chat',
+    })
+  }
+  catch (error) {
+    console.error('[api/careers/chat] failed to record chat activity:', error)
+  }
 
   const result = streamText({
     model: openai('gpt-4o'),

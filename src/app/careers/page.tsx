@@ -10,6 +10,9 @@ import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { containerClassName } from '../_styles/classes'
 import { ExploreFilters } from './_components/ExploreFilters'
+import { CareerActionButtons } from '@/components/career-action-buttons'
+import { createEmptyCareerActionState } from '@/lib/career/action-types'
+import { getCareerActionStates } from '@/lib/career/user-actions'
 
 interface SearchParams {
   q?: string
@@ -63,6 +66,7 @@ export default async function ExplorePage({
     ...filters,
     onetIds,
   })
+  const actionStates = await getCareerActionStates(session.user.id, rows.map(row => row.code))
   const hasMore = page * pageSize < total
 
   return (
@@ -102,24 +106,28 @@ export default async function ExplorePage({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {rows.map(row => (
-                <Link
+                <article
                   key={row.code}
-                  href={`/careers/${row.slug}`}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all no-underline group"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 hover:border-border-hover hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all group"
                 >
                   {hasScene(row.code) && (
-                    <SceneImage
-                      onetId={row.code}
-                      alt={`${row.shortTitle ?? row.title} at work`}
-                      className="aspect-[3/2] w-full border-b border-border"
-                      sizes="(min-width: 768px) 50vw, 100vw"
-                    />
+                    <Link href={`/careers/${row.slug}`} className="block no-underline">
+                      <SceneImage
+                        onetId={row.code}
+                        alt={`${row.shortTitle ?? row.title} at work`}
+                        className="aspect-[3/2] w-full border-b border-border"
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                      />
+                    </Link>
                   )}
                   <div className="p-6">
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors">
+                      <Link
+                        href={`/careers/${row.slug}`}
+                        className="text-base font-semibold text-foreground group-hover:text-primary-soft transition-colors no-underline"
+                      >
                         {row.shortTitle ?? row.title}
-                      </h3>
+                      </Link>
                       {row.brightOutlook && (
                         <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium bg-green-400 text-black">
                           ✦ Bright
@@ -173,8 +181,23 @@ export default async function ExplorePage({
                         ))}
                       </div>
                     )}
+                    <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                      <CareerActionButtons
+                        compact
+                        onetId={row.code}
+                        title={row.shortTitle ?? row.title}
+                        slug={row.slug}
+                        state={actionStates.get(row.code) ?? createEmptyCareerActionState()}
+                      />
+                      <Link
+                        href={`/careers/${row.slug}`}
+                        className="text-xs font-medium text-primary-soft hover:underline no-underline"
+                      >
+                        View details
+                      </Link>
+                    </div>
                   </div>
-                </Link>
+                </article>
               ))}
             </div>
 

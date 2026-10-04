@@ -3,6 +3,8 @@ import { ExternalLink, GraduationCap, Wrench } from 'lucide-react'
 import type { CareerDetail } from '@/lib/onet/schemas'
 import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_DESCRIPTIONS } from '@/lib/onet/projectors'
+import { CareerNoteForm } from '@/components/career-note-form'
+import type { CareerActionState } from '@/lib/career/action-types'
 
 interface RelatedCareer {
   code: string
@@ -14,9 +16,10 @@ interface Props {
   occupation: OccupationRow
   detail: CareerDetail | null
   relatedCareers: RelatedCareer[]
+  actionState: CareerActionState
 }
 
-export function CareerDetailsPanel({ occupation, detail, relatedCareers }: Props) {
+export function CareerDetailsPanel({ occupation, detail, relatedCareers, actionState }: Props) {
   const tasks = detail?.tasks.slice(0, 5) ?? []
   const skills = detail?.skills.slice(0, 10) ?? []
   const knowledge = detail?.knowledge.slice(0, 5) ?? []
@@ -26,6 +29,14 @@ export function CareerDetailsPanel({ occupation, detail, relatedCareers }: Props
   return (
     <div className="p-6 bg-surface/50 border border-border rounded-2xl">
       <div className="space-y-5">
+        <CareerNoteForm
+          onetId={occupation.code}
+          slug={occupation.slug}
+          initialNote={actionState.latestNote}
+        />
+
+        <div className="border-t border-border" />
+
         {tasks.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-1.5">What they do</h3>

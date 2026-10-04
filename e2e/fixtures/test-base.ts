@@ -48,6 +48,7 @@ export const test = base.extend<TestFixtures>({
       // Scoped delete: we only own this run's user_id rows. We cannot TRUNCATE
       // because neon_auth.users_sync (managed) lives in the same DB and could
       // reference rows from other concurrent test users in the future.
+      await sql`DELETE FROM career_user_actions WHERE user_id = ${testUser.userId}`
       await sql`DELETE FROM career_recommendations WHERE user_id = ${testUser.userId}`
       await sql`DELETE FROM recommendation_runs WHERE user_id = ${testUser.userId}`
       await sql`DELETE FROM assessment_responses WHERE session_id IN (SELECT id FROM assessment_sessions WHERE user_id = ${testUser.userId})`
