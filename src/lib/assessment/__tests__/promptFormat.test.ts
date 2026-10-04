@@ -56,4 +56,20 @@ describe('formatResultForPrompt', () => {
     })
     expect(text).toMatch(/tentative/i)
   })
+
+  it('calls out low-scoring RIASEC scales so recommendations can avoid overfitting weak interests', () => {
+    const text = formatResultForPrompt(SAMPLE)
+
+    expect(text).toMatch(/clearly low on R, I, C/)
+  })
+
+  it('warns the recommender when the assessment result is degenerate', () => {
+    const text = formatResultForPrompt({
+      ...SAMPLE,
+      meta: { ...SAMPLE.meta, degenerate: true },
+    })
+
+    expect(text).toMatch(/may be unreliable/i)
+    expect(text).toMatch(/too few informative responses/i)
+  })
 })
