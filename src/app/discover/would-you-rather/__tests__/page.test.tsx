@@ -70,6 +70,10 @@ vi.mock('framer-motion', () => ({
   },
 }))
 
+vi.mock('../_components/CompleteCard', () => ({
+  default: ({ hollandCode }: { hollandCode: string }) => <div data-testid="complete-card">{hollandCode}</div>,
+}))
+
 const result: AssessmentResult = {
   hollandCode: 'SA',
   riasec: {
@@ -180,8 +184,7 @@ describe('PreferencesPage', () => {
       await Promise.resolve()
     })
 
-    expect(await screen.findByRole('heading', { name: 'Assessment Complete' })).toBeInTheDocument()
-    expect(screen.getByText('SA')).toBeInTheDocument()
+    expect(await screen.findByTestId('complete-card')).toHaveTextContent('SA')
     expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/assessment/session')
     expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/assessment/result')
   })
