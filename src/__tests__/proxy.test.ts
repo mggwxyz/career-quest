@@ -15,7 +15,7 @@ vi.mock('@/lib/auth/server', () => ({
   },
 }))
 
-function request(pathname: string, init?: RequestInit) {
+function request(pathname: string, init?: ConstructorParameters<typeof NextRequest>[1]) {
   return new NextRequest(new URL(pathname, 'https://career-quest.test'), init)
 }
 

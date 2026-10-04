@@ -166,7 +166,7 @@ describe('PreferencesPage', () => {
   it('loads saved results when the active session has already stopped', async () => {
     const sessionResponse = deferredResponse()
     const resultResponse = deferredResponse()
-    const fetchMock = vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>()
+    const fetchMock = vi.fn<typeof fetch>()
       .mockReturnValueOnce(sessionResponse.promise)
       .mockReturnValueOnce(resultResponse.promise)
     vi.stubGlobal('fetch', fetchMock)
@@ -189,7 +189,7 @@ describe('PreferencesPage', () => {
   it('keeps the current question retryable when answer submission fails', async () => {
     vi.useFakeTimers()
     const item = items[0]
-    const fetchMock = vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>()
+    const fetchMock = vi.fn<typeof fetch>()
       .mockImplementation((input) => {
         if (input === '/api/assessment/response') {
           return Promise.resolve(jsonResponse({ error: 'database unavailable' }, { status: 500 }))

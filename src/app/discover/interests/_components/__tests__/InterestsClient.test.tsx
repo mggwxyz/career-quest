@@ -31,10 +31,6 @@ beforeEach(() => {
     interests: [],
     itemsAnswered: 0,
     currentItem: null,
-    posterior: null,
-    traitScores: null,
-    isComplete: false,
-    inconsistencyWarning: null,
   })
   global.fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 })) as typeof fetch
 })

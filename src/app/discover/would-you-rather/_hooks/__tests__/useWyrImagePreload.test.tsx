@@ -13,7 +13,7 @@ function Harness() {
 describe('useWyrImagePreload', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
-    delete (window as Window & { requestIdleCallback?: (cb: IdleCallback) => number }).requestIdleCallback
+    Reflect.deleteProperty(window, 'requestIdleCallback')
   })
 
   it('preloads assessment option images in idle batches only once', () => {
