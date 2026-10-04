@@ -85,14 +85,15 @@ export async function loadActiveSession(userId: string): Promise<{
 
 export function rebuildSessionFromLog(args: {
   gradeBand: GradeBand | undefined
-  responses: Array<{ itemId: string, choice: ResponseChoice, responseMs: number | null }>
+  responses: Array<{ itemId: string, choice: ResponseChoice, responseMs: number | null, respondedAt: Date | null }>
 }): { session: Session, lastAdvance: AdvanceOutput | null } {
   let session = startSession({ bank: items, gradeBand: args.gradeBand })
   let lastAdvance: AdvanceOutput | null = null
   for (const r of args.responses) {
     const item = items.find(i => i.id === r.itemId)
     if (!item) continue
-    if (r.choice === null || r.choice === undefined) continue // un-answered shown rows ignored
+    // A null choice with a response timestamp is a submitted skip.
+    if (r.respondedAt === null) continue
     lastAdvance = advance({
       session, bank: items, shownItem: item,
       choice: r.choice, responseMs: r.responseMs ?? undefined,

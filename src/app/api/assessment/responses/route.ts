@@ -1,21 +1,18 @@
 import { NextResponse } from 'next/server'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { items } from '@/app/_data/items'
 
 export async function GET() {
   try {
-    const auth = await getSession()
-    if (!auth?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const { id: userId } = await getOrCreateUserId()
 
     const [session] = await db.select({ id: assessmentSessions.id })
       .from(assessmentSessions)
       .where(and(
-        eq(assessmentSessions.userId, auth.user.id),
+        eq(assessmentSessions.userId, userId),
         isNotNull(assessmentSessions.completedAt),
       ))
       .orderBy(desc(assessmentSessions.completedAt))

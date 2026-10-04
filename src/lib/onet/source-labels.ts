@@ -1,8 +1,5 @@
-/** O*NET database release that the mirrored national data comes from. */
-export const ONET_DATABASE_VERSION = '30.3'
-
-/**
- * Human-readable attribution for O*NET-sourced figures (pay, outlook,
- * job zone, career details), rendered wherever that data is shown.
- */
-export const ONET_NATIONAL_DATA_LABEL = `O*NET ${ONET_DATABASE_VERSION} national data`
+// O*NET Web Services serves the latest production database. Verified against
+// O*NET Resource Center release notes on 2026-07-02.
+export const ONET_DATA_VERSION = 'O*NET 30.3'
+export const ONET_DATA_RELEASE = 'May 2026'
+export const ONET_NATIONAL_DATA_LABEL = `${ONET_DATA_VERSION} national data`

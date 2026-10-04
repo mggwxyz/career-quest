@@ -4,6 +4,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import './globals.css'
 import { AuthProvider } from '@/providers/auth-provider'
 import { MotionProvider } from '@/providers/motion-provider'
+import { GuestMergeOnLogin } from '@/components/guest-merge-on-login'
 import { NavigationBar } from '@/components/navigation-bar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -69,6 +70,7 @@ export default function RootLayout({
         >
           <NuqsAdapter>
             <AuthProvider>
+              <GuestMergeOnLogin />
               <MotionProvider>
                 <NavigationBar />
                 <main id="main-content" className="min-h-screen pt-20">{children}</main>

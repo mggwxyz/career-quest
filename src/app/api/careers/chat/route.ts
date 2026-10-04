@@ -1,7 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { rateLimit } from '@/lib/rate-limit'
 import { buildCareerRolePlaySystemPrompt } from '@/lib/chat/build-system-prompt'
 import type { Persona } from '@/lib/personas/types'
@@ -67,14 +67,9 @@ const BodySchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const session = await getSession()
-  if (!session?.user) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
-      status: 401, headers: { 'content-type': 'application/json' },
-    })
-  }
+  const { id: userId } = await getOrCreateUserId()
 
-  if (!rateLimit(`chat:${session.user.id}`, 20, 60_000)) {
+  if (!rateLimit(`chat:${userId}`, 20, 60_000)) {
     return new Response(JSON.stringify({ error: 'Too many requests — slow down a bit' }), {
       status: 429, headers: { 'content-type': 'application/json' },
     })

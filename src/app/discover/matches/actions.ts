@@ -3,7 +3,7 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import {
   assessmentSessions, careerRecommendations,
@@ -58,18 +58,14 @@ export async function generateCareerRecommendationsAction(): Promise<
 > {
   const startedAt = Date.now()
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return { success: false, error: 'Authentication required' }
-    }
-    const user = session.user
+    const { id: userId } = await getOrCreateUserId()
 
     // Durable rate limit on a paid gpt-4o call: at most one generation per
     // minute per user, enforced from recommendation_runs (indexed on
     // user_id + created_at), so it survives serverless instance recycling.
     const [lastRun] = await db.select({ createdAt: recommendationRuns.createdAt })
       .from(recommendationRuns)
-      .where(eq(recommendationRuns.userId, user.id))
+      .where(eq(recommendationRuns.userId, userId))
       .orderBy(desc(recommendationRuns.createdAt))
       .limit(1)
     if (lastRun?.createdAt && Date.now() - lastRun.createdAt.getTime() < 60_000) {
@@ -78,7 +74,7 @@ export async function generateCareerRecommendationsAction(): Promise<
 
     const [latest] = await db.select().from(assessmentSessions)
       .where(and(
-        eq(assessmentSessions.userId, user.id),
+        eq(assessmentSessions.userId, userId),
         isNotNull(assessmentSessions.completedAt),
       ))
       .orderBy(desc(assessmentSessions.completedAt))
@@ -89,7 +85,7 @@ export async function generateCareerRecommendationsAction(): Promise<
 
     const interestRows = await db.select({ interest: userInterests.interest })
       .from(userInterests)
-      .where(eq(userInterests.userId, user.id))
+      .where(eq(userInterests.userId, userId))
       .orderBy(userInterests.createdAt)
     const cleanInterests = sanitizeInterestsForPrompt(interestRows.map(r => r.interest))
     const profile = formatResultForPrompt(latest.result as AssessmentResult)
@@ -132,7 +128,7 @@ Respond as a JSON array.
     // the latest run that has recommendations. When we move to a node-postgres
     // or pooled driver this can become a proper `db.transaction(...)`.
     const [run] = await db.insert(recommendationRuns).values({
-      userId: user.id,
+      userId,
       sessionId: latest.id,
       interestsSnapshot: cleanInterests,
       prompt,
@@ -145,7 +141,7 @@ Respond as a JSON array.
     await db.insert(careerRecommendations).values(
       mergedCareers.map((c, i) => ({
         runId: run.id,
-        userId: user.id,
+        userId,
         rank: i + 1,
         onetId: c.onetId,
         slug: c.slug ?? null,

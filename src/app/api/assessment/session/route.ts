@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
+import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { db } from '@/db'
+import { assessmentResponses, assessmentSessions } from '@/db/schema'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import {
   abandonActiveSessionsForUser, createNewSession,
   loadActiveSession, rebuildSessionFromLog,
 } from '@/lib/assessment/serverSession'
 import { items } from '@/app/_data/items'
-import { chooseFirstItem, startSession } from '@/lib/assessment'
+import { chooseFirstItem, finalize, startSession } from '@/lib/assessment'
 
 const BodySchema = z.object({
   gradeBand: z.enum(['middle', 'early-hs', 'late-hs', 'college']).nullish()
@@ -15,17 +18,14 @@ const BodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const { id: userId } = await getOrCreateUserId()
     const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid gradeBand' }, { status: 400 })
     }
 
-    await abandonActiveSessionsForUser(session.user.id)
-    const { sessionId, firstItem } = await createNewSession(session.user.id, parsed.data.gradeBand)
+    await abandonActiveSessionsForUser(userId)
+    const { sessionId, firstItem } = await createNewSession(userId, parsed.data.gradeBand)
 
     return NextResponse.json({ sessionId, item: firstItem, itemsAnswered: 0 })
   }
@@ -37,20 +37,17 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-    const active = await loadActiveSession(session.user.id)
+    const { id: userId } = await getOrCreateUserId()
+    const active = await loadActiveSession(userId)
     if (!active) {
       return NextResponse.json({ active: null })
     }
 
-    const answered = active.responses.filter(r => r.choice !== null && r.choice !== undefined)
-    const answeredCount = answered.length
+    const submitted = active.responses.filter(r => r.respondedAt !== null)
+    const answeredCount = submitted.filter(r => r.choice === 1 || r.choice === 2).length
 
-    if (answeredCount === 0) {
-      const unanswered = active.responses.find(r => r.choice === null || r.choice === undefined)
+    if (submitted.length === 0) {
+      const unanswered = active.responses.find(r => r.respondedAt === null)
       if (unanswered) {
         const storedItem = items.find(i => i.id === unanswered.itemId)
         if (!storedItem) {
@@ -61,7 +58,7 @@ export async function GET() {
             '[api/assessment/session] GET: stored itemId %s not in bank for session %s; abandoning',
             unanswered.itemId, active.sessionId,
           )
-          await abandonActiveSessionsForUser(session.user.id)
+          await abandonActiveSessionsForUser(userId)
           return NextResponse.json({ active: null })
         }
         return NextResponse.json({
@@ -84,11 +81,29 @@ export async function GET() {
       })
     }
 
-    const { lastAdvance } = rebuildSessionFromLog({
+    const { session: engineSession, lastAdvance } = rebuildSessionFromLog({
       gradeBand: active.gradeBand,
-      responses: answered.map(a => ({ itemId: a.itemId, choice: a.choice, responseMs: a.responseMs })),
+      responses: active.responses,
     })
     if (lastAdvance?.kind === 'stop') {
+      // Replay can hit the stop cap on a session that was never finalized
+      // (e.g. a legacy skip log, or a completion write that failed after the
+      // last response). Persist completion here so /api/assessment/result
+      // returns this session's result instead of a stale or missing one.
+      const result = finalize(engineSession)
+      const completed = await db.update(assessmentSessions).set({
+        completedAt: new Date(),
+        result,
+        inconsistency: result.meta.inconsistencyFlag,
+      })
+        .where(and(
+          eq(assessmentSessions.id, active.sessionId),
+          isNull(assessmentSessions.abandonedAt),
+        ))
+        .returning({ id: assessmentSessions.id })
+      if (completed.length === 0) {
+        return NextResponse.json({ active: null })
+      }
       return NextResponse.json({
         active: {
           sessionId: active.sessionId,
@@ -102,11 +117,22 @@ export async function GET() {
     // defense-in-depth — signals DB/engine skew when log contains only unknown item IDs
     if (!lastAdvance) {
       console.warn(
-        '[api/assessment/session] GET: rebuildSessionFromLog returned no advance despite answeredCount=%d for session %s',
-        answeredCount, active.sessionId,
+        '[api/assessment/session] GET: rebuildSessionFromLog returned no advance despite submittedCount=%d for session %s',
+        submitted.length, active.sessionId,
       )
     }
     const nextItem = lastAdvance?.kind === 'next' ? lastAdvance.nextItem : null
+    if (nextItem && !active.responses.some(r => r.respondedAt === null && r.itemId === nextItem.id)) {
+      // Old skip handling either omitted the next row or logged the skipped item
+      // again. Preserve that history and make the replayed item answerable.
+      const nextPosition = Math.max(0, ...active.responses.map(r => r.position)) + 1
+      await db.insert(assessmentResponses).values({
+        sessionId: active.sessionId,
+        itemId: nextItem.id,
+        position: nextPosition,
+      })
+        .onConflictDoNothing()
+    }
     return NextResponse.json({
       active: {
         sessionId: active.sessionId,

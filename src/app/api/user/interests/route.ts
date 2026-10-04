@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { userInterests } from '@/db/schema'
 
@@ -29,28 +29,21 @@ function normalize(list: unknown[]): string[] {
 }
 
 export async function GET() {
-  const auth = await getSession()
-  if (!auth?.user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
+  const { id: userId } = await getOrCreateUserId()
   const rows = await db.select({ interest: userInterests.interest })
     .from(userInterests)
-    .where(eq(userInterests.userId, auth.user.id))
+    .where(eq(userInterests.userId, userId))
     .orderBy(userInterests.createdAt)
   return NextResponse.json({ interests: rows.map(r => r.interest) })
 }
 
 export async function POST(request: Request) {
-  const auth = await getSession()
-  if (!auth?.user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
+  const { id: userId } = await getOrCreateUserId()
   const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
   const interests = normalize(parsed.data.interests)
-  const userId = auth.user.id
 
   // The neon-http driver is stateless and has no interactive transaction
   // support (`db.transaction(...)` throws "No transactions support in

@@ -36,8 +36,11 @@ test.describe('/careers (explore)', () => {
     await page.getByPlaceholder(/Search/).fill('nurse')
     await page.getByPlaceholder(/Search/).press('Enter')
     await expect(page).toHaveURL(/q=nurse/)
-    await expect(page.getByText('Registered Nurses')).toBeVisible()
-    await expect(page.getByText('Software Developers')).not.toBeVisible()
+    // Scope to card headings: the full local catalog has neighbours (e.g. Nurse
+    // Practitioners) whose descriptions contain "Registered Nurses", which would
+    // trip strict-mode text matching.
+    await expect(page.getByRole('heading', { name: 'Registered Nurses', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Software Developers', exact: true })).not.toBeVisible()
   })
 
   test('filters by bright outlook chip', async ({ authenticatedPage: page }) => {

@@ -38,8 +38,8 @@ _Goal: zero known defects, every surface feels finished. Small, closeable items.
 ### 1.3 Hardening
 - [x] Rate limiting on AI endpoints — chat: 20 req/min + 100KB body cap + 50×8k message caps; recommendations: 1 generation/min via `recommendation_runs`
 - [x] Consistent Zod validation on all local route handler inputs (`assessment/session`, `assessment/response`, `user/interests`, `careers/chat`)
-- [ ] Error tracking (Sentry or Vercel-native) so production failures stop being invisible
-- [ ] Prune dead branches/worktrees (`.worktrees/`, stale `claude/*`) and archive `archive/` decisions
+- [x] Error tracking — Next request/client instrumentation now records server and browser failures in `app_error_events`
+- [ ] Prune dead branches/worktrees (`.worktrees/`, stale `claude/*`) and archive `archive/` decisions — audit recorded in [`docs/worktree-prune-audit-2026-07-02.md`](./worktree-prune-audit-2026-07-02.md); deletion still needs explicit destructive approval
 
 **Exit criteria:** issue tracker at zero, axe clean on core flows, no unhandled API error paths.
 
@@ -80,7 +80,7 @@ _Goal: a suite trustworthy enough that green = shippable, fast enough to run on 
 _Sequenced from the G01–G14 research backlog. Theme: from "find good careers" to "plan, compare, track, and act on careers."_
 
 ### Wave 1 — Remove friction, add memory (worktrees already exist)
-1. **G01 Guest-to-account discovery** — anonymous assessment + public career browsing, merge into account on signup. Biggest funnel unlock; everything downstream benefits.
+1. **G01 Guest-to-account discovery** — ✅ **shipped (main).** Anonymous visitors assess + browse with zero signup via a signed guest cookie (`cq_guest`, HMAC-keyed on `NEON_AUTH_COOKIE_SECRET`); on sign-in/up a client-triggered idempotent server action reassigns all guest rows to the real user. Identity resolves through `getUserId`/`getOrCreateUserId` (`src/lib/auth/identity.ts`); no schema change (all `user_id` columns are already `text`). A "save your progress" banner nudges conversion. Isolation is proven by unit tests (forgery-rejection + write-scoping) and a guest-journey Playwright spec. Biggest funnel unlock; everything downstream benefits.
 2. **G02 Career portfolio dashboard** — save/dismiss/shortlist careers, assessment history, recent activity. Turns one-shot sessions into a returning-user product.
 3. **G03 Career compare** — side-by-side 2–3 careers on fit, pay, outlook, preparation, skills.
 4. **G06 Persistent career chat memory** — threads survive reload; recent chats on dashboard.

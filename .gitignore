@@ -81,3 +81,15 @@ public/careers/scenes/*.png
 # stray dev screenshots at repo root
 /detail.png
 /explore.png
+
+# embedded goal worktrees
+/goal-*/
+
+# bonsai local tool state
+/.bonsai.toml
+/.bonsai/
+
+# local SDLC reports and verification evidence
+/.sdlc/reports/
+/.sdlc/verify/
+/.sdlc/runs/

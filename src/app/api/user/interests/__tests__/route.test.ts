@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/auth/get-session', () => ({ getSession: vi.fn() }))
+vi.mock('@/lib/auth/identity', () => ({ getOrCreateUserId: vi.fn() }))
 vi.mock('@/db', () => ({
   db: {
     transaction: vi.fn(),
@@ -12,14 +12,14 @@ vi.mock('@/db', () => ({
 }))
 
 import { GET, POST } from '../route'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 
 type Mock = ReturnType<typeof vi.fn>
 
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(getSession as Mock).mockResolvedValue({ user: { id: 'u1' } })
+  ;(getOrCreateUserId as Mock).mockResolvedValue({ id: 'u1', isGuest: false })
   // Faithfully reproduce the neon-http driver: an interactive transaction
   // throws exactly as it does in production.
   ;(db.transaction as Mock).mockImplementation(() => {
@@ -47,10 +47,12 @@ function postReq(body: unknown) {
 }
 
 describe('POST /api/user/interests', () => {
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as Mock).mockResolvedValueOnce(null)
+  it('serves a guest (no account) — saves under the guest id', async () => {
+    ;(getOrCreateUserId as Mock).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
     const res = await POST(postReq({ interests: ['Music'] }))
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
+    const batched = (db.batch as Mock).mock.calls[0][0] as Array<{ __op: string, values?: Array<{ userId: string }> }>
+    expect(batched[1].values?.[0].userId).toBe('guest_abc')
   })
 
   it('replaces interests atomically without using the unsupported neon-http interactive transaction', async () => {
@@ -121,12 +123,10 @@ describe('POST /api/user/interests', () => {
 })
 
 describe('GET /api/user/interests', () => {
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as Mock).mockResolvedValueOnce(null)
-
+  it('serves a guest — reads interests under the guest id', async () => {
+    ;(getOrCreateUserId as Mock).mockResolvedValueOnce({ id: 'guest_abc', isGuest: true })
     const res = await GET()
-
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
   })
 
   it('returns saved interests in query order', async () => {

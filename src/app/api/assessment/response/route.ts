@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { getSession } from '@/lib/auth/get-session'
+import { getOrCreateUserId } from '@/lib/auth/identity'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { finalize, ResponseChoice } from '@/lib/assessment'
@@ -21,10 +21,7 @@ const BodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await getSession()
-    if (!auth?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const { id: userId } = await getOrCreateUserId()
     const parsed = BodySchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
@@ -36,7 +33,7 @@ export async function POST(request: Request) {
     const [sessionRow] = await db.select().from(assessmentSessions)
       .where(and(
         eq(assessmentSessions.id, body.sessionId),
-        eq(assessmentSessions.userId, auth.user.id),
+        eq(assessmentSessions.userId, userId),
         isNull(assessmentSessions.completedAt),
         isNull(assessmentSessions.abandonedAt),
       ))
@@ -45,41 +42,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Session not found or inactive' }, { status: 404 })
     }
 
+    // Older sessions may contain a duplicate shown row after a submitted skip.
+    const existingRows = await db.select().from(assessmentResponses)
+      .where(eq(assessmentResponses.sessionId, body.sessionId))
+      .orderBy(assessmentResponses.position)
+    if (existingRows.some(r => r.respondedAt !== null && r.itemId === body.itemId)) {
+      return NextResponse.json({ error: 'Item not outstanding in this session' }, { status: 409 })
+    }
+
     // Record the response against the outstanding row for this item in this session
     const [shownRow] = await db.select().from(assessmentResponses)
       .where(and(
         eq(assessmentResponses.sessionId, body.sessionId),
         eq(assessmentResponses.itemId, body.itemId),
-        isNull(assessmentResponses.choice),
+        isNull(assessmentResponses.respondedAt),
       ))
       .limit(1)
     if (!shownRow) {
       return NextResponse.json({ error: 'Item not outstanding in this session' }, { status: 409 })
     }
-    await db.update(assessmentResponses)
+    const [recorded] = await db.update(assessmentResponses)
       .set({ choice, respondedAt: new Date(), responseMs: body.responseMs ?? null })
-      .where(eq(assessmentResponses.id, shownRow.id))
+      .where(and(
+        eq(assessmentResponses.id, shownRow.id),
+        isNull(assessmentResponses.respondedAt),
+      ))
+      .returning({ id: assessmentResponses.id })
+    if (!recorded) {
+      return NextResponse.json({ error: 'Item not outstanding in this session' }, { status: 409 })
+    }
 
     // Load full response log and rebuild engine state
     const allRows = await db.select().from(assessmentResponses)
       .where(eq(assessmentResponses.sessionId, body.sessionId))
       .orderBy(assessmentResponses.position)
-    const answered = allRows.filter(
-      (r): r is typeof r & { choice: 1 | 2 } => r.choice === 1 || r.choice === 2,
-    )
+    const submitted = allRows.filter(r => r.respondedAt !== null)
+    const answeredCount = submitted.filter(r => r.choice === 1 || r.choice === 2).length
 
     const { session: engineSession, lastAdvance } = rebuildSessionFromLog({
       gradeBand: isGradeBand(sessionRow.gradeBand) ? sessionRow.gradeBand : undefined,
-      responses: answered.map(r => ({
-        itemId: r.itemId, choice: r.choice, responseMs: r.responseMs,
+      responses: allRows.map(r => ({
+        itemId: r.itemId, choice: r.choice as ResponseChoice,
+        responseMs: r.responseMs, respondedAt: r.respondedAt,
       })),
     })
 
     if (!lastAdvance) {
-      // Should not happen: we just inserted an answered response, so replay must advance at least once.
+      // Should not happen: we just recorded a submitted response, so replay must advance at least once.
       console.error(
-        '[api/assessment/response] engine rebuild produced no advance for session %s (answered=%d)',
-        body.sessionId, answered.length,
+        '[api/assessment/response] engine rebuild produced no advance for session %s (submitted=%d)',
+        body.sessionId, submitted.length,
       )
       return NextResponse.json({ error: 'Engine desync: response log references unknown items' }, { status: 500 })
     }
@@ -101,18 +113,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ kind: 'stop', reason: lastAdvance.reason, result })
     }
 
-    // Record the next item as shown (unanswered row) — position is allRows.length + 1
-    const nextPosition = allRows.length + 1
-    await db.insert(assessmentResponses).values({
-      sessionId: body.sessionId,
-      itemId: lastAdvance.nextItem.id,
-      position: nextPosition,
-    })
+    // Resume may have already persisted this replayed item during the request.
+    if (!allRows.some(r => r.respondedAt === null && r.itemId === lastAdvance.nextItem.id)) {
+      const nextPosition = Math.max(0, ...allRows.map(r => r.position)) + 1
+      await db.insert(assessmentResponses).values({
+        sessionId: body.sessionId,
+        itemId: lastAdvance.nextItem.id,
+        position: nextPosition,
+      })
+        .onConflictDoNothing()
+    }
 
     return NextResponse.json({
       kind: 'next',
       item: lastAdvance.nextItem,
-      itemsAnswered: answered.length,
+      itemsAnswered: answeredCount,
       posteriorSnapshot: engineSession.posterior,
     })
   }

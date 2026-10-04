@@ -25,7 +25,9 @@ test.describe('Career detail page', () => {
     await mockChatStream(page)
     await page.goto(`/careers/${SAMPLE_SLUG}`)
     await expect(page.getByRole('heading', { name: 'Registered Nurses', exact: true })).toBeVisible()
-    await expect(page.getByText('Assess patient health.')).toBeVisible()
+    // The description renders in more than one place (header + panel); the local
+    // mirror also carries the full O*NET catalog, so scope to the first match.
+    await expect(page.getByText('Assess patient health.').first()).toBeVisible()
     await expect(page.getByText(/Job Zone 4/)).toBeVisible()
     await expect(page.getByText(/Bright Outlook/i)).toBeVisible()
   })
@@ -33,7 +35,7 @@ test.describe('Career detail page', () => {
   test('redirects O*NET code URL to canonical slug', async ({ authenticatedPage: page }) => {
     const response = await page.goto(`/careers/${SAMPLE_CODE}`)
     expect(response?.status()).toBe(200)
-    expect(page.url()).toContain(`/careers/${SAMPLE_SLUG}`)
+    await expect(page).toHaveURL(new RegExp(`/careers/${SAMPLE_SLUG}$`))
   })
 
   test('shows 404 for an unknown slug', async ({ authenticatedPage: page }) => {
@@ -70,7 +72,7 @@ test.describe('Career detail page', () => {
       VALUES (${runId}, ${userId}, 1, ${SAMPLE_CODE}, ${SAMPLE_SLUG}, 'Registered Nurses', 'd', 'You care about helping people.', 'Fast', '$80k')
     `
     await page.goto(`/careers/${SAMPLE_SLUG}`)
-    await expect(page.getByText('Why it fits you')).toBeVisible()
+    await expect(page.getByText('Why it fits you').first()).toBeVisible()
     await expect(page.getByText(/You care about helping people/)).toBeVisible()
   })
 })
