@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/auth/get-session', () => ({ getSession: vi.fn() }))
+vi.mock('@/lib/auth/principal', () => ({ getCurrentPrincipal: vi.fn() }))
 vi.mock('@/db', () => ({
   db: {
     transaction: vi.fn(),
@@ -12,14 +12,14 @@ vi.mock('@/db', () => ({
 }))
 
 import { GET, POST } from '../route'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 
 type Mock = ReturnType<typeof vi.fn>
 
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(getSession as Mock).mockResolvedValue({ user: { id: 'u1' } })
+  ;(getCurrentPrincipal as Mock).mockResolvedValue({ kind: 'user', userId: 'u1' })
   // Faithfully reproduce the neon-http driver: an interactive transaction
   // throws exactly as it does in production.
   ;(db.transaction as Mock).mockImplementation(() => {
@@ -47,10 +47,15 @@ function postReq(body: unknown) {
 }
 
 describe('POST /api/user/interests', () => {
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as Mock).mockResolvedValueOnce(null)
+  it('saves interests for a guest principal when not authenticated', async () => {
+    ;(getCurrentPrincipal as Mock).mockResolvedValueOnce({ kind: 'guest', userId: 'guest:abc' })
     const res = await POST(postReq({ interests: ['Music'] }))
-    expect(res.status).toBe(401)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body).toEqual({ interests: ['Music'] })
+    const batched = (db.batch as Mock).mock.calls[0][0] as Array<{ __op: string, values?: Array<{ userId: string, interest: string }> }>
+    expect(batched[1].values).toEqual([{ userId: 'guest:abc', interest: 'Music', source: 'manual' }])
   })
 
   it('replaces interests atomically without using the unsupported neon-http interactive transaction', async () => {
@@ -108,12 +113,20 @@ describe('POST /api/user/interests', () => {
 })
 
 describe('GET /api/user/interests', () => {
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as Mock).mockResolvedValueOnce(null)
+  it('returns guest interests when not authenticated', async () => {
+    ;(getCurrentPrincipal as Mock).mockResolvedValueOnce({ kind: 'guest', userId: 'guest:abc' })
+    const selectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([{ interest: 'Robotics' }]),
+    }
+    ;(db.select as Mock).mockReturnValueOnce(selectChain)
 
     const res = await GET()
+    const body = await res.json()
 
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
+    expect(body).toEqual({ interests: ['Robotics'] })
   })
 
   it('returns saved interests in query order', async () => {

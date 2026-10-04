@@ -31,6 +31,27 @@ export default function InterestsClient({ initialInterests }: InterestsClientPro
     }
   }, [initialInterests, interests.length, setInterests])
 
+  useEffect(() => {
+    if (initialInterests.length > 0 || interests.length > 0) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/user/interests')
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({})) as { interests?: unknown }
+        if (!cancelled && Array.isArray(data.interests)) {
+          setInterests(data.interests.filter((x): x is string => typeof x === 'string'))
+        }
+      }
+      catch (err) {
+        console.error('[InterestsClient] load failed:', err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [initialInterests.length, interests.length, setInterests])
+
   const toggleInterest = (interest: string) => {
     if (interests.includes(interest)) {
       removeInterest(interest)

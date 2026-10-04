@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm'
-import { redirect } from 'next/navigation'
 import InterestsClient from './_components/InterestsClient'
 import { getSession } from '@/lib/auth/get-session'
 import { db } from '@/db'
@@ -8,7 +7,7 @@ import { userInterests } from '@/db/schema'
 export default async function InterestsPage() {
   const auth = await getSession()
   if (!auth?.user) {
-    redirect('/auth/login?redirect=/discover/interests')
+    return <InterestsClient initialInterests={[]} />
   }
   const rows = await db.select({ interest: userInterests.interest })
     .from(userInterests)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import {
   abandonActiveSessionsForUser, createNewSession, isGradeBand,
   loadActiveSession, rebuildSessionFromLog,
@@ -9,10 +9,8 @@ import { chooseFirstItem, startSession } from '@/lib/assessment'
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const principal = await getCurrentPrincipal({ createGuest: true })
+    if (!principal) return NextResponse.json({ error: 'Unable to create session owner' }, { status: 500 })
     const body = await request.json().catch(() => ({})) as { gradeBand?: unknown }
     const gradeBand = body.gradeBand === undefined || body.gradeBand === null
       ? undefined
@@ -21,10 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid gradeBand' }, { status: 400 })
     }
 
-    await abandonActiveSessionsForUser(session.user.id)
-    const { sessionId, firstItem } = await createNewSession(session.user.id, gradeBand)
+    await abandonActiveSessionsForUser(principal.userId)
+    const { sessionId, firstItem } = await createNewSession(principal.userId, gradeBand)
 
-    return NextResponse.json({ sessionId, item: firstItem, itemsAnswered: 0 })
+    return NextResponse.json({ sessionId, item: firstItem, itemsAnswered: 0, owner: principal.kind })
   }
   catch (err) {
     console.error('[api/assessment/session] POST failed:', err)
@@ -34,11 +32,9 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-    const active = await loadActiveSession(session.user.id)
+    const principal = await getCurrentPrincipal({ createGuest: true })
+    if (!principal) return NextResponse.json({ error: 'Unable to load session owner' }, { status: 500 })
+    const active = await loadActiveSession(principal.userId)
     if (!active) {
       return NextResponse.json({ active: null })
     }
@@ -58,7 +54,7 @@ export async function GET() {
             '[api/assessment/session] GET: stored itemId %s not in bank for session %s; abandoning',
             unanswered.itemId, active.sessionId,
           )
-          await abandonActiveSessionsForUser(session.user.id)
+          await abandonActiveSessionsForUser(principal.userId)
           return NextResponse.json({ active: null })
         }
         return NextResponse.json({

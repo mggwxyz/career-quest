@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { items } from '@/app/_data/items'
 
 export async function GET() {
   try {
-    const auth = await getSession()
-    if (!auth?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const principal = await getCurrentPrincipal({ createGuest: true })
+    if (!principal) return NextResponse.json({ error: 'Unable to load responses owner' }, { status: 500 })
 
     const [session] = await db.select({ id: assessmentSessions.id })
       .from(assessmentSessions)
       .where(and(
-        eq(assessmentSessions.userId, auth.user.id),
+        eq(assessmentSessions.userId, principal.userId),
         isNotNull(assessmentSessions.completedAt),
       ))
       .orderBy(desc(assessmentSessions.completedAt))

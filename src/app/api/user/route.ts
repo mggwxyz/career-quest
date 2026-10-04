@@ -15,6 +15,7 @@ export async function GET() {
     .where(eq(userInterests.userId, user.id))
     .orderBy(userInterests.createdAt)
   return NextResponse.json({
+    id: user.id,
     email: user.email ?? null,
     firstName: user.name?.split(' ')[0] ?? null,
     lastName: user.name?.split(' ').slice(1)

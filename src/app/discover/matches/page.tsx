@@ -63,7 +63,8 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
 }
 
 export default async function CareersPage() {
+  const session = await getSession()
   const initialCareers = await getUserCareers()
 
-  return <CareersClient initialCareers={initialCareers} />
+  return <CareersClient initialCareers={initialCareers} isAuthenticated={!!session?.user} />
 }

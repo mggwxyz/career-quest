@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/auth/get-session', () => ({ getSession: vi.fn() }))
+vi.mock('@/lib/auth/principal', () => ({ getCurrentPrincipal: vi.fn() }))
 vi.mock('@/db', () => ({
   db: {
     insert: vi.fn(),
@@ -10,26 +10,46 @@ vi.mock('@/db', () => ({
 }))
 
 import { POST, GET } from '../route'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 import { items } from '@/app/_data/items'
 
 describe('POST /api/assessment/session', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    ;(getCurrentPrincipal as ReturnType<typeof vi.fn>).mockResolvedValue({ kind: 'user', userId: 'u1' })
+  })
 
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+  it('creates a guest session when not authenticated', async () => {
+    ;(getCurrentPrincipal as ReturnType<typeof vi.fn>).mockResolvedValue({ kind: 'guest', userId: 'guest:abc' })
+    const setChain = {
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue(undefined),
+    }
+    const insertChain = {
+      values: vi.fn().mockReturnThis(),
+      returning: vi.fn().mockResolvedValue([{ id: 'sess-guest' }]),
+    }
+    ;(db.update as ReturnType<typeof vi.fn>).mockReturnValue(setChain)
+    ;(db.insert as ReturnType<typeof vi.fn>).mockReturnValue(insertChain)
+
     const req = new Request('http://x/api/assessment/session', {
       method: 'POST',
       body: JSON.stringify({ gradeBand: 'middle' }),
     })
     const res = await POST(req)
-    expect(res.status).toBe(401)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.sessionId).toBe('sess-guest')
+    expect(body.owner).toBe('guest')
+    expect(insertChain.values).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'guest:abc',
+      gradeBand: 'middle',
+    }))
   })
 
   it('creates a session and returns the first item', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
-
     // Track call order so we can assert that existing active sessions are
     // abandoned (update) BEFORE the new session is created (insert).
     const calls: string[] = []
@@ -64,6 +84,7 @@ describe('POST /api/assessment/session', () => {
     const body = await res.json()
     expect(res.status).toBe(200)
     expect(body.sessionId).toBe('sess-1')
+    expect(body.owner).toBe('user')
     expect(body.item).toBeDefined()
     expect(body.item.option1).toBeDefined()
     expect(body.itemsAnswered).toBe(0)
@@ -83,7 +104,6 @@ describe('POST /api/assessment/session', () => {
   })
 
   it('rejects unknown gradeBand values', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const req = new Request('http://x/api/assessment/session', {
       method: 'POST',
       body: JSON.stringify({ gradeBand: 'kindergarten' }),
@@ -94,16 +114,12 @@ describe('POST /api/assessment/session', () => {
 })
 
 describe('GET /api/assessment/session', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-    const res = await GET()
-    expect(res.status).toBe(401)
+  beforeEach(() => {
+    vi.clearAllMocks()
+    ;(getCurrentPrincipal as ReturnType<typeof vi.fn>).mockResolvedValue({ kind: 'user', userId: 'u1' })
   })
 
   it('returns { active: null } when no active session', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const selectChain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -118,7 +134,6 @@ describe('GET /api/assessment/session', () => {
   })
 
   it('returns the stored unanswered item when an active session has zero answered responses', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const unansweredItem = items[0]
 
     // loadActiveSession performs two selects:
@@ -156,7 +171,6 @@ describe('GET /api/assessment/session', () => {
   })
 
   it('abandons a zero-answer session when its stored item is no longer in the bank', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const sessionSelectChain = {
       from: vi.fn().mockReturnThis(),
@@ -199,7 +213,6 @@ describe('GET /api/assessment/session', () => {
   })
 
   it('falls back to the first item when a zero-answer active session has no response rows', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const firstItem = items[0]
     const sessionSelectChain = {
       from: vi.fn().mockReturnThis(),

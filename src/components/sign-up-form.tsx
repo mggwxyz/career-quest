@@ -18,7 +18,9 @@ const signUpSchema = z
     path: ['repeatPassword'],
   })
 
-export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+type Props = React.ComponentPropsWithoutRef<'div'> & { redirectTo?: string }
+
+export function SignUpForm({ className, redirectTo = '/', ...props }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
@@ -43,14 +45,14 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         email,
         password,
         name: email.split('@')[0],
-        callbackURL: '/',
+        callbackURL: redirectTo,
       })
       if (error) {
         setError(error.message ?? 'An error occurred')
         setIsLoading(false)
         return
       }
-      router.push('/')
+      router.push(redirectTo)
     }
     catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred')
@@ -91,7 +93,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         <p className="text-center text-sm text-text-dim mt-5">
           Already have an account?
           {' '}
-          <Link href="/auth/login" className="text-primary-soft font-medium no-underline hover:underline">Sign in</Link>
+          <Link href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary-soft font-medium no-underline hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

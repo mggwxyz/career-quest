@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import HollandCodeHero from './_components/HollandCodeHero'
 import HollandCodeBanner from './_components/HollandCodeBanner'
@@ -10,41 +10,54 @@ import WorkValuesPills from './_components/WorkValuesPills'
 import WorkContextSliders from './_components/WorkContextSliders'
 import { Button } from '@/components/ui/button'
 import type { AssessmentResult } from '@/lib/assessment'
+import { useAuth } from '@/providers/auth-provider'
 
 export default function ProfilePage() {
+  const { loading: authLoading, isAnonymous } = useAuth()
   const [result, setResult] = useState<AssessmentResult | null>(null)
   const [profileInterests, setProfileInterests] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [resultRes, interestsRes] = await Promise.all([
-          fetch('/api/assessment/result'),
-          fetch('/api/user/interests'),
-        ])
-        const data = await resultRes.json()
-        if (!cancelled) setResult(data.result as AssessmentResult | null)
+  const loadProfile = useCallback(async (cancelled: () => boolean) => {
+    try {
+      const [resultRes, interestsRes] = await Promise.all([
+        fetch('/api/assessment/result'),
+        fetch('/api/user/interests'),
+      ])
+      const data = await resultRes.json()
+      if (!cancelled()) setResult(data.result as AssessmentResult | null)
 
-        if (interestsRes.ok) {
-          const intJson = await interestsRes.json().catch(() => ({})) as { interests?: unknown }
-          if (!cancelled && Array.isArray(intJson.interests)) {
-            setProfileInterests(intJson.interests.filter((x): x is string => typeof x === 'string'))
-          }
+      if (interestsRes.ok) {
+        const intJson = await interestsRes.json().catch(() => ({})) as { interests?: unknown }
+        if (!cancelled() && Array.isArray(intJson.interests)) {
+          setProfileInterests(intJson.interests.filter((x): x is string => typeof x === 'string'))
         }
       }
-      catch (err) {
-        console.error('[profile] fetch result failed:', err)
-      }
-      finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
+    }
+    catch (err) {
+      console.error('[profile] fetch result failed:', err)
+    }
+    finally {
+      if (!cancelled()) setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void Promise.resolve().then(() => loadProfile(() => cancelled))
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [loadProfile])
+
+  useEffect(() => {
+    const onGuestMerged = () => {
+      setLoading(true)
+      void loadProfile(() => false)
+    }
+    window.addEventListener('career-quest:guest-merged', onGuestMerged)
+    return () => window.removeEventListener('career-quest:guest-merged', onGuestMerged)
+  }, [loadProfile])
 
   if (loading) {
     return <div className="text-center pt-24 text-muted-foreground">Loading…</div>
@@ -71,6 +84,22 @@ export default function ProfilePage() {
   return (
     <>
       <HollandCodeBanner code={result.hollandCode} />
+
+      {!authLoading && isAnonymous && (
+        <div className="mb-5 rounded-xl border border-primary/25 bg-primary/10 px-5 py-4 text-center">
+          <p className="text-sm text-muted-foreground mb-3">
+            This profile is saved on this device. Create an account to keep it and continue on another device.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/auth/sign-up?redirect=/discover/profile" className="rounded-full bg-gradient-to-br from-primary to-secondary px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline shadow-[var(--shadow-glow-sm)]">
+              Sign up to save
+            </Link>
+            <Link href="/auth/login?redirect=/discover/profile" className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground no-underline transition-all hover:border-border-hover hover:text-foreground">
+              Log in
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="w-full text-center mb-4 md:mb-5">
         <ConfidenceDotsLegend className="w-full" />

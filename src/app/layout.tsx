@@ -7,6 +7,7 @@ import { MotionProvider } from '@/providers/motion-provider'
 import { NavigationBar } from '@/components/navigation-bar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { GuestMergeOnAuth } from '@/components/guest-merge-on-auth'
 
 const dmSans = DM_Sans({
   variable: '--font-dm-sans',
@@ -70,6 +71,7 @@ export default function RootLayout({
           <NuqsAdapter>
             <AuthProvider>
               <MotionProvider>
+                <GuestMergeOnAuth />
                 <NavigationBar />
                 <main id="main-content" className="min-h-screen pt-20">{children}</main>
                 <footer className="mt-16 border-t border-border/50 px-6 py-6 text-center text-xs text-muted-foreground">

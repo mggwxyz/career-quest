@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/get-session'
 import { searchOccupations } from '@/lib/onet/browse'
 import { listPersonaOnetIds } from '@/lib/personas'
@@ -27,7 +26,7 @@ export default async function ExplorePage({
   searchParams: Promise<SearchParams>
 }) {
   const session = await getSession()
-  if (!session?.user) redirect('/auth/login?redirect=/careers')
+  const isAuthenticated = !!session?.user
 
   const params = await searchParams
   const chatReady = params.chat === '1'
@@ -45,10 +44,15 @@ export default async function ExplorePage({
 
   let matchesOnetIds: string[] | undefined
   if (matchesOnly) {
-    const recRows = await db.select({ onetId: careerRecommendations.onetId })
-      .from(careerRecommendations)
-      .where(eq(careerRecommendations.userId, session.user.id))
-    matchesOnetIds = [...new Set(recRows.map(r => r.onetId))]
+    if (session?.user) {
+      const recRows = await db.select({ onetId: careerRecommendations.onetId })
+        .from(careerRecommendations)
+        .where(eq(careerRecommendations.userId, session.user.id))
+      matchesOnetIds = [...new Set(recRows.map(r => r.onetId))]
+    }
+    else {
+      matchesOnetIds = []
+    }
   }
 
   const onetIds = chatReady && matchesOnly
@@ -76,6 +80,18 @@ export default async function ExplorePage({
       </div>
 
       <ExploreFilters />
+
+      {!isAuthenticated && (
+        <div className="mt-5 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-center text-sm text-muted-foreground">
+          Browse the public catalog now.
+          {' '}
+          <Link href="/auth/sign-up?redirect=/careers" className="text-primary-soft no-underline hover:underline">
+            Create an account
+          </Link>
+          {' '}
+          to save careers and generate personal matches.
+        </div>
+      )}
 
       <div className="flex items-center justify-between mt-8 mb-5">
         <p className="text-sm text-muted-foreground">

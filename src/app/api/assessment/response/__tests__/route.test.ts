@@ -1,29 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/auth/get-session', () => ({ getSession: vi.fn() }))
+vi.mock('@/lib/auth/principal', () => ({ getCurrentPrincipal: vi.fn() }))
 vi.mock('@/db', () => ({
   db: { select: vi.fn(), insert: vi.fn(), update: vi.fn() },
 }))
 
 import { POST } from '../route'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 
 describe('POST /api/assessment/response', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    ;(getCurrentPrincipal as ReturnType<typeof vi.fn>).mockResolvedValue({ kind: 'user', userId: 'u1' })
+  })
 
-  it('returns 401 when not authenticated', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+  it('uses a guest principal when not authenticated', async () => {
+    ;(getCurrentPrincipal as ReturnType<typeof vi.fn>).mockResolvedValue({ kind: 'guest', userId: 'guest:abc' })
+    const selectChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([]),
+    }
+    ;(db.select as ReturnType<typeof vi.fn>).mockReturnValue(selectChain)
+
     const req = new Request('http://x/api/assessment/response', {
       method: 'POST',
       body: JSON.stringify({ sessionId: 's', itemId: 'i', choice: 1 }),
     })
     const res = await POST(req)
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(404)
+    expect(selectChain.where).toHaveBeenCalled()
   })
 
   it('rejects invalid choice values', async () => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const req = new Request('http://x/api/assessment/response', {
       method: 'POST',
       body: JSON.stringify({ sessionId: 's', itemId: 'i', choice: 3 }),
@@ -36,7 +46,6 @@ describe('POST /api/assessment/response', () => {
   // For valid cases we assert "not 400" (downstream DB calls surface as 404/500 because
   // we deliberately keep mocks minimal); for invalid cases we assert a hard 400.
   it.each([1, 2, null])('accepts choice=%s (not 400)', async (choice) => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     // No session row returned → handler returns 404, proving we passed validation.
     const selectChain = {
       from: vi.fn().mockReturnThis(),
@@ -54,7 +63,6 @@ describe('POST /api/assessment/response', () => {
   })
 
   it.each([0, 3, '1', 'abc'])('rejects choice=%s with 400', async (choice) => {
-    ;(getSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'u1' } })
     const req = new Request('http://x/api/assessment/response', {
       method: 'POST',
       body: JSON.stringify({ sessionId: 's', itemId: 'i', choice }),

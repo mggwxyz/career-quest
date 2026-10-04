@@ -10,6 +10,7 @@ import { SceneImage } from '@/components/scene-image'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
+  isAuthenticated: boolean
 }
 
 // Treat empty/"—" fallbacks as absent so we don't render "Growth: —" chips.
@@ -29,7 +30,7 @@ const loadingMessages = [
   'Personalizing your career recommendations...',
 ]
 
-export default function CareersClient({ initialCareers }: CareersClientProps) {
+export default function CareersClient({ initialCareers, isAuthenticated }: CareersClientProps) {
   const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +51,10 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
   }, [isPending])
 
   const generateCareerRecommendations = () => {
+    if (!isAuthenticated) {
+      setError('Create an account or log in to generate personalized career matches.')
+      return
+    }
     startTransition(async () => {
       setError(null)
       try {
@@ -116,9 +121,22 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
               <div className="text-5xl mb-4">🎯</div>
               <h2 className="font-serif text-2xl text-foreground mb-3">Ready to Find Your Perfect Career?</h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">Based on your assessment results and selected interests, we can generate personalized career recommendations.</p>
-              <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-all">
-                Generate Career Recommendations
-              </button>
+              {isAuthenticated
+                ? (
+                  <button onClick={generateCareerRecommendations} disabled={isPending} className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-all">
+                    Generate Career Recommendations
+                  </button>
+                )
+                : (
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Link href="/auth/sign-up?redirect=/discover/matches" className="px-8 py-3 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground font-semibold shadow-[var(--shadow-glow-sm)] no-underline">
+                      Sign up to generate
+                    </Link>
+                    <Link href="/auth/login?redirect=/discover/matches" className="px-8 py-3 rounded-full border border-border text-muted-foreground hover:border-border-hover transition-all no-underline">
+                      Log in
+                    </Link>
+                  </div>
+                )}
             </div>
           )
           : (

@@ -1,4 +1,5 @@
 import { Target, TrendingUp } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { CareerDetail } from '@/lib/onet/schemas'
 import type { OccupationRow } from '@/lib/onet/occupations'
 import { JOB_ZONE_NAMES } from '@/lib/onet/projectors'
@@ -9,6 +10,7 @@ interface Props {
   occupation: OccupationRow
   detail: CareerDetail | null
   whyItMatches: string | null
+  children?: ReactNode
 }
 
 function formatSalary(occupation: OccupationRow, detail: CareerDetail | null): string {
@@ -21,7 +23,7 @@ function formatSalary(occupation: OccupationRow, detail: CareerDetail | null): s
 
 const pillClass = 'text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground'
 
-export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props) {
+export function CareerDetailsHeader({ occupation, detail, whyItMatches, children }: Props) {
   const salary = formatSalary(occupation, detail)
   const outlookDescription = detail?.outlookDescription ?? null
 
@@ -37,7 +39,10 @@ export function CareerDetailsHeader({ occupation, detail, whyItMatches }: Props)
         />
       )}
       <div className="py-6 px-6">
-        <h1 className="font-serif text-2xl lg:text-3xl text-foreground mb-2">{occupation.title}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <h1 className="font-serif text-2xl lg:text-3xl text-foreground mb-2">{occupation.title}</h1>
+          {children && <div className="shrink-0">{children}</div>}
+        </div>
 
         {occupation.description && (
           <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-3xl">

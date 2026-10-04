@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 import { userInterests } from '@/db/schema'
 
@@ -23,25 +23,21 @@ function normalize(list: unknown): string[] {
 }
 
 export async function GET() {
-  const auth = await getSession()
-  if (!auth?.user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
+  const principal = await getCurrentPrincipal({ createGuest: true })
+  if (!principal) return NextResponse.json({ error: 'Unable to load interests owner' }, { status: 500 })
   const rows = await db.select({ interest: userInterests.interest })
     .from(userInterests)
-    .where(eq(userInterests.userId, auth.user.id))
+    .where(eq(userInterests.userId, principal.userId))
     .orderBy(userInterests.createdAt)
   return NextResponse.json({ interests: rows.map(r => r.interest) })
 }
 
 export async function POST(request: Request) {
-  const auth = await getSession()
-  if (!auth?.user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
+  const principal = await getCurrentPrincipal({ createGuest: true })
+  if (!principal) return NextResponse.json({ error: 'Unable to save interests owner' }, { status: 500 })
   const body = await request.json().catch(() => ({}))
   const interests = normalize((body as { interests?: unknown }).interests)
-  const userId = auth.user.id
+  const userId = principal.userId
 
   // The neon-http driver is stateless and has no interactive transaction
   // support (`db.transaction(...)` throws "No transactions support in

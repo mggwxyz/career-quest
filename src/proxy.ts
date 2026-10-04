@@ -9,12 +9,18 @@ const inner = auth.middleware({ loginUrl: '/auth/login' })
 // 307s to /auth/login. Server Actions already re-check auth via getSession(),
 // so let them through here.
 const publicPaths = new Set(['/'])
+const publicPrefixes = ['/auth', '/careers', '/discover']
 
 export async function proxy(request: NextRequest) {
   if (request.headers.get('next-action')) {
     return NextResponse.next()
   }
   if (publicPaths.has(request.nextUrl.pathname)) {
+    return NextResponse.next()
+  }
+  if (publicPrefixes.some(prefix =>
+    request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`),
+  )) {
     return NextResponse.next()
   }
   return inner(request)

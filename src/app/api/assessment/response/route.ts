@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { and, eq, isNull } from 'drizzle-orm'
-import { getSession } from '@/lib/auth/get-session'
+import { getCurrentPrincipal } from '@/lib/auth/principal'
 import { db } from '@/db'
 import { assessmentResponses, assessmentSessions } from '@/db/schema'
 import { finalize, ResponseChoice } from '@/lib/assessment'
@@ -14,10 +14,8 @@ function isValidChoice(c: unknown): c is ResponseChoice {
 
 export async function POST(request: Request) {
   try {
-    const auth = await getSession()
-    if (!auth?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const principal = await getCurrentPrincipal({ createGuest: true })
+    if (!principal) return NextResponse.json({ error: 'Unable to load session owner' }, { status: 500 })
     const body = await request.json().catch(() => ({})) as Body
     const choiceInput = body.choice ?? null
     if (!body.sessionId || !body.itemId || !isValidChoice(choiceInput)) {
@@ -29,7 +27,7 @@ export async function POST(request: Request) {
     const [sessionRow] = await db.select().from(assessmentSessions)
       .where(and(
         eq(assessmentSessions.id, body.sessionId),
-        eq(assessmentSessions.userId, auth.user.id),
+        eq(assessmentSessions.userId, principal.userId),
         isNull(assessmentSessions.completedAt),
         isNull(assessmentSessions.abandonedAt),
       ))

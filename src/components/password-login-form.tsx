@@ -56,7 +56,7 @@ export function PasswordLoginForm({ className, redirectTo = '/', ...props }: Pro
         <p className="text-center text-sm text-text-dim">
           Don&apos;t have an account?
           {' '}
-          <Link href="/auth/sign-up" className="text-primary-soft font-medium no-underline hover:underline">Sign up</Link>
+          <Link href={`/auth/sign-up?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary-soft font-medium no-underline hover:underline">Sign up</Link>
         </p>
       </form>
     </div>
