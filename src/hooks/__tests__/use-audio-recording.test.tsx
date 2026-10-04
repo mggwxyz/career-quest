@@ -41,9 +41,9 @@ describe('useAudioRecording', () => {
     ])
     const stream = { getTracks } as unknown as MediaStream
     getUserMediaMock.mockResolvedValue(stream)
-    recordAudioMock.mockImplementation(() => {
-      throw new Error('recorder unavailable')
-    })
+    // The real recordAudio is async, so setup failures surface as a
+    // rejected promise rather than a synchronous throw.
+    recordAudioMock.mockRejectedValue(new Error('recorder unavailable'))
 
     const { result } = renderHook(() =>
       useAudioRecording({

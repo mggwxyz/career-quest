@@ -32,11 +32,15 @@ export function useAudioRecording({
   const stopRecording = async () => {
     setIsRecording(false)
     setIsTranscribing(true)
+    // Take ownership of the recording so the start-failure handler in
+    // toggleListening does not also run cleanup if the promise rejects.
+    const recordingPromise = activeRecordingRef.current
+    activeRecordingRef.current = null
     try {
       // First stop the recording to get the final blob
       recordAudio.stop()
       // Wait for the recording promise to resolve with the final blob
-      const recording = await activeRecordingRef.current
+      const recording = await recordingPromise
       if (transcribeAudio) {
         const text = await transcribeAudio(recording as Blob)
         onTranscriptionComplete?.(text)
@@ -68,8 +72,23 @@ export function useAudioRecording({
         })
         setAudioStream(stream)
 
-        // Start recording with the stream
-        activeRecordingRef.current = recordAudio(stream)
+        // Start recording with the stream. recordAudio is async, so a
+        // recorder setup failure rejects this promise instead of throwing
+        // into the catch below.
+        const recordingPromise = recordAudio(stream)
+        activeRecordingRef.current = recordingPromise
+        recordingPromise.catch((error) => {
+          // Skip cleanup if stopRecording already took over this recording.
+          if (activeRecordingRef.current !== recordingPromise) {
+            return
+          }
+          console.error('Error recording audio:', error)
+          setIsListening(false)
+          setIsRecording(false)
+          stream?.getTracks().forEach(track => track.stop())
+          setAudioStream(null)
+          activeRecordingRef.current = null
+        })
       }
       catch (error) {
         console.error('Error recording audio:', error)
