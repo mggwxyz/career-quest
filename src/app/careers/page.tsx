@@ -10,6 +10,9 @@ import { careerRecommendations } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { containerClassName } from '../_styles/classes'
 import { ExploreFilters } from './_components/ExploreFilters'
+import { getLaborMarketContextForUser, getLaborMarketSummariesForOnetCodes } from '@/lib/labor-market/summary'
+import { RegionSelector } from '@/components/labor-market/RegionSelector'
+import { LocalLaborMarketInline } from '@/components/labor-market/LocalLaborMarketCard'
 
 interface SearchParams {
   q?: string
@@ -63,6 +66,11 @@ export default async function ExplorePage({
     ...filters,
     onetIds,
   })
+  const occupationByCode = new Map(rows.map(row => [row.code, row]))
+  const [laborMarketContext, laborMarketByCode] = await Promise.all([
+    getLaborMarketContextForUser(session.user.id),
+    getLaborMarketSummariesForOnetCodes(rows.map(row => row.code), session.user.id, occupationByCode),
+  ])
   const hasMore = page * pageSize < total
 
   return (
@@ -75,7 +83,15 @@ export default async function ExplorePage({
         </p>
       </div>
 
-      <ExploreFilters />
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-center">
+          <RegionSelector
+            regions={laborMarketContext.regions}
+            selectedRegionId={laborMarketContext.selectedRegion.id}
+          />
+        </div>
+        <ExploreFilters />
+      </div>
 
       <div className="flex items-center justify-between mt-8 mb-5">
         <p className="text-sm text-muted-foreground">
@@ -172,6 +188,12 @@ export default async function ExplorePage({
                           </span>
                         ))}
                       </div>
+                    )}
+                    {laborMarketByCode.get(row.code) && (
+                      <LocalLaborMarketInline
+                        summary={laborMarketByCode.get(row.code)!}
+                        className="mt-4"
+                      />
                     )}
                   </div>
                 </Link>

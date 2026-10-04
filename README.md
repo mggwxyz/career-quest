@@ -70,6 +70,7 @@ pnpm test:e2e      # playwright (e2e)
 pnpm dk:generate   # generate migration from schema.ts
 pnpm dk:migrate    # apply checked-in migration SQL
 pnpm seed:onet     # seed O*NET occupation data
+pnpm seed:labor-market # load cached OEWS/CareerOneStop-style fixture data
 ```
 
 ## Project layout

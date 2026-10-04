@@ -6,12 +6,23 @@ import CareersClient from './_components/CareersClient'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { getOccupationsByCodes } from '@/lib/onet/occupations'
 import { mergeCareerWithOnet } from '@/lib/career/recommendation-onet'
+import { getLaborMarketContextForUser, getLaborMarketSummariesForOnetCodes } from '@/lib/labor-market/summary'
+import type { LaborMarketRegion, LaborMarketSummary } from '@/lib/labor-market/types'
 
-async function getUserCareers(): Promise<CareerRecommendation[]> {
+interface MatchesPageData {
+  careers: CareerRecommendation[]
+  laborMarketByOnetId: Record<string, LaborMarketSummary>
+  laborMarketContext: {
+    regions: LaborMarketRegion[]
+    selectedRegion: LaborMarketRegion
+  } | null
+}
+
+async function getUserCareers(): Promise<MatchesPageData> {
   try {
     const session = await getSession()
     if (!session?.user) {
-      return []
+      return { careers: [], laborMarketByOnetId: {}, laborMarketContext: null }
     }
     const user = session.user
 
@@ -21,7 +32,8 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       .orderBy(desc(recommendationRuns.createdAt))
       .limit(1)
     if (!latestRun) {
-      return []
+      const laborMarketContext = await getLaborMarketContextForUser(user.id)
+      return { careers: [], laborMarketByOnetId: {}, laborMarketContext }
     }
 
     const rows = await db.select()
@@ -37,7 +49,7 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
     // current mirror rather than whatever was stored when the run was
     // generated. Stored fields act as fallbacks.
     const onetByCode = await getOccupationsByCodes(rows.map(r => r.onetId))
-    return rows.map(row => mergeCareerWithOnet(
+    const careers = rows.map(row => mergeCareerWithOnet(
       {
         title: row.title,
         description: row.description,
@@ -49,6 +61,16 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       },
       onetByCode.get(row.onetId),
     ))
+    const [laborMarketContext, laborMarketSummaries] = await Promise.all([
+      getLaborMarketContextForUser(user.id),
+      getLaborMarketSummariesForOnetCodes(careers.map(c => c.onetId), user.id, onetByCode),
+    ])
+
+    return {
+      careers,
+      laborMarketContext,
+      laborMarketByOnetId: Object.fromEntries(laborMarketSummaries),
+    }
   }
   catch (error) {
     // Let Next.js handle its dynamic-rendering probe — re-throw so
@@ -58,12 +80,18 @@ async function getUserCareers(): Promise<CareerRecommendation[]> {
       throw error
     }
     console.error('[careers/page] getUserCareers failed:', error)
-    return []
+    return { careers: [], laborMarketByOnetId: {}, laborMarketContext: null }
   }
 }
 
 export default async function CareersPage() {
-  const initialCareers = await getUserCareers()
+  const { careers, laborMarketByOnetId, laborMarketContext } = await getUserCareers()
 
-  return <CareersClient initialCareers={initialCareers} />
+  return (
+    <CareersClient
+      initialCareers={careers}
+      initialLaborMarketByOnetId={laborMarketByOnetId}
+      laborMarketContext={laborMarketContext}
+    />
+  )
 }

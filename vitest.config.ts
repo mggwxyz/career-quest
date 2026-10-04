@@ -17,7 +17,7 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    setupFiles: ['./src/__tests__/setup.ts'],
+    setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,tsx}'],
     exclude: ['e2e/**', 'node_modules/**', '.next/**'],
   },

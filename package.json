@@ -12,6 +12,7 @@
     "dk:generate": "drizzle-kit generate",
     "dk:migrate": "drizzle-kit migrate",
     "seed:onet": "tsx scripts/seed-onet.ts",
+    "seed:labor-market": "tsx scripts/ingest-local-labor-market.ts --fixture",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

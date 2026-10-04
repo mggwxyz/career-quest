@@ -10,6 +10,9 @@ import { CareerDetailsPanel } from './_components/CareerDetailsPanel'
 import { CareerRolePlayChat } from './_components/CareerRolePlayChat'
 import { getPersona } from '@/lib/personas'
 import { containerClassName } from '../../_styles/classes'
+import { getLaborMarketContextForUser, getLaborMarketSummaryForOccupation } from '@/lib/labor-market/summary'
+import { RegionSelector } from '@/components/labor-market/RegionSelector'
+import { LocalLaborMarketCard } from '@/components/labor-market/LocalLaborMarketCard'
 
 const ONET_CODE_RE = /^\d{2}-\d{4}\.\d{2}$/
 
@@ -33,7 +36,7 @@ export default async function CareerDetailPage({
   const occupation = await resolveSlug(slug)
   if (!occupation) notFound()
 
-  const [detail, recRows] = await Promise.all([
+  const [detail, recRows, laborMarketContext, laborMarketSummary] = await Promise.all([
     getCareerDetail(occupation.code).catch((err) => {
       console.error('[careers/[slug]] getCareerDetail failed:', err)
       return null
@@ -44,6 +47,8 @@ export default async function CareerDetailPage({
         eq(careerRecommendations.onetId, occupation.code),
       ))
       .limit(1),
+    getLaborMarketContextForUser(session.user.id),
+    getLaborMarketSummaryForOccupation(occupation, session.user.id),
   ])
 
   const whyItMatches = recRows[0]?.whyItMatches ?? null
@@ -87,6 +92,12 @@ export default async function CareerDetailPage({
   return (
     <div className={containerClassName}>
       <div className="space-y-6">
+        <div className="flex justify-center">
+          <RegionSelector
+            regions={laborMarketContext.regions}
+            selectedRegionId={laborMarketContext.selectedRegion.id}
+          />
+        </div>
         <CareerDetailsHeader
           occupation={occupation}
           detail={detail}
@@ -100,7 +111,8 @@ export default async function CareerDetailPage({
               persona={persona}
             />
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
+            <LocalLaborMarketCard summary={laborMarketSummary} />
             <CareerDetailsPanel
               occupation={occupation}
               detail={detail}

@@ -24,9 +24,28 @@ export const careerRecommendations = pgTable('career_recommendations', {
   index('career_recommendations_user_run_idx').on(t.userId, t.runId),
 ])
 
+export const laborMarketRegions = pgTable('labor_market_regions', {
+  id: text().primaryKey(),
+  type: text().notNull(),
+  name: text().notNull(),
+  stateCode: char('state_code', { length: 2 }),
+  parentRegionId: text('parent_region_id'),
+  blsAreaCode: text('bls_area_code'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, t => [
+  index('labor_market_regions_type_name_idx').on(t.type, t.name),
+  index('labor_market_regions_parent_idx').on(t.parentRegionId),
+])
+
 export const userProfiles = pgTable('user_profiles', {
   userId: text('user_id').primaryKey(),
   gradeBand: text('grade_band'),
+  laborMarketRegionId: text('labor_market_region_id').notNull()
+    .default('US')
+    .references(() => laborMarketRegions.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
     .notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
@@ -147,4 +166,73 @@ export const onetOccupations = pgTable('onet_occupations', {
     .where(sql`${table.brightOutlook}`),
   index('onet_occupations_riasec_idx').using('gin', table.riasecAll),
   index('onet_occupations_title_trgm').using('gin', sql`${table.title} gin_trgm_ops`),
+])
+
+export const laborMarketOccupationEstimates = pgTable('labor_market_occupation_estimates', {
+  id: uuid().primaryKey()
+    .defaultRandom(),
+  regionId: text('region_id').notNull()
+    .references(() => laborMarketRegions.id, { onDelete: 'cascade' }),
+  socCode: text('soc_code').notNull(),
+  occupationTitle: text('occupation_title'),
+  dataYear: integer('data_year').notNull(),
+  employment: integer(),
+  employmentRseTenths: integer('employment_rse_tenths'),
+  hourlyMedianWageCents: integer('hourly_median_wage_cents'),
+  annualMedianWage: integer('annual_median_wage'),
+  hourlyMeanWageCents: integer('hourly_mean_wage_cents'),
+  annualMeanWage: integer('annual_mean_wage'),
+  source: text().notNull()
+    .default('BLS OEWS'),
+  sourceUrl: text('source_url'),
+  importedAt: timestamp('imported_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, t => [
+  unique('labor_market_estimates_region_soc_year_unique')
+    .on(t.regionId, t.socCode, t.dataYear),
+  index('labor_market_estimates_soc_region_idx').on(t.socCode, t.regionId),
+  index('labor_market_estimates_region_year_idx').on(t.regionId, t.dataYear),
+])
+
+export const laborMarketTrainingOptions = pgTable('labor_market_training_options', {
+  id: uuid().primaryKey()
+    .defaultRandom(),
+  regionId: text('region_id').notNull()
+    .references(() => laborMarketRegions.id, { onDelete: 'cascade' }),
+  onetCode: text('onet_code').notNull(),
+  providerName: text('provider_name').notNull(),
+  programName: text('program_name').notNull(),
+  credentialType: text('credential_type'),
+  city: text(),
+  stateCode: char('state_code', { length: 2 }),
+  url: text(),
+  source: text().notNull()
+    .default('CareerOneStop cached'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, t => [
+  unique('labor_market_training_region_onet_program_unique')
+    .on(t.regionId, t.onetCode, t.providerName, t.programName),
+  index('labor_market_training_onet_region_idx').on(t.onetCode, t.regionId),
+])
+
+export const laborMarketJobAvailability = pgTable('labor_market_job_availability', {
+  id: uuid().primaryKey()
+    .defaultRandom(),
+  regionId: text('region_id').notNull()
+    .references(() => laborMarketRegions.id, { onDelete: 'cascade' }),
+  onetCode: text('onet_code').notNull(),
+  activePostings: integer('active_postings'),
+  annualOpenings: integer('annual_openings'),
+  source: text().notNull()
+    .default('CareerOneStop cached'),
+  sourceUrl: text('source_url'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+    .notNull(),
+}, t => [
+  unique('labor_market_jobs_region_onet_source_unique')
+    .on(t.regionId, t.onetCode, t.source),
+  index('labor_market_jobs_onet_region_idx').on(t.onetCode, t.regionId),
 ])

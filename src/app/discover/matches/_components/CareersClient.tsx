@@ -1,15 +1,24 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { generateCareerRecommendationsAction } from '../actions'
 import { toast } from 'sonner'
 import { CareerRecommendation } from '@/lib/schemas/career'
 import { SceneImage } from '@/components/scene-image'
+import type { LaborMarketRegion, LaborMarketSummary } from '@/lib/labor-market/types'
+import { RegionSelector } from '@/components/labor-market/RegionSelector'
+import { LocalLaborMarketInline } from '@/components/labor-market/LocalLaborMarketCard'
 
 interface CareersClientProps {
   initialCareers: CareerRecommendation[]
+  initialLaborMarketByOnetId: Record<string, LaborMarketSummary>
+  laborMarketContext: {
+    regions: LaborMarketRegion[]
+    selectedRegion: LaborMarketRegion
+  } | null
 }
 
 // Treat empty/"—" fallbacks as absent so we don't render "Growth: —" chips.
@@ -29,7 +38,8 @@ const loadingMessages = [
   'Personalizing your career recommendations...',
 ]
 
-export default function CareersClient({ initialCareers }: CareersClientProps) {
+export default function CareersClient({ initialCareers, initialLaborMarketByOnetId, laborMarketContext }: CareersClientProps) {
+  const router = useRouter()
   const [careers, setCareers] = useState<CareerRecommendation[]>(initialCareers)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +66,7 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
         const response = await generateCareerRecommendationsAction()
         if (response.success && response.careers) {
           setCareers(response.careers)
+          router.refresh()
         }
         else {
           const msg = response.error || 'Failed to generate recommendations'
@@ -76,6 +87,14 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
       <div className="text-center mb-10 pt-4">
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">Your Career Matches</h1>
         <p className="text-sm text-muted-foreground">Ranked by how well they fit your profile</p>
+        {laborMarketContext && (
+          <div className="mt-4 flex justify-center">
+            <RegionSelector
+              regions={laborMarketContext.regions}
+              selectedRegionId={laborMarketContext.selectedRegion.id}
+            />
+          </div>
+        )}
       </div>
 
       {/* Error state */}
@@ -165,6 +184,12 @@ export default function CareersClient({ initialCareers }: CareersClientProps) {
                               </span>
                             )}
                           </div>
+                        )}
+                        {initialLaborMarketByOnetId[career.onetId] && (
+                          <LocalLaborMarketInline
+                            summary={initialLaborMarketByOnetId[career.onetId]}
+                            className="mb-3"
+                          />
                         )}
                         <div className="mt-auto pt-3 border-t border-border">
                           <p className="text-xs text-muted-foreground leading-relaxed">
